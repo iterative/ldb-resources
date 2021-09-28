@@ -14,7 +14,7 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** s
 
 ### Contents
 
-- [How LDB works]()
+- [How LDB works](#how-ldb-works)
 - [Quick start]()
     - [Setting a new LDB instance and indexing data objects]()
     - [Staging, creation and modification of datasets]()
