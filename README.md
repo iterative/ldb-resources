@@ -15,8 +15,8 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** s
 ### Contents
 
 - [How LDB works](#how-ldb-works)
-- [Quick start]()
-    - [Setting a new LDB instance and indexing data objects]()
+- [Quick start](#quick-start)
+    - [Setting a new LDB instance and indexing data objects](#setting-new-ldb-instance)
     - [Staging, creation and modification of datasets]()
     - [Working with versions of labels and datasets](https://www.notion.so/20c881aa30fc484cbd75687f40a4b4f0)
     - [Instantiation and caching]()
@@ -43,7 +43,7 @@ Please refer to Getting Started with LDB for a full version of this document.
 
 LDB instance is a persistent structure where all information about known objects, labels and datasets is being stored. Typically there is one LDB instance per team or organization. 
 
-[Setting new LDB instance](https://www.notion.so/1519b2258d3c4b9886bedc5d5624b498)
+### Setting new LDB instance
 
 LDB assumes data objects are immutable and live in the pre-defined storage locations (cloud buckets or folders). You can add new storage locations to LDB at any time, but you cannot remove storage locations that are already referenced in the existing datasets. 
 
