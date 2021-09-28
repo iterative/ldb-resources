@@ -17,13 +17,13 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** s
 - [How LDB works](#how-ldb-works)
 - [Quick start](#quick-start)
     - [Setting a new LDB instance and indexing data objects](#setting-new-ldb-instance)
-    - [Staging, creation and modification of datasets]()
-    - [Working with versions of labels and datasets](https://www.notion.so/20c881aa30fc484cbd75687f40a4b4f0)
+    - [Staging, creation and modification of datasets](#staging-a-dataset-into-workspace)
+    - [Working with versions of labels and datasets](#dataset-versioning)
     - [Instantiation and caching]()
-- Some examples
-- [Installation]()
-- [Comparison to related technologies]()
-- [Contributing to LDB]()
+- [Some examples](#examples)
+- [Installation](#installation)
+- [Comparison to related technologies](#comparison-to-related-technologies)
+- [Contributing to LDB](contributing-to-LDB)
 
 ### How LDB works
 
@@ -52,43 +52,87 @@ LDB assumes data objects are immutable and live in the pre-defined storage locat
 | Create a new LDB instance | `$  ldb init /data/myLDB` |
 | Save LDB location into environment | `$  export LDB_ROOT=/data/myLDB` |
 
-[Registering LDB storage locations](https://www.notion.so/1d8b7be38e2f480c8c440b9f947b7651)
+### Registering LDB storage locations
+
+| Step | Command |
+| --- | --- |
+| Add a storage location | ` $  ldb add-storage gs://my-awesome-bucket/` |
+| Verify current LDB storage locations | `$  ldb status` |
 
 Once LDB is up and running, it can rebuild the index whenever new objects or annotations become available. Note, that LDB indexes only unique data objects (ignoring duplicates), and registers new label versions only if it encounters annotation updates.
 
-[Indexing and re-indexing storage ](https://www.notion.so/0800bc89fd754419bd9e81e923ea5bf3)
+### Indexing and re-indexing storage
+
+| Step | Command |
+| --- | --- |
+| Index new objects in a storage folder | `$  ldb index gs://my-awesome-bucket/new-data/` |
+| Verify that new objects appear in index | `$  ldb list ds:root` |
 
 Whenever a new dataset is required or an existing dataset needs an update, it must first be staged in the model workspace. Staging does not automatically instantiate the dataset, but creates a draft state of the dataset membership info and all metadata:
 
-[Staging a dataset into workspace](https://www.notion.so/471333b7ad964de9852889fe5b18dc4d)
+### Staging a dataset into workspace
+
+| Step | Command |
+| --- | --- |
+| Create a new dataset in the workspace | `$  ldb stage ds:my-new-dataset ./` |
+| Check the status of staged data | `$  ldb status ` |
+| List all objects in current workspace | `$  ldb list `|
 
 All subsequent dataset manipulations will apply to the staged dataset. Logical modifications to dataset staged in the workspace are usually made with ADD and DEL commands that may reference individual objects, other datasets, and employ annotation queries (see LDB queries for details.
 
-[Modifying a dataset](https://www.notion.so/2d435d4980b642329cfa35531ef97556)
+### Modifying a dataset
+
+| Step | Command |
+| --- | --- |
+| Add objects from another ds by class | `$  ldb add ds:ImageNet —query *class == "cat"` |
+| Remove all recently created objects | `$  ldb del —file mtime -1` |
+| Check status of staged dataset | `$  ldb list`|
+
 
 Staged dataset can be listed and instantiated, but modifications to it are not saved into LDB yet. To save the currently staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
 Every new commit bumps a dataset version in LDB. By default, every reference to an LDB dataset will assumes the latest version committed. Older dataset versions can be explicitly accessed with a version suffix:
 
-[Dataset versioning](https://www.notion.so/20c881aa30fc484cbd75687f40a4b4f0)
+### Dataset versioning
+
+| Step | Command |
+| --- | --- |
+| Push a new version of staged dataset | `$  ldb commit` |
+| Stage a particular version of a dataset | `$  ldb stage ds:my-cats.v3` |
+| Compare workspace to dataset version | `$  ldb diff ds:my-cats.v2`|
 
 If a dataset includes annotated objects, they will be paired with labels that were current at time of the object addition. If newer annotations become available later, updated objects can be re-added to dataset. If all labels need to be updated, this can be done with the *pull* command.
 
-[Annotation versioning](https://www.notion.so/43b577bfb5ef48afa55efe6daf1c521a)
+### Annotation versioning
+
+| Step | Command |
+| --- | --- |
+| Add an object with particular label version | `$  ldb add gs://my-awesome-bucket/1.jpg —label-version 2` |
+| Bump label version for an object to latest | `$   ldb add gs://my-awesome-bucket/1.jpg` |
+| Bump all labels in a dataset to latest | `$   ldb pull`|
 
 To examine contents of a data object (or an associated annotation), they need to be instantiated (copied from storage into workspace). Instantiation can be done for the entire dataset, or for separate objects. Instantiation re-creates annotations for objects that have them. 
 
-[Instantiation](https://www.notion.so/1511315c41ba4424a9bbccb27e247641)
+### Instantiation
+
+| Step | Command |
+| --- | --- |
+| Instantiate named dataset into folder | `$  ldb instantiate ds:my-great-dataset  /experiments/1` |
+| Instantiate one object by hashsum ref| `$  ldb instantiate 0xFFABBDE23` |
+| Instantiate all objects in workspace | `$  ldb instantiate`|
+
 
 LDB cache is an optional feature that maintains shadow copies of objects previously instantiated. Cache speeds up workflows that involve fully or partially overlapping datasets by eliminating redundant transfers of data objects from storage. Read more about it in Configuring LDB Cache.
 
 ## Examples
 
+```diff
 - Create a subset of ImageNet dataset
 - Merge cat images from COCO and ImageNet
 - Create a new class category in COCO dataset using ML model
 - Speed up teamwork with caching
 - Identify and solve potential data quality issues
+```
 
 ## Comparison to related technologies
 
@@ -102,17 +146,17 @@ Without the use of LDB, an organization facing the problem of training on better
 
 The default method for data organization in new ML projects is to create datasets by grouping data objects into named file folders. This method has an advantage of being the simplest way to bootstrap a new project, yet it comes with serious limitations:
 
-(a) Experimenting on data (adding or removing data objects) results in multiple copies of the *same* dataset with minimal changes – which is undesirable for datasets of non-trivial sizes.
+* Experimenting on data (adding or removing data objects) results in multiple copies of the *same* dataset with minimal changes – which is undesirable for datasets of non-trivial sizes.
 
-(b) Folders are not easy to slice and dice, and retain no metadata to keep track of the object provenance (which data sample came from which source dataset). 
+* Folders are not easy to slice and dice, and retain no metadata to keep track of the object provenance (which data sample came from which source dataset). 
 
-(c) Attempts to add new data objects may result in repetitions (same object under multiple names in one dataset), or data loss (data objects overwritten due to collisions in namespace).
+* Attempts to add new data objects may result in repetitions (same object under multiple names in one dataset), or data loss (data objects overwritten due to collisions in namespace).
 
-(d) Annotation updates are not tracked, which may result in annotations going stale.
+* Annotation updates are not tracked, which may result in annotations going stale.
 
-(e) Folder-level datasets are difficult to integrate with privacy policies and directives (like GDPR) that often require data storage to be immutable and limited to approved providers.
+* Folder-level datasets are difficult to integrate with privacy policies and directives (like GDPR) that often require data storage to be immutable and limited to approved providers.
 
-1. Spreadsheets, or other database-powered datasets design.
+2. Spreadsheets, or other database-powered datasets design.
 
 A reasonable step up from managing datasets in file folders is to organize them data in spreadsheets filled with object pointers (URIs of data objects living in cloud locations). 
 
@@ -120,13 +164,13 @@ This method permits for sparse datasets, where individual objects are no longer 
 
 Spreadsheets, however, still carry significant limitations: 
 
-(a) Spreadsheets do not solve the problem of repetitions (same data objects listed under different URIs), and cannot prevent annotations from going stale. Both of these functions require tracking objects by content, which spreadsheets cannot do natively.
+* Spreadsheets do not solve the problem of repetitions (same data objects listed under different URIs), and cannot prevent annotations from going stale. Both of these functions require tracking objects by content, which spreadsheets cannot do natively.
 
-(b) Spreadsheets do not provide native means to parse and query annotations alongside with their data objects. This means an ML engineer needs to compose the datasets manually, or use separate ad-hoc software to query annotations and export lists of the matching objects into spreadsheets and tables.
+* Spreadsheets do not provide native means to parse and query annotations alongside with their data objects. This means an ML engineer needs to compose the datasets manually, or use separate ad-hoc software to query annotations and export lists of the matching objects into spreadsheets and tables.
 
-(b) Use of spreadsheets and databases to document datasets forces ML engineers to use unfamiliar tools that are hard to integrate into MLOps. Forming a dataset and registering it in a database becomes a manual chore with many touching points.
+* Use of spreadsheets and databases to document datasets forces ML engineers to use unfamiliar tools that are hard to integrate into MLOps. Forming a dataset and registering it in a database becomes a manual chore with many touching points.
 
-1. Heavyweight ML frameworks.
+3. Heavyweight ML frameworks.
 
 It is fairly common to find parts of functionality offered by LDB in the large, heavyweight ML frameworks. For example, any data labeling software suite likely has some function to track annotation versions and search annotations by fields. Likewise, every end-to-end ML platform facilitates organization of input data into the datasets, at least at the folder level. 
 
@@ -142,7 +186,7 @@ Unlike these platforms, LDB follows Unix toolchain philosophy and solves exactly
 pip install ldb
 ```
 
-### b**rew (Homebrew/Mac OS)**
+### brew **(Homebrew/Mac OS)**
 
 ```bash
 brew install ldb
@@ -150,4 +194,6 @@ brew install ldb
 
 ## Contributing
 
-boilerplate contribution call to action
+```diff
+- boilerplate contribution call to action
+```
