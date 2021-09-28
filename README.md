@@ -47,6 +47,11 @@ LDB instance is a persistent structure where all information about known objects
 
 LDB assumes data objects are immutable and live in the pre-defined storage locations (cloud buckets or folders). You can add new storage locations to LDB at any time, but you cannot remove storage locations that are already referenced in the existing datasets. 
 
+| Step | Command |
+| --- | --- |
+| Create a new LDB instance | `$  ldb init /data/myLDB` |
+| Save LDB location into environment | `$  export LDB_ROOT=/data/myLDB` |
+
 [Registering LDB storage locations](https://www.notion.so/1d8b7be38e2f480c8c440b9f947b7651)
 
 Once LDB is up and running, it can rebuild the index whenever new objects or annotations become available. Note, that LDB indexes only unique data objects (ignoring duplicates), and registers new label versions only if it encounters annotation updates.
