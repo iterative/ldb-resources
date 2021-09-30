@@ -57,7 +57,7 @@ LDB assumes data objects are immutable and live in the pre-defined storage locat
 | Step | Command |
 | --- | --- |
 | Add a storage location | ` $  ldb add-storage gs://my-awesome-bucket/` |
-| Verify current LDB storage locations | `$  ldb status` |
+| Verify current LDB storage locations | `$  ldb status ds:root` |
 
 Once LDB is up and running, it can rebuild the index whenever new objects or annotations become available. Note, that LDB indexes only unique data objects (ignoring duplicates), and registers new label versions only if it encounters annotation updates.
 
