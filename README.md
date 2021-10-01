@@ -178,6 +178,15 @@ While heavyweight ML platforms can be very successful in vertical-specific appli
 
 Unlike these platforms, LDB follows Unix toolchain philosophy and solves exactly one problem – it sits between the (immutable) data storage and mutable model training workspace, and allows for reproducible and fast data-driven ML iteration cycles. This allows for easy integration with MLOps and for compatibility with any labeling software upstream and arbitrary experiment automation software downstream.
 
+4. DVC.
+
+Last, but not least question, is why one should choose LDB over DVC since both platforms provide data versioning capabilities.
+The answer is that these platforms are complementary and do not overlap. 
+
+DVC actively manages the repository, therefore DVC datasets are file folders. If an object is deleted from DVC repo, it can be restored. DVC is unaware of file contents and does not parse labels and annotations. On the other hand, LDB is an indexing service over immutable storage locations, and therefore all LDB datasets are virtual. LDB understands annotations, and can group sparse objects into datasets by field queries.
+
+If your data is indexed in immutable storage by LDB, and your models live in DVC, the two tools can work together. DVC recognizes LDB datasets as first-class objects, and LDB can utilize the shared DVC cache.
+
 ## Installation
 
 ### pip **(PyPi)**
