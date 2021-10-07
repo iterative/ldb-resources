@@ -114,16 +114,16 @@ If newer annotations will become available for the data object, they can be read
 
 A fair question when considering a new ML tool is whether it is worth the investment of time and effort to adopt. This section discusses some LDB alternatives.
 
-First and foremost, **LDB is focused on data-driven ML cycles**. This means it is most useful when data corpus is dynamic, and where the model is expressive enough to benefit from improved data samples and annotations. 
+First and foremost, **LDB is focused on Data-driven AI cycles**. This means it is most useful when data corpus is dynamic, and where the models are expressive enough to benefit from enhanced data samples and annotations. 
 
-Without the use of LDB, a team facing the problem of training on better data typically attempts to organize their data sources into datasets by one of the three common recipes: (1) datasets as named file folders, (2) datasets as spreadsheets or database pages, or (3) datasets under control of an end-to-end ML tool. All these solutions have there limits that we discuss in the greater detail [here](/documentation/alternatives-to-LDB.md).
+Without the use of LDB, a team facing the problem of progressively training on better data typically attempts to organize their data sources into datasets by one of the three common recipes: (1) datasets as named file folders, (2) datasets as spreadsheets or database pages, or (3) datasets under control of an end-to-end ML framework. All these solutions have their limits that we discuss in the greater detail [here](/documentation/alternatives-to-LDB.md).
 
-A second question is why one should choose LDB over general data versioning services (like [DVC](https://dvc.org/)) since both platforms provide data versioning capabilities.
-The answer is that capabilities of those platforms do not overlap. 
+A second question is why one should choose LDB over general data versioning services (like [DVC](https://dvc.org/)) since they can also manage the datasets.
+The answer is that capabilities of LDB and general versioning systems do not overlap. 
 
-DVC actively manages the model repository, and interprets datasets as physical file folders under full version control. On the other hand, LDB is an indexing service over immutable storage, and treats datasets as virtual entities. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
+For example, DVC actively manages the model repository, and interprets datasets as file folders under the full version control. On the other hand, LDB is an indexing service over immutable storage, and treats datasets as virtual entities. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
 
-If your data is indexed in storage by LDB while your models are run by DVC, the two tools can easily work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache.
+If your data is indexed in storage by LDB while your models are run by DVC, the two tools will work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache.
 
 ## Installation
 
