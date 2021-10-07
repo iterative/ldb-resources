@@ -1,3 +1,5 @@
+# Quick Start for Teams #
+
 When starting a shared LDB instance, the first decision is where to house it. LDB instance must reside on a disk location reachable for all team members, and fast enough for queries to operate efficiently. In the below example, a drive mounted at location `/data` is shared between the ML engineers, and LDB instance is created in folder `corporate-LDB` 
 
 ### Setting up a new LDB instance
