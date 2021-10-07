@@ -41,32 +41,10 @@ Whenever a virtual dataset needs to be instantiated (for instance, to run a mode
 
 Please refer to Getting Started with LDB for a full version of this document.
 
-LDB instance is a persistent structure where all information about known objects, labels and datasets is being stored. Typically there is one LDB instance per team or organization. 
+LDB instance is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automativally in the ~/.ldb directory first time an LDB dataset is created or an LDB query is run.
 
-### Setting new LDB instance
+To set up a shared LDB instance for a team or organization, follow Quick Start for Teams.
 
-LDB assumes data objects are immutable and live in the pre-defined storage locations (cloud buckets or folders). You can add new storage locations to LDB at any time, but you cannot remove storage locations that are already referenced in the existing datasets. 
-
-| Step | Command |
-| --- | --- |
-| Create a new LDB instance | `$  ldb init /data/myLDB` |
-| Save LDB location into environment | `$  export LDB_ROOT=/data/myLDB` |
-
-### Registering LDB storage locations
-
-| Step | Command |
-| --- | --- |
-| Add a storage location | ` $  ldb add-storage gs://my-awesome-bucket/` |
-| Verify current LDB storage locations | `$  ldb status ds:root` |
-
-Once LDB is up and running, it can rebuild the index whenever new objects or annotations become available. Note, that LDB indexes only unique data objects (ignoring duplicates), and registers new label versions only if it encounters annotation updates.
-
-### Indexing and re-indexing storage
-
-| Step | Command |
-| --- | --- |
-| Index new objects in a storage folder | `$  ldb index gs://my-awesome-bucket/new-data/` |
-| Verify that new objects appear in index | `$  ldb list ds:root` |
 
 Whenever a new dataset is required or an existing dataset needs an update, it must first be staged in the model workspace. Staging does not automatically instantiate the dataset, but creates a draft state of the dataset membership info and all metadata:
 
