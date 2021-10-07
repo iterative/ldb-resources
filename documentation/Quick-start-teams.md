@@ -36,4 +36,3 @@ Once LDB instance is set, it will maintain index of data objects and annotations
 | --- | --- |
 | Index new objects in a storage folder | `$  ldb index gs://my-awesome-bucket/new-data/` |
 | Verify that new objects appear in index | `$  ldb list ds:root` |
-
