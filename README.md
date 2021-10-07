@@ -1,15 +1,15 @@
 # α README
 
-Label Database or **LDB** is an **open-source** tool for **data-centric** science and machine learning projects. It works **upstream from model training** and intends to organize **data in your existing storage or data lake** into virtual datasets.
+Label Database or **LDB** is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to organize data in the **existing storage or data lake** into virtual datasets.
 
 **LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
 
 **Key LDB features**:
 
 *  MLOps-grade **command line** experience. Does not require installing and maintaining any databases. 
-* Lightweight management of data sources. Data objects can exist anywhere in S3, Google Cloud, Azure, or local storage. There is **no need to move or duplicate data objects** in order to create, share or modify datasets. 
-* Advanced management and versioning of datasets. Datasets can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
-* Label-aware operations. **Objects can be selected based on annotation metadata, file attributes, or custom ML model query**, and changes to ingress object metadata are versioned. 
+* Lightweight management of data sources. Data objects can exist anywhere in S3, Google Cloud, Azure, or local storage. There is **no need to move or duplicate** data objects in order to create, share or modify virtual datasets. 
+* Advanced manipulation and versioning for virtual datasets. Datasets can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
+* Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Datasets are cached during instantiation, so transfers from cloud locations are accelerated.
 
 ### Contents
@@ -22,9 +22,9 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** s
 
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage:
+LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct virtual datasets that work like collections of sparse pointers into the storage:
 
-![ldb-intro](images/ldb-intro.png)
+![ldb-intro](images/ldb-struct.png)
 
 The main use case for LDB arises when a data scientist wishes to create and maintain a persistent collection of cloud-based objects that are grouped into virtual datasets by some logical criteria (e.g. annotated with a certain class, created at given time, satisfy a particular name pattern, etc). 
 
@@ -45,7 +45,6 @@ Whenever a new dataset is required or an existing dataset needs an update, it mu
 | --- | --- |
 | Create a new dataset in the workspace | `$  ldb stage ds:my-new-dataset ./` |
 | Check the status of staged data | `$  ldb status ` |
-| List all objects in current workspace | `$  ldb list `|
 
 All subsequent dataset manipulations will apply to this staged dataset. 
 
@@ -66,23 +65,23 @@ LDB is not limited to querying existing annotations. Custom ML models can be emp
 | Add 100 objects by ML query: | `$  ldb add gs://iterative/COCO-3K —-ml clip ~= "dancing dog" --num 100` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-At this point, our virtual dataset in the workspace consists of all cat images from ImageNet, randomly sampled images from COCO, and ten images that mostly resemble dancing dogs from OpenImage. Once a virtual dataset is ready, it can be instantiated (materialized) in the desired output format to train the model.
+At this point, our virtual dataset in the workspace consists of all cat images from ImageNet, randomly sampled images from COCO, and ten images that mostly resemble dancing dogs from OpenImage. Once this dataset is ready, it can be instantiated (materialized) in the desired output format to train the model.
 
 ### Instantiation
 
 | Step | Command |
 | --- | --- |
-| Instantiate all objects into the workspace | `$  ldb instantiate --output-format coco`|
+| Instantiate all objects into the workspace in COCO format | `$  ldb instantiate --output-format coco`|
 | See the resulting physical dataset | `$  ls`|
 
 After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
 LDB can pick the resulting changes right from the workspace:
 
-### In-place modifications
+### Notifying LDB on workspace modifications
 
 | Step | Command |
 | --- | --- |
-| Pick any object or annotation changes that happened in workspace | `$  ldb add ./`|
+| Pick object list and annotation changes that happened in workspace | `$  ldb add ./`|
 
 To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
