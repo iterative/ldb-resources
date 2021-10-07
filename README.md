@@ -59,11 +59,11 @@ Logical modifications to dataset staged in the workspace are usually made with A
 | Sample objects from a location | `$  ldb add azure://iterative.ai/OpenImage-1K --sample-rate 10` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-LDB is not limited to querying existing annotations. A custom ML model can be used to provide query terms beyond JSON fields:
+LDB is not limited to querying existing annotations. Custom ML models can be employed for queries beyond JSON fields:
 
 | Step | Command |
 | --- | --- |
-| Add 100 objects by ML query: | `$  ldb add gs://iterative.ai/COCO-3K —-ml clip == "dancing dog" --num 100` |
+| Add 100 objects by ML query: | `$  ldb add gs://iterative.ai/COCO-3K —-ml clip ~= "dancing dog" --num 100` |
 | Check the status of a staged dataset | `$  ldb list`|
 
 At this point, our virtual dataset in the workspace consists of all cat images from ImageNet, randomly sampled images from COCO, and ten images that mostly resemble dancing dogs from OpenImage. Once a virtual dataset is ready, it can be instantiated (materialized) in the desired output format to train the model.
@@ -73,8 +73,9 @@ At this point, our virtual dataset in the workspace consists of all cat images f
 | Step | Command |
 | --- | --- |
 | Instantiate all objects into the workspace | `$  ldb instantiate --output-format coco`|
+| See the resulting physical dataset | `$  ls`|
 
-After examining the actual data objects and annotations, one might decide to add or remove data samples manually, or edit their annotations.
+After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
 LDB can pick the resulting changes right from the workspace:
 
 ### In-place modifications
@@ -83,7 +84,7 @@ LDB can pick the resulting changes right from the workspace:
 | --- | --- |
 | Pick any object or annotation changes that happened in workspace | `$  ldb add ./`|
 
-To save the staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
+To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
 ### Dataset saving and versioning
 
