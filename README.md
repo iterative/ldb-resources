@@ -1,6 +1,6 @@
 # α README
 
-Label Database or **LDB** is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to organize data in the **existing storage or data lake** into virtual datasets.
+Label Database or **LDB** is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the **existing storage or data lake** and use these data pointers to form datasets.
 
 **LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
 
@@ -8,7 +8,7 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** A
 
 *  MLOps-grade **command line** experience. Does not require installing and maintaining any databases. 
 * Lightweight management of data sources. Data objects can exist anywhere in S3, Google Cloud, Azure, or local storage. There is **no need to move or duplicate** data objects in order to create, share or modify virtual datasets. 
-* Advanced manipulation and versioning for virtual datasets. Datasets can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
+* Advanced manipulation and versioning for datasets. Datasets can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
 * Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Datasets are cached during instantiation, so transfers from cloud locations are accelerated.
 
@@ -22,15 +22,15 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** A
 
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct virtual datasets that work like collections of sparse pointers into the storage:
+LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve (instantiate) the datasets for training.
 
 ![ldb-intro](images/ldb-struct.png)
 
-The main use case for LDB arises when a data scientist wishes to create and maintain a persistent collection of cloud-based objects that are grouped into virtual datasets by some logical criteria (e.g. annotated with a certain class, created at given time, satisfy a particular name pattern, etc). 
+The main use case for LDB arises when a data scientist wishes to create and maintain a persistent collection of cloud-based objects that are grouped into datasets by some logical criteria (e.g. annotated with a certain class, created at given time, satisfy a particular name pattern, etc). 
 
 These virtual datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership state (cloning, merging, splitting, adding, and removing objects) easily manageable and reproducible.
 
-Whenever a virtual dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the model workspace and compiles the linked annotations. Since storage is immutable and all dataset membership state is kept within LDB, the workspace can be safely erased after the experiment is complete.
+Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the model workspace and compiles linked annotations. Since storage is immutable and all dataset membership state is kept within LDB, the workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
 Please refer to [Getting Started with LDB](documentation/Getting-started-with-LDB.md) for a full version of this document.
@@ -65,7 +65,7 @@ LDB is not limited to querying existing annotations. Custom ML models can be emp
 | Add 100 objects by ML query: | `$  ldb add gs://iterative/COCO-3K —-ml clip ~= "dog dance" --num 100` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-At this point, our virtual dataset in the workspace consists of all cat images from ImageNet, randomly sampled images from COCO, and ten images that mostly resemble dancing dogs from OpenImage. Once this dataset is ready, it can be instantiated (materialized) in the desired output format to train the model.
+At this point, our workspace holds membership info for all cat images from ImageNet, randomly sampled images from COCO, and ten images that mostly resemble dancing dogs from OpenImage. Once this dataset is ready, it can be instantiated (materialized) in the desired output format to train the model.
 
 ### Instantiation
 
@@ -118,11 +118,12 @@ First and foremost, LDB is focused on **Data-driven AI cycles**. This means it i
 Without a tool like LDB, a team facing the problem of progressively training on better data typically attempts to organize their data sources into datasets by one of the common recipes: (1) datasets as file folders, (2) datasets as spreadsheets or database pages, or (3) datasets under control of an end-to-end ML framework. All these solutions have their limits that we discuss in the greater detail [here](/documentation/alternatives-to-LDB.md).
 
 A second question is why one should choose LDB over general data versioning services (like [DVC](https://dvc.org/) or [PachyDerm](pachyderm.com) ) since they can also manage the datasets.
+
 The answer is that capabilities of LDB and general versioning systems do not overlap. 
 
 For example, DVC actively manages the model repository, and interprets datasets as file folders under the full version control where access to all objects are guaranteed. On the other hand, LDB is an indexing service over existing immutable storage, and treats datasets as collections of virtual entities. This lightweight approach relies on storage immutability to guarantee access, but offers higher speed and better flexibility in return. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
 
-If your data is indexed in storage by LDB while your models are run by DVC, the two tools will work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache. 
+If your data is indexed in storage by LDB while your models are run by DVC, the two tools will happily work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache. 
 
 ## Installation
 
