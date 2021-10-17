@@ -35,7 +35,7 @@ Whenever a dataset needs to be instantiated (for instance, to run a model experi
 ## Quick Start
 Please refer to [Getting Started with LDB](documentation/Getting-started-with-LDB.md) for a full version of this document.
 
-**LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automatically in the `~/.ldb` directory the first time an LDB dataset is created or an LDB query is run. To set up a shared LDB instance for a team or organization, please follow [Quick Start for Teams](documentation/Quick-start-teams.md).
+**LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automatically in the `~/.ldb` directory the first time an LDB dataset is created or an LDB query is run. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md).
 
 Whenever a new dataset is required or an existing dataset needs an update, it must first be staged in the model workspace. Staging does not automatically instantiate the dataset, but creates a draft state of the dataset membership info and all metadata:
 
