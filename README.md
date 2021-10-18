@@ -7,7 +7,7 @@ Label Database or **LDB** is an **open-source** tool for **data-centric** A
 **Key LDB features**:
 
 *  MLOps-grade **command line** experience. Does not require installing and maintaining any databases. 
-* Lightweight management of data sources. Data objects can exist anywhere in S3, Google Cloud, Azure, or local storage. There is **no need to move or duplicate** data objects in order to create, share or modify virtual datasets. 
+* Lightweight management of data sources. Data objects can exist anywhere in S3, Google Cloud, Azure, or local storage. There is **no need to move or duplicate** data objects in order to create, share or modify a dataset. 
 * Advanced manipulation and versioning for datasets. Datasets can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
 * Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Datasets are cached during instantiation, so transfers from cloud locations are accelerated.
@@ -28,7 +28,7 @@ LDB indexes immutable storage locations and notes all unique data objects along 
 
 The main use case for LDB arises when a data scientist wishes to create and maintain a persistent collection of cloud-based objects that are grouped into datasets by some logical criteria (e.g. annotated with a certain class, created at given time, satisfy a particular name pattern, etc). 
 
-These virtual datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership state (cloning, merging, splitting, adding, and removing objects) easily manageable and reproducible.
+These datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership state (cloning, merging, splitting, adding, and removing objects) easily manageable and reproducible.
 
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the model workspace and compiles linked annotations. Since storage is immutable and all dataset membership state is kept within LDB, the workspace can be safely erased after the experiment is complete.
 
@@ -39,7 +39,7 @@ Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for mo
 
 Whenever a new dataset is required or an existing dataset needs an update, it must first be staged in the model workspace. Staging does not automatically instantiate the dataset, but creates a draft state of the dataset membership info and all metadata:
 
-### Stage a new virtual dataset 
+### Stage a new dataset 
 
 | Step | Command |
 | --- | --- |
@@ -50,7 +50,7 @@ All subsequent dataset manipulations will apply to this staged dataset.
 
 Logical modifications to dataset staged in the workspace are usually made with ADD and DEL commands that may reference individual objects, other datasets, and employ annotation queries (see [LDB queries](documentation/LDB-queries.md) for details).
 
-### Modifying a virtual dataset
+### Modifying a dataset
 
 | Step | Command |
 | --- | --- |
@@ -121,7 +121,7 @@ A second question is why one should choose LDB over general data versioning serv
 
 The answer is that capabilities of LDB and general versioning systems do not overlap. 
 
-For example, DVC actively manages the model repository, and interprets datasets as file folders under the full version control where access to all objects are guaranteed. On the other hand, LDB is an indexing service over existing immutable storage, and treats datasets as collections of virtual entities. This lightweight approach relies on storage immutability to guarantee access, but offers higher speed and better flexibility in return. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
+For example, DVC actively manages the model repository, and interprets datasets as file folders under the full version control where access to all objects are guaranteed. On the other hand, LDB is an indexing service over existing immutable storage, and treats datasets as collections of entities. This lightweight approach relies on storage immutability to guarantee access, but offers higher speed and better flexibility in return. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
 
 If your data is indexed in storage by LDB while your models are run by DVC, the two tools will happily work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache. 
 
