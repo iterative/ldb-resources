@@ -33,7 +33,7 @@ These virtual datasets can then be shared and versioned within LDB, which makes 
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the model workspace and compiles linked annotations. Since storage is immutable and all dataset membership state is kept within LDB, the workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
-Please refer to [Getting Started with LDB](documentation/Getting-started-with-LDB.md) for a full version of this document.
+Please refer to [Getting Started with LDB](documentation/Getting-started-with-LDB.md) for more detailed workflow discussion.
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automatically in the `~/.ldb` directory the first time an LDB dataset is created or an LDB query is run. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md).
 
