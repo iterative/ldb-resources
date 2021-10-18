@@ -8,7 +8,7 @@ from [DeepLearning.AI](http://deeplearning.AI) to train a ResNet-50 model to rec
 A starter set of ~3,000 labeled images is provided, and contestants are free to compile a training set of up to 10,000 images that will perform 
 the best on the test set:
 
-![roman numerals dataset, courtesy DeepLearning.AI](images/numerals-deeplearningAI.png)
+![roman numerals dataset, courtesy DeepLearning.AI](/images/numerals-deeplearningAI.png)
 
 
 Let us assume we embark on a similar path of iterating on data. 
@@ -30,13 +30,21 @@ To demonstrate a sample workflow in LDB, let us start from creating the dataset 
 Assuming it lives in ~/roman/input let us STAGE a matching dataset named *"numerals"* in the workspace and ADD all data objects (with annotations) 
 from this directory:
 
-[Untitled](https://www.notion.so/f321fb3490ca45d2a4fc67c7b662a616)
+| Step | Command |
+| --- | --- |
+| Start a new dataset in the workspace | `$ ldb stage ds:numerals` |
+| Add objects from a given path | `$ ldb add ~/roman/input` |
+
+
 
 Now we have created a dataset named *"numerals"* in our workspace. Since LDB datasets are logical entities, no data objects were copied or moved. 
 Instead, LDB have parsed the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored 
 these pointers in the workspace. To save this dataset for further inquiries, let us push it back into LDB repository:
 
-[Untitled](https://www.notion.so/2a5cb8d81a5048418d908828786b853a)
+| Step | Command |
+| --- | --- |
+| Save dataset "numerals" into LDB, v.1 | `$ ldb commit` |
+
 
 Now let us assume we have trained a ResNet-50 network on the provided original dataset, and for each training sample acquired the output inferences 
 in annotation format where "truth" is the input object class (label), and "inference" is the network's output:
@@ -61,17 +69,26 @@ or the provided label is wrong.
 Therefore, let us isolate these objects into a separate dataset `"numerals-to-examine"`.  
 We can create it by staging a new dataset and querying annotations to ADD objects:
 
-[Untitled](https://www.notion.so/cdab6c0436d94c3eb466d217167b3ce5)
+
+| Step | Command |
+| --- | --- |
+| Start a new dataset  | `$ ldb stage ds:to-examine` |
+| Add objects missing classification | `$ ldb add ~/roman/output --query class != inference.class` |
+| Add objects with low confidence | `$ ldb add ~/roman/output --query inference.confidence < 0.75` |
+
 
 Now we created a dataset `"to-examine"` that holds references to objects we want to check manually. 
 However, there are no files to look upon in our workspace yet. This is because LDB datasets are logical entities. 
 To instantiate this dataset (transfer the relevant objects from storage location), use the INSTANTIATE command:
 
-[Untitled](https://www.notion.so/6af9e753bd25498ba10595f64a7c8169)
+| Step | Command |
+| --- | --- |
+| Instantiate "to-examine" dataset in a workspace  | `$ ldb instantiate` |
+
 
 At this point, let us assume we have got ten annotated images, which look somewhat like this: 
 
-![Courtesy: DeepLearning.ai, subset of images compiled by Pierre-Louis Bescond.](images/numerals-bescond.png)
+![Courtesy: DeepLearning.ai, subset of images compiled by Pierre-Louis Bescond.](/images/numerals-bescond.png)
 
 
 
@@ -79,11 +96,22 @@ Here, the second image in the top row is too noisy to recognize even for a human
 
 To accomplish this task, we can save the dataset "to-examine", stage our main working dataset, and subtract the former from the latter:
 
-[dataset by deepLearning.AI](images/numerals-deeplearningAI.png)
+
+| Step | Command |
+| --- | --- |
+| Save "to-examine" dataset   | `$ ldb commit` |
+| Stage "numerals" dataset | `$ ldb stage ds:numerals` |
+| Subtract contents of a dataset| `$ ldb delete ds:to-examine` |
+| Save dataset "numerals" v.2 | `$ ldb commit` |
 
 Now we have modified our working dataset and can instantiate it in workspace and re-train the model if needed. But let us pretend we do not like the result and want to roll back the changes. LDB versions datasets and annotations for each object to make it easy.  All we need to get back to the previous version is to stage it and push as a new dataset revision:
 
-[Untitled](https://www.notion.so/6eb9e6c5a0c6488f8ac663a861f13c04)
+
+| Step | Command |
+| --- | --- |
+| Stage a specific dataset version  | `$ ldb stage ds:numerals.v1` |
+| Save it as the "current" version | `$ ldb commit` |
+
 
 At this point, LDB holds two revisions of dataset "numerals", v.1 and v.2, and the former is the current version that will be checked out by default.
 
@@ -95,7 +123,7 @@ If you plan to work further on the roman numerals challenge, you will likely nee
 
 Similarly, at some point you may choose to add more images visually similar to the styles that underperform in your model. In that case, you may find queries using the helper ML models to come handy.  
 
-You can read more on LDB query language here.
+You can read more on [LDB Query Language here](LDB-Query.md).
 
 ### LDB index and storage re-indexing
 
