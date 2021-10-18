@@ -26,9 +26,8 @@ At the level of data organization, all these tasks can be reduced to manipulatin
 LDB makes the dataset manipulation and version tracking simpler by indexing unique data objects, 
 constructing the datasets by querying their metadata and content, and versioning the results.
 
-To demonstrate a sample workflow in LDB, let us start from creating the dataset that will hold all original input data. 
-Assuming it lives in `~/roman/input` let us STAGE a matching dataset named `"numerals"` in the workspace and ADD all data objects (with annotations) 
-from this directory:
+To demonstrate a sample workflow in LDB, let us start from creating a sample dataset that will hold the original (input) data for the DeepLearningAO challenge. 
+Assuming data lives in `~/roman/input` let us create a dataset named `"numerals"` in the workspace and add input data objects (with annotations):
 
 | Step | Command |
 | --- | --- |
@@ -36,38 +35,35 @@ from this directory:
 | Add objects from a given path | `$ ldb add ~/roman/input` |
 
 
-
-Now we have created a dataset named `"numerals"` in our workspace. Since LDB datasets are logical entities, no data objects were copied or moved. 
-Instead, LDB have parsed the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored 
-these pointers in the workspace. To save this dataset for further inquiries, let us push it back into LDB repository:
+Now we have created a new dataset named `"numerals"` in our workspace and filled it with input references. Since LDB datasets are logical entities, no data objects were copied or moved. Instead, LDB have parsed the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored 
+these pointers in the workspace. To save this dataset for further steps, let us save it back into LDB repository:
 
 | Step | Command |
 | --- | --- |
 | Save dataset "numerals" into LDB, v.1 | `$ ldb commit` |
 
 
-Now let us assume we have trained a ResNet-50 network on the provided original dataset, and for each training sample acquired the output inferences 
-in annotation format where "truth" is the input object class (label), and "inference" is the network's output:
+To simulate the competition backed, let us assume we have trained a ResNet-50 network on the provided (original) data, and for each training sample acquired the output inferences in JSON format where "class" is the input label, and "inference" is the output class:
 
 ```json
 {
-		   "path": "./i/125d.jpg"
-			 "class": "i",
-		   "inference": {
-				 "class": "ii",
-				 "confidence": 0.2,
-			 }
+	"path": "./i/125d.jpg",
+	"class": "i",
+	"inference": {
+			"class": "ii",
+			"confidence": 0.2,
+	},
 }
 ```
 
-For the sake of example, let us assume that output annotations were stored alongside the original data samples in a directory `~/roman/output` (yes, we know this duplicates data objects, but just bear with us for now).
+For the sake of example, let us assume these output annotations were stored alongside the original data samples in a directory `~/roman/output`.
 
-As usual for inferences, from the output annotations we can observe that some training examples were not generalized properly, 
-or their output inference probability was low. This could signal a few things: first, the underlying image could be incorrect or noisy, 
-or the provided label is wrong.
+As usual for inferences, from these output annotations we can observe that some training examples were not generalized properly, 
+or their output confidence was low. This could tell us a few things: first, the underlying data object could be noisy or incorrect, 
+or it can be paired with a wrong label.
 
-Therefore, let us isolate these objects into a separate dataset `"numerals-to-examine"`.  
-We can create it by staging a new dataset and querying annotations to ADD objects:
+To investigate futher, let us isolate these objects into a separate dataset.  
+We can create it by staging a new dataset and querying annotations from network output to add objects into it:
 
 
 | Step | Command |
@@ -77,9 +73,9 @@ We can create it by staging a new dataset and querying annotations to ADD object
 | Add objects with low confidence | `$ ldb add ~/roman/output --query inference.confidence < 0.75` |
 
 
-Now we created a dataset `"to-examine"` that holds references to objects we want to check manually. 
-However, there are no files to look upon in our workspace yet. This is because LDB datasets are logical entities. 
-To instantiate this dataset (transfer the relevant objects from storage location), use the INSTANTIATE command:
+Now we have created a dataset `"to-examine"` that holds references to objects that we want to check manually. 
+However, there are no files to examine in our workspace yet. This is because LDB datasets are logical entities. 
+To instantiate this dataset (transfer the relevant objects from storage location), we will use the INSTANTIATE command:
 
 | Step | Command |
 | --- | --- |
@@ -92,9 +88,9 @@ At this point, let us assume we have got ten annotated images, which look somewh
 
 
 
-Here, the second image in the top row is too noisy to recognize even for a human, and the third image on the bottom row clearly does not belong to a set. The very first image should have been easy to recognize, but carries the wrong annotation, while the others present challenge types the network is not dealing gracefully with.  For now, let us assume we want delete all these images from the training set going forward. 
+Here, we observe that a second image in the top row is too noisy to recognize (even for a human), and the third image on the bottom row does not belong to a set. On the other hand, the very first image should have been easy to recognize, but carries the wrong annotation, while the others present other challenge types the network is not dealing gracefully with. For now, let us assume we just want to delete all these images from the training set going forward. 
 
-To accomplish this task, we can save the dataset `"to-examine"`, stage our main working dataset, and subtract the former from the latter:
+To accomplish this task, we can save dataset `"to-examine"`, stage our main working dataset, and subtract the former from the latter:
 
 
 | Step | Command |
@@ -104,7 +100,7 @@ To accomplish this task, we can save the dataset `"to-examine"`, stage our main 
 | Subtract contents of a dataset| `$ ldb delete ds:to-examine` |
 | Save dataset "numerals" v.2 | `$ ldb commit` |
 
-Now we have modified our working dataset and can instantiate it in workspace and re-train the model if needed. But let us pretend we do not like the result and want to roll back the changes. LDB versions datasets and annotations for each object to make it easy.  All we need to get back to the previous version is to stage it and push as a new dataset revision:
+Now we have successfully modified our working dataset, and can instantiate it the workspace to re-train the model if needed. But let us pretend we do not like the result and want to roll back the changes. LDB versions the datasets and annotations for each object to make it easy. All we need to get back to the previous version is to stage it and push as a new dataset revision:
 
 
 | Step | Command |
@@ -119,7 +115,17 @@ At this point, LDB holds two revisions of dataset "numerals", v.1 and v.2, and t
 
 In a given example, we saw how a dataset can be staged, instantiated, filled, and modified.
 
-If you plan to work further on the roman numerals challenge, you will likely need more operations. For example, to add more roman numerals from other data sources, you need to find these datasets and bring them into LDB. Then you need to query them for the desired image classes and sample into your main working dataset to preserve class balance.
+If you plan to work further on the roman numerals challenge, you will likely need more operations. For example, to add more roman numerals from other data sources, you need to find these datasets and bring them into LDB. Then you need to query them for the desired image classes and sample into your main working dataset to preserve the class balance. Indexing a third-party dataset into LDB and checking for image availability in the desired class could look like this:
+
+| Step | Command |
+| --- | --- |
+| Create a new dataset  | `$ ldb stage ds:alternative-numerals` |
+| Fill it from alternative storage location | `$ ldb add gs://handwritten-numerals` |
+| Check the number of data samples in a given class | `$ ldb list --query class == "i" ` |
+| Save this dataset and stage "numerals"  | `$ ldb commit; ldb stage ds:numerals` | 
+| Fill "numerals" |   `ldb add ds:alternative-numerals --limit 100` |
+
+
 
 Similarly, at some point you may choose to add more images visually similar to the styles that underperform in your model. In that case, you may find queries using the helper ML models to come handy.  
 
@@ -129,10 +135,20 @@ You can read more on [LDB Query Language here](LDB-queries.md).
 
 So far in our example, we have assumed that LDB parses annotations during ADD command that is given location of data, and uses those key-value pairs as a basis for query filters.
 
-As your data storage grows, this assumption will no longer hold true. For instance, you could have accumulated roman numeral images from multiple sources, and no longer remember their relative paths in storage. Or you have a storage that is shared among several projects. Or you are using cloud storage, where buckets do not correspond to search terms. 
+As your data storage grows, this assumption will no longer hold true. For instance, you could have accumulated roman numeral images from multiple sources, and no longer remember their relative paths in storage. Or you have a storage that is shared among several projects. Or you are using cloud storage, where buckets do not map onto search terms. 
 
-You should be relieved to know that LDB adds every new annotation into internal database (index), that will be queried by default when no explicit path or a dataset is provided as a basis for query. 
+You should be relieved to know that LDB adds every new annotation into internal database (index), with a pseudo-name "root dataset", or simply `ds:root`. Thus, looking for a specific data object based on previously indexed annotation field or tag can look simply like this:
 
-However, this still leaves two questions in place: first, what if you want to update annotations for existing data samples? And second, if annotations are updated in LDB, what happens to datasets using old annotations?
+| Step | Command |
+| --- | --- |
+| List objects matching annotation field in index | `$ ldb list ds:root --query class == "i" ` |
+| List objects matching a tag in index  | `$ ldb list ds:root --tag "training" `| 
 
-To answer the first question, LDB support the re-indexing operation, where any storage location can be asynchronously queried for new data objects and annotations. New (previously unseen) pieces of information are added to LDB. To answer the second question, LDB keeps track of annotation versions. This means if some dataset uses a data object with annotation v.1 and later this annotation is updated to v.2, this same dataset will always check out with annotation v.1 to ensure  result reproducibility. However, any new reference to this data object will default to the updated version (v.2), so changes can be picked up if needed.
+However, just having an index that keeps previously data is not enough. When working with annotations, one key question is what to do if you want to update an annotation for existing data samples?
+
+To answer this challenge, LDB support the re-indexing operation. Re-indexing command asynchronously queries a specified storage path for new data objects and annotations and adds them to index. However, when adding an annotation, LDB also keeps the previous version (if any). This ensures that dataset using the previous annotation versions will remain reproducible.
+
+| Step | Command |
+| --- | --- |
+| Reindex objects at given location | `$ ldb index ~/roman/` |
+
