@@ -27,7 +27,7 @@ LDB makes the dataset manipulation and version tracking simpler by indexing uniq
 constructing the datasets by querying their metadata and content, and versioning the results.
 
 To demonstrate a sample workflow in LDB, let us start from creating the dataset that will hold all original input data. 
-Assuming it lives in ~/roman/input let us STAGE a matching dataset named `"numerals"` in the workspace and ADD all data objects (with annotations) 
+Assuming it lives in `~/roman/input` let us STAGE a matching dataset named `"numerals"` in the workspace and ADD all data objects (with annotations) 
 from this directory:
 
 | Step | Command |
