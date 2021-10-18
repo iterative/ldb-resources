@@ -27,7 +27,7 @@ LDB makes the dataset manipulation and version tracking simpler by indexing uniq
 constructing the datasets by querying their metadata and content, and versioning the results.
 
 To demonstrate a sample workflow in LDB, let us start from creating the dataset that will hold all original input data. 
-Assuming it lives in ~/roman/input let us STAGE a matching dataset named *"numerals"* in the workspace and ADD all data objects (with annotations) 
+Assuming it lives in ~/roman/input let us STAGE a matching dataset named `"numerals"` in the workspace and ADD all data objects (with annotations) 
 from this directory:
 
 | Step | Command |
@@ -37,7 +37,7 @@ from this directory:
 
 
 
-Now we have created a dataset named *"numerals"* in our workspace. Since LDB datasets are logical entities, no data objects were copied or moved. 
+Now we have created a dataset named `"numerals"` in our workspace. Since LDB datasets are logical entities, no data objects were copied or moved. 
 Instead, LDB have parsed the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored 
 these pointers in the workspace. To save this dataset for further inquiries, let us push it back into LDB repository:
 
@@ -94,7 +94,7 @@ At this point, let us assume we have got ten annotated images, which look somewh
 
 Here, the second image in the top row is too noisy to recognize even for a human, and the third image on the bottom row clearly does not belong to a set. The very first image should have been easy to recognize, but carries the wrong annotation, while the others present challenge types the network is not dealing gracefully with.  For now, let us assume we want delete all these images from the training set going forward. 
 
-To accomplish this task, we can save the dataset "to-examine", stage our main working dataset, and subtract the former from the latter:
+To accomplish this task, we can save the dataset `"to-examine"`, stage our main working dataset, and subtract the former from the latter:
 
 
 | Step | Command |
@@ -123,7 +123,7 @@ If you plan to work further on the roman numerals challenge, you will likely nee
 
 Similarly, at some point you may choose to add more images visually similar to the styles that underperform in your model. In that case, you may find queries using the helper ML models to come handy.  
 
-You can read more on [LDB Query Language here](LDB-Query.md).
+You can read more on [LDB Query Language here](LDB-queries.md).
 
 ### LDB index and storage re-indexing
 
