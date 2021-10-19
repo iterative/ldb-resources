@@ -61,7 +61,7 @@ As usual for inferences, from these output samples we can observe that some trai
 or their prediction confidence remained low. This could tell us a few things: first, the underlying data object could be noisy or incorrect, 
 or it could be paired with a wrong label.
 
-To investigate futher, let us isolate these objects into a separate dataset.  
+To investigate further, let us isolate these objects into a separate dataset.  
 We can create it by staging a new dataset and querying annotations from network output to add objects into it:
 
 
