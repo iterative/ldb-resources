@@ -142,4 +142,3 @@ To answer this challenge, LDB support the re-indexing operation and annotation v
 | Step | Command |
 | --- | --- |
 | Reindex objects at a given location | `$ ldb index /storage/` |
-
