@@ -114,7 +114,7 @@ At this point, LDB holds two revisions of the dataset "numerals", v.1 and v.2, a
 
 Another key operation to data-driven AI loop is the dataset merging. LDB can provide arbitrary dataset slicing, dicing and merging operations via a sequence of ADD and DEL commands paired with the necessary query filters. However, when merging two or more datasets, it is also important to keep track of class balancing.
 
-To that end, LDB supports arguments `-- limit ` and `--sample-ratio` that collectively define the absolute and relative limits to data objects being merged. For example, let us assume our roman numerals dataset underperforms for number 'i'. To address this deficiency, we might want to boost it with more data samples that we generated and stored in a dataset `generated-numerals`, up to a limit that would not upset our class balance:
+To that end, LDB supports arguments `--limit ` and `--sample-ratio` that collectively define the absolute and relative limits to data objects being merged. For example, let us assume our roman numerals dataset underperforms for number 'i'. To address this deficiency, we might want to boost it with more data samples that we generated and stored in a dataset `generated-numerals`, up to a limit that would not upset our class balance:
 
 | Step | Command |
 | --- | --- |
