@@ -4,45 +4,48 @@ LDB is an MLOps tool that indexes the existing immutable storage for data files 
 These datasets are meant to be used for model training, and are usually further updated based on the model performance (Data-driven AI loop).
 
 A good example for the data-driven AI task can be derived from the [2021 competition](https://https-deeplearning-ai.github.io/data-centric-comp/) 
-by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recognize hand-written roman numerals. 
+by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recognize hand-written roman numerals: 
 
 ![roman numerals dataset, courtesy DeepLearning.AI](/images/numerals-deeplearningAI.png)
 
-A starter set of ~3,000 labeled images is provided, and contestants are free to compile a training set of up to 10,000 images to perform best on a test set.
-To get the optimal performance on a sufficiently expressive deep learning network, one generally needs to solve the following data problems:
+A starter set of ~3,000 labeled training images is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data alone. 
+
+To get the optimal performance on a sufficiently expressive deep learning network, one generally needs to overcome the following data-specific challenges:
 
 * Cleanse data objects. Remove duplicates, irrelevant, or excessively noisy samples.
 * Clean annotations. Make sure annotations match the content of data samples.
 * Enrich the initial sample set. Find creative ways to obtain more data from the real world.
-* Introduce effective augmentations to teach the network to deal with variations.
+* Introduce augmentations to teach the network to deal with data variations.
 * Add effective synthetic samples (teacher-student, GAN, etc.) to cover any remaining data gaps.
 
 At the level of data organization, all these tasks can be reduced to manipulating the membership information in
 (possibly overlapping) data collections – such as original data samples, auxiliary samples, synthesized samples, transformed samples, and so on.
 
-LDB makes the dataset manipulation and version tracking simpler by indexing unique data objects, 
-constructing the datasets by querying their metadata and content, and versioning the results.
+LDB simplifies dataset manipulation and version tracking by indexing unique data objects, 
+constructing the datasets by querying their metadata, and versioning the results. 
 
-To demonstrate a sample workflow in LDB, let us begin with creating a dataset that holds the original (input) data for the DeepLearningAO challenge. 
-Assuming the data was downloaded to `/storage/input` let us create a dataset called `"numerals"` in the workspace to hold input data:
+To demonstrate a sample data-driven workflow in LDB, let us begin with creating a dataset that holds the original (starter) data for the DeepLearningAI challenge. 
+Assuming that similar data is hosted at `gs://iterative/roman-numerals/` let us create a dataset called `"numerals"` to hold it:
 
 | Step | Command |
 | --- | --- |
 | Start a new dataset in the workspace | `$ ldb stage ds:numerals` |
-| Add objects from a given path | `$ ldb add /storage/input` |
+| Add objects from a given path | `$ ldb add gs://iterative/roman-numerals/` |
 
 
-Now we have created a new dataset named `"numerals"` in our workspace and filled it with input references. LDB datasets are logical entities, so no data objects were copied or moved. Instead, LDB have parsed the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored 
-these pointers in the workspace. It is important that data in `/storage/` remains accessible for LDB because LDB relies on storage immutability.
+Now we have created a new dataset named `"numerals"` in our workspace and filled it with input references. LDB datasets are logical entities, so no data objects were copied or moved. Instead, LDB have read the files in the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored data pointers to the workspace. 
 
-To save this dataset for further steps in the workflow, let us store it into LDB repository:
+To use`"numerals"` dataset in subsequent steps of the workflow, let us save it to LDB:
 
 | Step | Command |
 | --- | --- |
-| Save dataset "numerals" into LDB, v.1 | `$ ldb commit` |
+| Save dataset "numerals" v.1 to LDB | `$ ldb commit` |
 
+This action stores `"numerals"` dataset into LDB repository, and assigns a version number to it.
 
-The DeepLearningAI competition comes with a ResNet50 docker images to evaluate the dataset. In order to simulate the competition backend, let us assume the network was trained on the provided (original) data, and for every training sample the network produced inferences in JSON format, where "class" is the input label, and "inference" is the output label:
+The DeepLearningAI competition comes with a ResNet50 docker image to evaluate the candidate dataset. One "quick and dirty" way to check for sanity of training data is to check if the neural net can generalize over the training set. To simulate the competition leaderboard backend, we provide a version of ResNet50 here:  [instructions for running](TODO) that one can download and check for results.
+
+Now let us assume this network was trained on the starter data, and for every training sample produced the following output in JSON format, where "class" is the input label, and "inference" is the output label:
 
 ```json
 {
@@ -55,90 +58,157 @@ The DeepLearningAI competition comes with a ResNet50 docker images to evaluate t
 }
 ```
 
-For the sake of example, let us assume these output annotations were stored alongside the original data samples in a directory `/storage/output`.
+We provide these output annotations (alongside with original data) in a bucket `gs://iterative/starter-inference/`
 
-As usual for inferences, from these output samples we can observe that some training inputs were not generalized properly, 
-or their prediction confidence remained low. This could tell us a few things: first, the underlying data object could be noisy or incorrect, 
-or it could be paired with a wrong label.
+As usual for inferences, we can observe that some training inputs were not generalized properly, or their prediction confidence remained low. 
+Some of these errors highlght the problems with data: the underlying objects could be noisy, incorrect, or paired with a wrong label.
 
-To investigate further, let us isolate these objects into a separate dataset.  
-We can create it by staging a new dataset and querying annotations from network output to add objects into it:
+To investigate further, let us isolate these errors.  
+We can stage a new dataset and query annotations from network output to fill it with objects the network failed to train on:
 
 
 | Step | Command |
 | --- | --- |
 | Start a new dataset  | `$ ldb stage ds:to-examine` |
-| Add objects missing classification | `$ ldb add /storage/output --query class != inference.class` |
-| Add objects with low confidence | `$ ldb add /storage/output --query inference.confidence < 0.75` |
+| Add misclassified objects | `$ ldb add gs://iterative/starter-inference/ --query class != inference.class` |
+| Add objects with low confidence | `$ ldb add gs://iterative/starter-inference/ --query inference.confidence < 0.55` |
 
 
-Now we have created a dataset `"to-examine"` that holds references to data objects that we want to inspect manually. 
-However, there are no files to examine in our workspace yet. This is because LDB datasets are logical entities. 
-To instantiate this dataset (transfer the relevant objects from storage location), we will use the INSTANTIATE command:
+Now we have created a new dataset `"to-examine"` that holds references to data objects that we want to inspect. 
+However, there are no files to examine in our workspace yet. This is because LDB datasets are logical entities that hold data references, not data files. 
+To instantiate this dataset (transfer all relevant objects from storage), we will use the INSTANTIATE command:
 
 | Step | Command |
 | --- | --- |
-| Instantiate "to-examine" dataset in a current workspace  | `$ ldb instantiate` |
+| Instantiate dataset in a current workspace  | `$ ldb instantiate` |
 
-At this point, let us assume the dataset "to-examine" holds ten annotated images, which look somewhat like this: 
+For the sake of example, let's assume the dataset `"to-examine"` holds ten annotated images, which may look somewhat like this: 
 
 ![Courtesy: DeepLearning.ai, subset of images compiled by Pierre-Louis Bescond.](/images/numerals-bescond.png)
 
+Upon closer examination, we note that a second image in the top row is too noisy to recognize (even for a human), and the third image in bottom row does not belong to a set. On the other hand, the very first image should have been easy to recognize (so maybe it carries the wrong annotation), and so on. For now, let us try to delete these images from the training set and see if the network does better.
 
-Here, we observe that a second image in the top row is too noisy to recognize (even for a human), and the third image on the bottom row does not belong to a set. On the other hand, the very first image should have been easy to recognize, but possibly carries the wrong annotation, while the others perhaps present some challenges the network is not dealing gracefully with. For now, let us try to delete these images from the training set and see if the network does better.
-
-To accomplish this task, we can save dataset `"to-examine"`, stage our main working dataset, and subtract the former from the latter:
+To accomplish this task, we can save dataset `"to-examine"`, stage `"numerals"`, and subtract the former from the latter:
 
 
 | Step | Command |
 | --- | --- |
 | Save "to-examine" dataset   | `$ ldb commit` |
 | Stage "numerals" dataset | `$ ldb stage ds:numerals` |
-| Subtract contents of a dataset| `$ ldb delete ds:to-examine` |
+| Subtract contents of a dataset| `$ ldb del ds:to-examine` |
 | Save dataset "numerals" v.2 | `$ ldb commit` |
 
-Once we have successfully modified our working dataset, and can instantiate it the workspace to re-train the model (if needed). But let us pretend we have changed our mind and want to roll back the changes. LDB versions the datasets and annotations for each object to make it easy. All we need to get back to the previous dataset version is to stage it and push as a new revision:
+Once we have successfully modified the working dataset, and can instantiate it the workspace to re-train the model to check the performance. 
+
+If we don't like the result and want to roll back the changes, LDB versioning system makes it easy. All we need to roll back to the previous dataset version is to stage it and push as a new revision:
 
 | Step | Command |
 | --- | --- |
 | Stage a specific dataset version  | `$ ldb stage ds:numerals.v1` |
 | Save it as the "current" version | `$ ldb commit` |
 
-At this point, LDB holds two revisions of the dataset "numerals", v.1 and v.2, and the former is the current version that will be checked out by default.
-
-### More dataset manipulations
-
-In a given example, we saw how a dataset can be staged, instantiated, filled, evaluated and modified, thus closing the data iteration loop.
-
-If you plan to work further on the roman numerals challenge, you will require need more operations. 
-For instance, let us assume you need more samples of numeral "i". The easiest way to do that is to find some third-party datasets for this task and store them on your system. Then you need to query them for the desired image class and sample the right number of relevant images preserving the class balance. This task could be accomplished withlike this:
-
-| Step | Command |
-| --- | --- |
-| Create a new dataset  | `$ ldb stage ds:alternative-numerals` |
-| Fill it from alternative storage location | `$ ldb add gs://handwritten-numerals` |
-| Check the number of data samples in the interesting class | `$ ldb list --query class == "i" ` |
-| Save dataset "alternative-numerals" and stage "numerals" back | `$ ldb commit; ldb stage ds:numerals` | 
-| Fill "numerals" with desired class samples |   `ldb add ds:alternative-numerals --limit 100` |
+At this point, LDB holds two revisions of the dataset "numerals", v.1 and v.2, and the former is the version that will now be checked out by default.
 
 
-Similarly, at some point you may choose to add more images visually similar to the styles that underperform in your model. In that case, you may find queries using the helper ML models to come handy. You can read more on [LDB Query Language here](LDB-queries.md).
+### Dataset merging and class balancing
 
-### LDB index and storage re-indexing
+Another key operation to data-driven AI loop is the dataset merging. LDB can provide arbitrary dataset slicing, dicing and merging operations via a sequence of ADD and DEL commands paired with the necessary query filters. However, when merging two or more datasets, it is also important to keep track of class balancing.
 
-So far in our example, we have assumed that LDB parses annotations on the fly when a given location is queried by ADD or a LIST command. 
-
-As your data storage grows, this assumption would be suboptimal. Repeated queries would be very slow, and tracking content by storage location is cumbersome. Instead, LDB adds every new data object and annotation it ever comes across into internal database (index). Index has a pseudo-name "root dataset", and can be referenced as `ds:root`. Thus, looking for a specific data object based on the previously indexed annotation field (or tag) can look simply like this:
+To that end, LDB supports arguments `-- limit ` and `--sample-ratio` that collectively define the absolute and relative limits to data objects being merged. For example, let us assume our roman numerals dataset underperforms for number 'i'. To address this deficiency, we might want to boost it with more data samples that we generated and stored in a dataset `generated-numerals`, up to a limit that would not upset our class balance:
 
 | Step | Command |
 | --- | --- |
-| List objects matching annotation field in the index | `$ ldb list ds:root --query class == "i" ` |
-| List objects matching a tag in the index  | `$ ldb list ds:root --tag "training" `| 
+| Fill workspace with desired class samples |   `ldb add ds:generated-numerals --query class == "i"  --limit 100` |
 
-Note, that LDB addresses data objects by hashsum, and therefore only keeps track of unique data samples. However, data objects are often coupled with annotations that may change over time. This presents two problems: first, how to update an annotation in LDB, and second – how to ensure reproducibility in dataset if annotations are a moving target?
 
-To answer this challenge, LDB support the re-indexing operation and annotation versions. Re-indexing command asynchronously queries specified storage path for new data objects and annotations and adds them to the index. However, when adding a new annotation, LDB also retains a previous version (if any). This ensures that datasets referencsing previous annotation will remain reproducible.
+### Isolating objects with helper ML models
+
+So far, we saw how a dataset can be staged, instantiated, filled, evaluated and modified.
+Another key operation for model performance analysis is discovering more training samples that would best represent the underperforming subclass.
+
+For example, you may find that a particular class (say, numerals 'iii') is under-represented, and you want more data. Let us also assime that you have a set of handwritten numerals to choose from, but they are not annotated. 
+
+A classical solution to this problem is to run a helper ML model that would automatically generate annotations. LDB further simplifies this task by allowing a helper to be called within a query, and ships with several helper models (like CLIP embeddings and visual similarity):
+
+| Step | Command |
+| --- | --- |
+| Add visually similar images to a working dataset  | `$ ldb add ds:handwritten --ml_model CLIP "iii"  --limit 100` |
+
+
+### Indexing storage locations
+
+So far we have assumed that LDB parses data objects and annotations on the fly whenever a storage location is queried. 
+There are several topics here that we need to know to make our workflow efficient.
+
+As your data storage grows, parsing it for every request becomes suboptimal. Repeated queries waste time, and tracking content by storage locations is cumbersome. To solve this problem, LDB saves every data object and annotation it comes across into internal database (index). Index has a role of "root dataset" to which all data objects are assigned by default, and can be referenced as `ds:root`. Therefore, looking for a specific data object based on the previously indexed annotation (or user-defined tag) may look simply like this:
+
+| Step | Command |
+| --- | --- |
+| List all objects matching annotation field in the index | `$ ldb list ds:root --query class == "i" ` |
+| List all objects matching a tag in the index  | `$ ldb list ds:root --tag "training" `| 
+
+Also note that LDB addresses data objects by hashsum, and therefore only keeps track of unique data samples. However, data objects are often coupled with annotations that may change over time. This presents two additional problems: first, how to update an annotation, and second – how to ensure reproducibility in a dataset when annotations are a moving target?
+
+To answer these challenges, LDB supports re-indexing and annotation versioning. 
+
+Re-indexing asynchronously queries a specified storage path for data objects and annotations, and adds them to the index. When adding a new annotation, LDB also retains a previous version (if any). This ensures that datasets referencing previous annotation will remain reproducible:
 
 | Step | Command |
 | --- | --- |
 | Reindex objects at a given location | `$ ldb index /storage/` |
+
+
+### Modifying annotations in existing datasets
+
+We have seen how annotations can be updated with re-indexing. Practically, this means that we can send our dataset annotations to a 3rd party labeling service, receive the corrected records, and re-index them to bump versions in LDB.
+
+However, as we mentioned, this change would not affect the existing datasets that are referencing the older annotations. To upgrade all annotations in a dataset to the latest revision in index, one can use PULL command:
+
+| Step | Command |
+| --- | --- |
+| Bump annotations to the latest version | `$ ldb pull` |
+
+Pull command also works for individual data objects (referenced by hashsum or object path). A reverse operation to pull would be to set a specific object to a specific version of annotation:
+
+| Step | Command |
+| --- | --- |
+| Bump annotations to the latest version | `$ ldb add 0xFD45DE --version 2` |
+
+Finally, it might be convenient to correct minor errors in annotations right from the workspace. This can be done with staging the dataset, editing annotations, and adding the workspace (as a whole, or by individual files) back into a dataset:
+
+| Step | Command |
+| --- | --- |
+| Stage a dataset | `$ ldb stage ds:numerals` |
+| Correct an annotation | `$ sed -i 's/"class": "i"/"class": "ii"/g' 125d.jpg` |
+| Register the change | `$ ldb add .` |
+| Push the change into LDB | `$ ldb commit` |
+
+### Indexing data in various formats
+
+The DeepLearningAI competition permits up to 10,000 training images, but only ships with a starter set of 3,000. A natural question for a data scientist working on this challenge is how to add more data. The good news is that nowadays just about every data object in the world exits somewhere in public domain. The bad news is that public datasets come in different and incompatible formats.
+
+The primary method to pair data objects with annotations natively supported by LDB is to provide matching-name JSON annotations in the same folder, for example:
+
+- 154F.m4a, 154F.json,
+- 23DE.m4a, 23DE.json,
+...
+
+Alternatively, LDB also understands the scheme where multiple data objects are described in a single JSON file residing in the same folder:
+
+- 154F.m4a,
+- 23DE.m4a, 
+- annotations.json
+
+Both schemes permit arbitrary storage configurations, and double as default output of many labeling tools (such as [Label Studio](https://labelstud.io)).
+
+However, a lot of "brand" datasets follow unique and proprietary conventions for data annotation. For example, the DeepLearningAI competition on roman numerals encodes classes as folder names. Alternatively, COCO uses multiple shared JSON files to annotate objects in a dataset, while ImageNet combines a single key annotation file with class-specific folders.
+
+LDB ships with a pre-processor for COCO, ImageNet, Google OpenImage, and general folder-class schemes (such as the one used in DeepLearningAI competition). These can be selected during indexing with `--format` argument providing the format:
+
+| Step | Command |
+| --- | --- |
+| Index objects in ImageNet folder | `$ ldb index --format ImageNet /storage/ImageNet500K/` |
+
+Additional formats can be included by writing the custom pre-processors ([more on this here](TODO)).
+
+
