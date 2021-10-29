@@ -9,7 +9,7 @@ LDB datasets support names with [a-Z0-9-\_] ANSI characters. LDB commands requir
  
 ## LDB workspace
 
-To change dataset membership, LDB stages it in a workspace (see `STAGE` below). Workspace holds all information for a dataset that is being modified. One user might have several workspaces in different directories. Any changes to a dataset (adding & removing objects, adding tags, etc) remain local to workspace until the `COMMIT` command. 
+To change dataset membership, LDB stages it in a workspace (see `STAGE` below). Workspace holds all information for a dataset that is being modified. One user might have several workspaces in different directories. Any changes to a dataset (adding & removing objects, adding tags, etc) remain local to workspace until the `COMMIT` 
 
 Here is the internal structure of a workspace folder:
 ```
@@ -18,7 +18,7 @@ Here is the internal structure of a workspace folder:
             └── workspace_dataset    
 ```
 
-Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `TAG`, `PULL` target only a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` will target a staged dataset if run from a workspace, but also can run outside the workspace.
+Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `TAG`, `PULL` target only a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` will also target a staged dataset by default.
 
 ## locating an LDB instance
 
@@ -38,11 +38,11 @@ If no method of configuration succeeds, all LDB commands will fail, except for `
 
 QuickStart allows the individual user to begin with LDB by means of creating datasets and without additional configuration. QuickStart is designed to lower barrier for trying LDB, and intends to bring value in about 3-4 commands.
 
-`STAGE` is the only LDB command that trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and runs `ldb init ~/.ldb/private_instance` to create a new LDB repository before proceeding with staging a dataset.
+`STAGE` is the only LDB command that trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to create a new LDB repository before proceeding with staging a dataset.
 
  Under the hood, QuickStart process consists of the following two steps:
 
-* LDB instance is created in the user's home directory.
+* LDB instance is created in the user's home directory: `~/.ldb/private_instance`
 * Default storage configuration is created with wide-open settings: 
     * All cloud locations are permitted to host data objects.
     * A `read-add` folder is created in user's home directory (see `ADD-STORAGE`).
@@ -50,13 +50,13 @@ QuickStart allows the individual user to begin with LDB by means of creating dat
 Below is an example of QuickStart, where user queries a remote storage in two commands right after the installation:
 
 ```
-$ ldb stage <new-dataset> 
+$ ldb stage ds:my-numerals 
 $ ldb add gs://iterative/roman-numerals --query class == "i"
 ```
 
 # INIT \<directory\>
 
-`INIT` creates a new LDB instance (repository) in the given directory. For most enterprise installations, LDB repository folder must be a shared directory on a fast disk. `INIT` does not attempt to locate an active LDB instance, and permits a new LDB repository to reside anywhere in a filesystem.
+`INIT` creates a new LDB instance (repository) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` does not attempt to locate an active LDB instance, and permits a new LDB repository to reside anywhere in a filesystem.
 
 In addition to creating an LDB instance, `INIT` makes a global configuration file at `~/.ldb/config` and sets the `core.ldb_dir` key to point to a new LDB location. If configuration files already exist, `INIT` does not change them.
 
@@ -78,7 +78,7 @@ After finishing, `INIT` prints the summary of work and a reminder on how to chan
 
 If a target directory already contains an existing LDB instance,  `INIT` fails & prints a reminder to use `--force`.  Using `-f` or  `--force` erases an existing LDB installation.
 
-If the target directory contains data, but not an LDB instance, `INIT` fails without an option to override. The user must provide an empty directory.
+If the target directory contains data (but not an LDB instance), `INIT` fails without an option to override. The user must provide an empty directory.
 
 
 # ADD-STORAGE \<storage-URI\>
@@ -110,7 +110,7 @@ $ ldb add ./cat.jpg
      error: object 0x564d is not in LDB and no read-add location configured
 $
 ```
-There is one storage location `gs://storage` registered (no flags). User tries to add file `cat1.jpg` from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed in storage, the ADD command fails:
+There is one storage location `gs://storage` registered (no flags). User tries to add file `cat1.jpg` from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed in storage, the ADD command fails.
     
 *Use case:* 
 
@@ -160,11 +160,11 @@ If no flags are used, LDB assumes the default format, which is one .json file pe
 
 # ADD  \<0x\<sum\> | object_path | ds:\<name\>[.v\<num\>] \> [filters]
 
-`ADD` is the main command of the application. It adds data sample(s) to a dataset. `ADD` takes object identifiers in various forms as the main argument, and applies optional filters specified as flags. Objects passing the filter are merged with a staged dataset. 
+`ADD` is the main command of LDB, it adds data sample(s) to a dataset. `ADD` accepts object identifiers in various forms as the main argument, and applies optional filters. Objects passing the filter are merged with a staged dataset. 
 
-`ADD` allows for multiple objects (or object groups) of one type to be specified in one command, and applies filters to all objects referenced in the order they are processed. 
+`ADD` allows for multiple objects (or object groups) of one type to be specified in a command, and applies filters to all referenced objects. 
 
-## arguments types supported by `ADD`
+## identifiers supported by `ADD`
 
 1. `<0x<sum>` - full hashsum of an object. Currently LDB uses MD5, so any MD5 hashsum that corresponds to an object indexed by LDB is a valid identifier.
 
@@ -176,29 +176,29 @@ $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to
 
 2. `object_path` - any valid path registered with `ADD-STORAGE` to objects and annotations in storage. The path can be fully qualified (down to an object), or reference a folder. In all cases, `ADD` calls `INDEX` to index the content of path first.
 
-3. `object_path` - any valid path NOT registered with `ADD-STORAGE` to objects and annotations on the *local fs*. The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered local fs path, it works in the following way:
+3. `object_path` - any valid path NOT registered with `ADD-STORAGE` to objects and annotations on the *fs* (no cloud locations accepted). The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered local fs path, it works in the following way:
 
   * If path is in workspace, some special rules apply:
       -  `ADD` should process updated annotations even without the data objects (see `INSTANTIATE --annotations-only`)
       -  `ADD` should ignore preview data objects (see `INSTANTIATE --preview`)
   
-  * Aside from the special rules, for path in or out the workspace:
-      - If objects known to LDB (but not in a staged dataset) are found, they are added, alongside with annotations
-      - If new objects (unknown to LDB) are found, and `read-add` storage configured, those are copied to `read-add` storage, indexed, and added to dataset.
+  * Aside from the special rules, for any fs path in or out the workspace:
+      - If objects known to LDB (but not in a staged dataset) are found, they are added to staged dataset, alongside with annotations
+      - If new objects (unknown to LDB) are found and `read-add` storage configured, those objects are copied to `read-add` storage, indexed, and added to dataset.
       - If new objects (unknown to LDB) are found, but no `read-add` storage configured, `ADD` command fails.
 
 *Use case:*
 ```
 $ ldb stage ds:cats
-$ cp ~/storage/cat1.jpg ./   # this object is already in LDB but not in this dataset
+$ cp ~/storage/cat1.jpg ./   # bring some object already in LDB but not in this dataset
 $ ldb add ./                 # result: staged dataset ds:cats now includes cat1.jpg
 ```
 
 *Use case:*
 ```
 $ ldb stage ds:cats
-$ cp ~/Downloads/cat1.jpg ./   # this object is not in LDB and read-add storage is configured
-$ ldb add ./                   # result: cat1.jpg copied to read-add storage, and added
+$ cp ~/Downloads/cat1.jpg ./   # this object is not in LDB and read-add storage location configured
+$ ldb add ./                   # result: cat1.jpg copied to read-add storage, and then added
 ```
 
 *Use case:*
@@ -214,13 +214,12 @@ $ ldb add ./                   # result: annotation for cat1.jpg got a new versi
 *Use case:*
 ```
 $ ldb stage ds:cats
-$ ldb add ds:black_cats ds:white_cats.v2  # result: merged with latest ds:black_cats and ver. 2 of ds:white_cats
+$ ldb add ds:black_cats ds:white_cats.v2  # result: workspace merged with latest ds:black_cats and ver. 2 of ds:white_cats
 ```
-
 
 ## filters supported by `ADD`
 
-`ADD` can be called with several filter flags. If multiple flags are specified, filters are pipelined, so the order may matter. Multiple filters of one type are not permitted in one `ADD` command.
+`ADD` can be called with several filter and modifier flags. If multiple flags are specified, filters are pipelined, so their order may matter. Multiple filters of one type are not permitted in one `ADD` command.
 
 --file \<filesystem attributes query\>
 
@@ -232,41 +231,76 @@ $ ldb add ds:black_cats ds:white_cats.v2  # result: merged with latest ds:black_
 
 --sample \<real number\>
 
---version \<interger\>
-
 --user_version \<real number\>
 
 --tag \<string\>
 
+## modifiers supported by `ADD`
+
+--version \< integer \>
+
+sets annotation version to indicated in argument. To change a version of existing object is a workspace, it can be re-added with different version.
+
 ## Query Language
 
-# ldb del
+# DEL \<arg-list\>
 
-# ldb tag
+`DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If an objects provided to `DEL` are not in the workspace, `DEL` does nothing.
 
-# ldb sync
+# TAG [text-tag text-tag ...] \<arg-list\> [flags]
+
+`TAG` is a text string in ANSI character set [0-9A-z-\_]. Multiple tags can be attached to datasets or individual objects. Tags attached to objects are inherited – which means they will exist on all instances of an object in all datasets. Tags attached to datasets are not inherited - which means, objects added from a dataset with a particular tag will not carry this tag forward.
+
+`TAG` takes the same arguments in \<arg-list\> as `ADD` command to identify the datasets or individual objects to apply tags.
+
+`--remove`  removes indicated tags
+
+# SYNC \< object-folder \>
+
+`SYNC` synchronizes workspace state with object list found in \< object-folder \>. The typical use is to stage dataset, delete one object and use SYNC to update the workspace state.
 
 # INSTANTIATE [\< object id(s) \>] [flags]
 
-`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated.
+`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty).
 
 ## flags
  
---annotations, --annotations-only
+`--annotations`, `--annotations-only`
 
---format <name>
+Only instantiates annotations (no data objects). Can be combined with `--format`
+
+`--format <name>`
+
+Specific annotation output format. Supported formats mirror the `INDEX` command.
+
+`--preserve-names`
+
+Instantiate objects preserving full storage paths. Only supported for default LDB format (annotation file per every object).
 
 --preview [integer]
 
-# ldb commit
+Preview dataset instantiates data objects passing a specific lambda (for example, downscaling size for images). Has no effecgt if the storage does not support object lambdas or code access points not configured.
 
-# ldb index
+# COMMIT
 
-# ldb diff
+`COMMIT` takes the currently staged dataset and saves it to LDB. This action makes workspace "clean" meaning any changes are saved and it can be deleted if needed. The result of `COMMIT` command is a dataset with updated version.
 
-# ldb list
+# DIFF \<ds:\<name\>\> [ds:\<name\>]
 
-# ldb status
+`DIFF` takes one or two dataset names and prints a list of member differences between them. One-argument version can only run from a workspace and assumes the staged dataset as a first argument.
 
-# ldb pull
+# LIST  \<arg-list\>
+
+`LIST` can take exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
+Unlike `ADD`, `LIST` can also run without arguments, in which case it prints the objects in a staged dataset.
+
+# STATUS  [ds:\<name\>]
+
+`STATUS` summarizes the state of a staged dataset (when run with no arguments). This includes uncomitted changes and current object count. If called with an argument, prints a summary for a named dataset.
+
+# PULL [object-ids]
+
+`PULL` changes annotation versions for indicated object(s) to the latest version in LDB. 
+
+
 
