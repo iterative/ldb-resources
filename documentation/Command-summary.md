@@ -169,6 +169,8 @@ If no flags are used, LDB assumes the default format – which is one .json file
 
 `ADD` allows for multiple objects (or object groups) of one type to be specified in a command, and applies filters to all referenced objects. If no sources for objects are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
 
+A special case for `ADD` arises when targeting a path outside of storage. Most commonly, such target is a current workspace where objects were added or annotations edited in-place. This mode of operation is only supported for annotations in the default LDB format (one .json file per every data object).
+
 
 ## object identifiers supported by `ADD`
 
@@ -182,14 +184,14 @@ $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to
 
 2. `object_path` - any valid path registered with `ADD-STORAGE` to objects and annotations in storage. The path can be fully qualified (down to an object), or reference a folder. In all cases, `ADD` calls `INDEX` to index the content of path first.
 
-3. `object_path` - any valid path NOT registered with `ADD-STORAGE` to objects and annotations on the *fs* (no cloud locations accepted). The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it works in the following way:
+3. `object_path` - any valid *fs* path NOT registered with `ADD-STORAGE`. The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it expects annotations in default format and works in the following way:
 
-  * If path is in workspace:
-      -  `ADD` will process updated annotations even without paired data objects (see `INSTANTIATE --annotations-only`)
+  * If `object_path` is the workspace:
+      -  `ADD` will process updated annotations even without the paired data objects (see `INSTANTIATE --annotations-only`)
       -  `ADD` will ignore "preview" data objects (see `INSTANTIATE --preview`)
   
   * In all cases:
-      - If previously indexed data objects are found, they are simply added to staged dataset, alongside with annotations
+      - If previously indexed data objects are found, they are added to staged dataset, alongside with annotations
       - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added to dataset.
       - If new objects (unknown to LDB) are found but no `read-add` storage configured, `ADD` command fails.
 
@@ -324,7 +326,14 @@ Examples of LDB queries:
 
 # SYNC \< object-folder \>
 
-`SYNC` synchronizes workspace state with object list found in \< object-folder \>. The typical use is to stage dataset, delete one object and use SYNC to update the workspace state.
+`SYNC` synchronizes workspace state with staged dataset found in \< object-folder \>. It acts as a combination of `ADD < object-folder >` and `DEL` referencing missing objects.
+
+_Use case:_
+```
+$ ldb instantiate ./     # instantiate the workspace dataset
+$ rm cats1.jpg           # delete object file
+$ ldb sync ./            # pick up the changes in workspace
+```
 
 # INSTANTIATE [\< object id(s) \>] [flags]
 
@@ -346,7 +355,7 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 
 `--preview [integer]`
 
-Preview dataset instantiates data objects passing a specific lambda (for example, downscaling size for images). Has no effecgt if the storage does not support object lambdas or code access points not configured.
+Preview dataset instantiates data objects passing a specific lambda (for example, downscaling size for images). Has no effect if storage does not support object lambdas or code access points not configured.
 
 # COMMIT
 
