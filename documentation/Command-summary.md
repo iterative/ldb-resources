@@ -133,7 +133,7 @@ TODO object lambda access configuration here
 
 `STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<name>`, a new dataset is created. If `<name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
 
-If workspace is not empty, `STAGE` checks if it holds a clean dataset, and clobbers it.  If `<workspace_folder>` holds a dirty dataset, a warning and a status of this dataset are printed before failure. If `<workspace_folder>` is not empty but does not hold an LDB dataset, a reminder for `--force` is printed. 
+If workspace is not empty, `STAGE` checks if it holds a clean dataset, and clobbers it.  If `<workspace_folder>` holds a dirty dataset, a warning and a status of this dataset are printed before failure. If `<workspace_folder>` is not empty but does not hold an LDB dataset, a reminder to use `--force` is printed. 
 
 *Use case:* 
 
@@ -142,8 +142,6 @@ $ ldb stage ds:cats ./
 $ ldb status
  Dataset ds:cats, 0 objects, not saved in LDB.
 ```
-
-If workspace is not empty, `STAGE` checks if it holds a clean dataset, and clobbers it.  If `<workspace_folder>` holds a dirty dataset, a warning and a status of this dataset are printed before failure. If `<workspace_folder>` is not empty but does not hold an LDB dataset, a reminder for `--force` is printed. 
 
 If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and proceeds with setting a new LDB instance (see QuickStart discussion).
     
@@ -167,14 +165,14 @@ If no flags are used, LDB assumes the default format – which is one .json file
 
 # ADD  \<0x\<sum\> | object_path | ds:\<name\>[.v\<num\>] \> [filters]
 
-`ADD` is the main command of LDB, and allows to add data sample(s) to a dataset from various sources. `ADD` builds a list of objects by hashsum, location, or source dataset, and applies optional filters to rectify this list. Objects passing the filter are merged with a staged dataset. 
+`ADD` is the main workhorse of LDB, and allows to add data sample(s) to a dataset from various sources. `ADD` builds a list of objects by hashsum, location, or source dataset, and applies optional filters to rectify this list. Objects passing the filter are merged with a staged dataset. 
 
 `ADD` allows for multiple objects (or object groups) of one type to be specified in a command, and applies filters to all referenced objects. If no sources for objects are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
 
 
 ## object identifiers supported by `ADD`
 
-1. `<0x<sum>` - full hashsum of an object. Currently LDB uses MD5, so any MD5 hashsum that corresponds to an object indexed by LDB is a valid identifier.
+1. `0x<sum>` - full hashsum of an object. Currently LDB uses MD5, so any MD5 hashsum that corresponds to an object indexed by LDB is a valid identifier.
 
 *Use case:* 
 ```
@@ -187,12 +185,12 @@ $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to
 3. `object_path` - any valid path NOT registered with `ADD-STORAGE` to objects and annotations on the *fs* (no cloud locations accepted). The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it works in the following way:
 
   * If path is in workspace:
-      -  `ADD` processes updated annotations even without paired data objects (see `INSTANTIATE --annotations-only`)
-      -  `ADD` ignores "preview" data objects (see `INSTANTIATE --preview`)
+      -  `ADD` will process updated annotations even without paired data objects (see `INSTANTIATE --annotations-only`)
+      -  `ADD` will ignore "preview" data objects (see `INSTANTIATE --preview`)
   
-  * For all other cases:
-      - If previously indexed objects are found, they are added to staged dataset, alongside with annotations
-      - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and added to dataset.
+  * In all cases:
+      - If previously indexed data objects are found, they are simply added to staged dataset, alongside with annotations
+      - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added to dataset.
       - If new objects (unknown to LDB) are found but no `read-add` storage configured, `ADD` command fails.
 
 *Use case:*
@@ -222,7 +220,7 @@ $ ldb add ./                  # result: annotation for cat1.jpg got a new versio
 *Use case:*
 ```
 $ ldb stage ds:cats
-$ ldb add ds:black_cats ds:white_cats.v2  # result: workspace merged with latest ds:black_cats and ver. 2 of ds:white_cats
+$ ldb add ds:black_cats ds:white_cats.v2  # workspace merged with latest ds:black_cats and v.2 of ds:white_cats
 ```
 
 ## filters supported by `ADD`
@@ -248,7 +246,7 @@ Permits a query (see LDB Query Syntax) that references a fixed number of JSON fi
 $ ldb add --file PATH == 'gs:datasets/cat-bucket/.*'  # Object source is implicitly ds:root, filtered by regex
 ```
 
---query \<annotation query terms\>
+`--query <annotation query terms>`
 
 Permits a query (see LDB Query Syntax) that references any JSON fields present in object annotation.
 
@@ -257,7 +255,7 @@ Permits a query (see LDB Query Syntax) that references any JSON fields present i
 $ ldb add --query class == 'cats'
 ```
 
---ml \<model with arguments\>
+`--ml <model with arguments>`
 
 Passes a list of objects through an ML model that sorts them according to match criteria. Often used with `--limit`. 
 
@@ -266,7 +264,7 @@ Passes a list of objects through an ML model that sorts them according to match 
 $ ldb add --ml CLIP "cat sitting on a chair" --limit 100
 ```
 
-`--limit \<integer\>`
+`--limit <integer>`
 
 Cuts the input list of objects at \<integer\> samples.
 
@@ -278,7 +276,7 @@ Passes every object in input list with given Bernoulli probability.
 $ ldb add ds:cats --sample 0.9 
 ```
 
-`--tag \<string\>`
+`--tag <string>`
 
 Passes objects with referenced tag, equivalent to --query TAG == \<string\>
 
@@ -287,26 +285,26 @@ Passes objects with referenced tag, equivalent to --query TAG == \<string\>
 
 LDB Query is defined as:
 
-QUERY:   TERM | TERM \<AND | OR\> QUERY
+```
+QUERY:   TERM | TERM <AND | OR> QUERY
 TERM:    JMESPATH operator TARGET
+```
+optionally grouped by parentheses.
+
 
 Where, 
-* JMESPATH is any valid JMESPATH expression
-* operator is one of:  `==  >  <  !=`
-* TARGET is one of: JSON_OBJECT, STRING_REGEX, NUMBER
+* JMESPATH is any valid [JMESPATH](https://jmespath.org) expression
+* operator is one of:  `==`  `>`  `<` `!=` 
+* TARGET is one of: `JSON_OBJECT` `STRING_REGEX` `NUMBER`
 
-Example:
+Examples of LDB queries:
 
 ```
 *.classes[0:1] == ["cats", "dogs"]
 ```
 
 ```
-*.classes[0] == "cat.*"
-```
-
-```
-length(*.classes) < 5
+*.classes[0] != "cat.*" AND length(*.classes) < 5
 ```
 
 
