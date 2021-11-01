@@ -184,11 +184,24 @@ $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to
 
 2. `object_path` - any valid path registered with `ADD-STORAGE` to objects and annotations in storage. The path can be fully qualified (down to an object), or reference a folder. In all cases, `ADD` calls `INDEX` to index the content of path first.
 
+```
+$ ldb stage ds:cats ./
+$ ldb add gs://my-datasets/cats/white-cats/  # location registered but not recently idexed
+```
+
 3. `object_path` - any valid *fs* path NOT registered with `ADD-STORAGE`. The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it expects annotations in default format and works in the following way:
 
   * If `object_path` is the workspace:
       -  `ADD` will process updated annotations even without the paired data objects (see `INSTANTIATE --annotations-only`)
       -  `ADD` will ignore "preview" data objects (see `INSTANTIATE --preview`)
+       
+*Use case:*
+```
+$ ldb stage ds:cats ./
+$ ldb instantiate --annotations-only
+$ sed -i 's/class=cat/class=dog/g' cat1.json 
+$ ldb add ./                  # result: annotation for cat1.jpg got a new version in LDB, and in ds:cats
+```
   
   * In all cases:
       - If previously indexed data objects are found, they are added to staged dataset, alongside with annotations
@@ -209,20 +222,14 @@ $ cp ~/Downloads/cat1.jpg ./  # this object is not in LDB and read-add storage l
 $ ldb add ./                  # result: cat1.jpg copied to read-add storage, and then added
 ```
 
-*Use case:*
-```
-$ ldb stage ds:cats ./
-$ ldb instantiate --annotations-only
-$ sed -i 's/class=cat/class=dog/g' cat1.json 
-$ ldb add ./                  # result: annotation for cat1.jpg got a new version in LDB, and in ds:cats
-```
+
 
 4. ds:\<name\>[.v\<num\>] - dataset name with an optional version number. Any valid LDB dataset can serve as a source of objects.
 
 *Use case:*
 ```
 $ ldb stage ds:cats
-$ ldb add ds:black_cats ds:white_cats.v2  # workspace merged with latest ds:black_cats and v.2 of ds:white_cats
+$ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and v.2 of ds:white_cats
 ```
 
 ## filters supported by `ADD`
@@ -324,14 +331,14 @@ Examples of LDB queries:
 
 `--remove`  removes indicated tags
 
-# SYNC \< object-folder \>
+# SYNC \< target-folder \>
 
-`SYNC` synchronizes workspace state with staged dataset found in \< object-folder \>. It acts as a combination of `ADD < object-folder >` and `DEL` referencing missing objects.
+`SYNC` synchronizes workspace state with staged dataset found in \< object-folder \>. It acts as a combination of `ADD` and `DEL` commands to realign the staged dataset with objects and annotations found in \< target-folder \>
 
 _Use case:_
 ```
 $ ldb instantiate ./     # instantiate the workspace dataset
-$ rm cats1.jpg           # delete object file
+$ rm cats1.jpg           # delete one object file
 $ ldb sync ./            # pick up the changes in workspace
 ```
 
