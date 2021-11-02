@@ -193,7 +193,7 @@ Where,
 
 While normally `ADD` references sources already indexed by LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
-A special case for `ADD` arises when targeting filesystem (fs) paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flag in `ADD-STORAGE` for discussion).
+A special case for `ADD` arises when targeting ephemeral filesystem (fs) paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flag in `ADD-STORAGE` for discussion).
 
 
 ## object identifiers supported by `ADD`
