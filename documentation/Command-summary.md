@@ -164,7 +164,7 @@ allows to clobber the workspace regardless of what is there.
 
 # INDEX \<storage folder URI(s) | storage object URI(s)\> [flags]
 
-`INDEX` updates LDB repository with data objects and annotations given as arguments. It assumes URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is provided and no format flag specified, this folder is traversed recursively to recover objects and annotations. 
+`INDEX` updates LDB repository with data objects and annotations given as arguments. It assumes URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is provided and no format flag specified, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name).
 
 _Use case:_
 ```
@@ -178,19 +178,20 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 
 ## flags
 
-`--format < folder-labels | label-studio | COCO | OpenImage | ImageNet >`  
+`--format < folder-labels | label-studio | COCO | OpenImage | ImageNet >`  -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema.
 
-If no flags are used, LDB assumes the default format – which is one .json file per every data object sharing the object name. Otherwise, `--format` sets the schema for data objects and annotations. `INDEX` fails if URI is not conformant with expected format.
+# ADD  \< object-list \> [filters]
 
-# ADD  \<0x\<sum\> | object_path | ds:\<name\>[.v\<num\>] \> [filters]
+Where,
+* `object-list` is one or more of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
 
 `ADD` is the main workhorse of LDB as it allows to add data sample(s) to dataset from various sources. 
 
-`ADD` builds a list of objects referenced by hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filter are merged into a staged dataset. 
+`ADD` builds a list of objects referenced by hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into staged dataset. 
 
-`ADD` allows for multiple objects (or object groups) of one type to be specified in a command, and applies filters to all referenced objects. If no sources for objects are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
+`ADD` allows for multiple objects (or object groups) of one type to be specified in a command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – all objects indexed by LDB.
 
-While normally `ADD` uses sources already indexed by LDB (such a dataset, or pre-indexed objects referenced by valid identifiers), it can also target a folder in storage. In that case, `INDEX` command is automatically run for this folder to ensure that any possible changes are picked. 
+While normally `ADD` references sources already indexed by LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
 A special case for `ADD` arises when targeting paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flag in `ADD-STORAGE` for discussion).
 
@@ -262,11 +263,11 @@ $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and
 
 ## filters supported by `ADD`
 
-`ADD` can be called with several filter and modifier flags. If multiple flags are specified, filters are pipelined, so their order may matter. Multiple filters of one type are not permitted in one `ADD` command.
+`ADD` can be called with several filter flags. If multiple flags are specified, filters will be pipelined, so their order may matter. Multiple filters of one type are not permitted in one `ADD` command.
 
 `--file <filesystem attributes query>`
 
-Permits a query (see LDB Query Syntax) that references a fixed number of JSON fields specific to LDB index. The list is:
+Builds a query (see LDB Query Syntax) using fixed JSON fields specific to LDB index. The list is:
 
 * MTIME - data object modification time. 
 * A_MTIME - annotation modification time.
@@ -285,7 +286,7 @@ $ ldb add --file PATH == 'gs:datasets/cat-bucket/.*'  # Object source is implici
 
 `--query <annotation query terms>`
 
-Permits a query (see LDB Query Syntax) that references any JSON fields present in object annotation.
+Permits a query (see LDB Query Syntax) that references arbitrary JSON fields present in object annotation.
 
 *Use case:*
 ```
@@ -298,7 +299,7 @@ Passes a list of objects through an ML model that sorts them according to match 
 
 *Use case:*
 ```
-$ ldb add --ml CLIP "cat sitting on a chair" --limit 100
+$ ldb add --ml CLIP "cat sitting on a chair" --limit 100. # returns 100 images that best match semantic embedding
 ```
 
 `--limit <integer>`
@@ -345,15 +346,15 @@ Examples of LDB queries:
 ```
 
 
-# DEL \<arg-list\>
+# DEL \< object-list \> [filters]
 
 `DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If objects provided to `DEL` are not in the dataset, `DEL` does nothing.
 
-# TAG [text-tag text-tag ...] \<arg-list\> [flags]
+# TAG [text-tag text-tag ...]  \< object-list \> [filters]
 
 `TAG` is a text string in ANSI character set [0-9A-z-\_]. Multiple tags can be attached to datasets or individual objects. Tags attached to objects are inherited – which means they will exist on all instances of an object in all datasets irrespective of their annotations. Tags attached to datasets are not inherited - which means, objects added from a dataset featuring a particular tag will not carry this tag forward.
 
-`TAG` takes the same arguments in \<arg-list\> as `ADD` command to identify datasets or individual objects to apply tags.
+`TAG` takes the same arguments and filters as `ADD` command to identify datasets or individual objects to apply tags.
 
 ## flags 
 
@@ -372,7 +373,7 @@ $ ldb sync ./            # pick up changes in workspace
 
 # INSTANTIATE [\< object id(s) \>] [flags]
 
-`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths.
+`INSTANTIATE` partially or fully re-creates dataset in a workspace. If valid `object id(s)` are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths.
 
 ## flags
  
@@ -400,7 +401,7 @@ Preview dataset instantiates data objects using a specific lambda function (for 
 
 `DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and assumes the first comparand to be staged dataset.
 
-# LIST  \<arg-list\>
+# LIST  \< object-list \> [filters]
 
 `LIST` can take exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
 Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds-root` as the object source.
@@ -409,9 +410,9 @@ Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To t
 
 When run without arguments from a workspace, `STATUS` summarizes the state of a staged dataset. This includes any uncomitted changes and current object count. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
 
-# PULL [object-ids]
+# PULL [object-id(s)]
 
-`PULL` changes annotation versions for indicated object(s) to latest version in LDB. If no object-ids specified, applies to all objects in a dataset.
+`PULL` changes annotation versions for indicated object(s) to latest version in LDB. If no `object-id(s)` specified, applies to all objects in a dataset.
 
 
 
