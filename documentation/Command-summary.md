@@ -58,7 +58,7 @@ $ ldb add gs://iterative/roman-numerals --query class == "i"
 
 `INIT` creates a new LDB instance (repository) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` does not attempt to locate an active LDB instance, and permits a new LDB repository to reside anywhere in a filesystem.
 
-In addition to creating an LDB instance, `INIT` makes a global configuration file at `~/.ldb/config` and sets the `core.ldb_dir` key to point to a new LDB location. If configuration files already exist, `INIT` does not change them.
+In addition to creating an LDB instance, `INIT` makes a global configuration file at `~/.ldb/config` and sets the `core.ldb_dir` key to point to new LDB location. If configuration files already exist, `INIT` does not change them.
 
 Running `ldb init <path>` creates the following directory structure:
 ```
@@ -178,13 +178,15 @@ If no flags are used, LDB assumes the default format – which is one .json file
 
 # ADD  \<0x\<sum\> | object_path | ds:\<name\>[.v\<num\>] \> [filters]
 
-`ADD` is the main workhorse of LDB, and allows to add data sample(s) to a dataset from various sources. `ADD` builds a list of objects by hashsum, location, or source dataset, and applies optional filters to rectify this list. Objects passing the filter are merged with a staged dataset. 
+`ADD` is the main workhorse of LDB as it allows to add data sample(s) to dataset from various sources. 
+
+`ADD` builds a list of objects referenced by hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filter are merged into a staged dataset. 
 
 `ADD` allows for multiple objects (or object groups) of one type to be specified in a command, and applies filters to all referenced objects. If no sources for objects are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
 
-While normally `ADD` uses sources already indexed by LDB (such as `ds:root` or another dataset, or pre-indexed objects referenced by valid ids), it can also target a folder in storage. In that case, an `INDEX` command is automatically run for this folder to ensure that any possible changes are picked. 
+While normally `ADD` uses sources already indexed by LDB (such a dataset, or pre-indexed objects referenced by valid identifiers), it can also target a folder in storage. In that case, `INDEX` command is automatically run for this folder to ensure that any possible changes are picked. 
 
-A special case for `ADD` arises when targeting paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flasg in `ADD-STORAGE` for discussion).
+A special case for `ADD` arises when targeting paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flag in `ADD-STORAGE` for discussion).
 
 
 ## object identifiers supported by `ADD`
@@ -197,7 +199,7 @@ $ ldb stage ds:cats ./
 $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to dataset
 ```
 
-2. `object_path` - can be fully qualified (down to an object), or reference a folder in registered storage locations. If `object-path` is fully qualified, LDB tries to get object hashsum and match it to known objects. If hashsum was not seen before, LDB falls back to `INDEX` containing folder. If `object-path` is a folder, `ADD` calls `INDEX` before recursively processing objects in path. 
+2. `object_path` - any fully qualified (down to an object), or folder path in registered storage locations. If `object-path` is fully qualified, LDB tries to get object hashsum and match it to known objects. If hashsum was not seen before, LDB falls back to `INDEX` the object. If `object-path` is a folder, `ADD` calls `INDEX` immediately and then recursively processes indexed objects in path. 
 
 In all cases of `INDEX` involvement within `ADD`, it will fail if objects are not in default format. 
 
@@ -212,7 +214,7 @@ $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder
 3. `object_path` - any valid *fs* path NOT registered with `ADD-STORAGE`. The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it expects annotations in default format and works in the following way:
 
   * If `object_path` is the workspace:
-      -  `ADD` will process updated annotations even without the paired data objects (see `INSTANTIATE --annotations-only`)
+      -  `ADD` will process updated annotations even without paired data objects (see `INSTANTIATE --annotations-only`)
       -  `ADD` will ignore "preview" data objects (see `INSTANTIATE --preview`)
        
 *Use case:*
@@ -244,7 +246,7 @@ $ ldb add ./                  # result: cat1.jpg copied to read-add storage, and
 
 
 
-4. ds:\<name\>[.v\<num\>] - dataset name with an optional version number. Any valid LDB dataset can serve as a source of objects.
+4. `ds:<name>[.v<num>]` - dataset name with an optional version number. Any valid LDB dataset can serve as a source of objects. Note that every dataset has objects paired with a particular annotation number, so it is possible to build a list where the same object is references several times with different annotations. If this is the case, the collision is resolved by using the latest annotation version among references.
 
 *Use case:*
 ```
