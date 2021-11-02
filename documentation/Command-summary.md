@@ -338,7 +338,7 @@ Where,
 Examples of LDB queries:
 
 ```
-*.classes[0:1] == ["cats", "dogs"]
+*.classes[0:1] == {["cats", "dogs"]}
 ```
 
 ```
