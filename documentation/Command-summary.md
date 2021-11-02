@@ -6,6 +6,12 @@ LDB defines datasets as collections of pointers to data objects in immutable sto
 Since datasets are just collections, LDB can modify them without moving the underlying data objects. To examine the physical data objects or annotations in dataset, it must be partially or fully instantiated (see `INSTANTIATE` below). 
 
 LDB datasets support names with [a-Z0-9-\_] ANSI characters. LDB commands require dataset names to carry a mandatory `ds:` prefix, and alows for optional `.v[0-9]*` postfix that denotes a dataset version number.  
+
+## LDB object identifiers
+
+LDB identifies data objects by hashsum - which is a primary data object identifier. LDB treats copies of data samples in immutable storage as different paths to the same data object, and permits any such path to be used as a secondary object identifier. 
+
+LDB identifies annotations for data objects based on the rules of the ingress format, and saves them internally. Annotations in LDB are paired to objects and are not directly addressable. It is, however, possible to specify annotation version for a data object, or instantiate annotations without related data samples. 
  
 ## LDB workspace
 
@@ -246,7 +252,7 @@ $ ldb add ./                  # result: cat1.jpg copied to read-add storage, and
 
 
 
-4. `ds:<name>[.v<num>]` - dataset name with an optional version number. Any valid LDB dataset can serve as a source of objects. Note that every dataset has objects paired with a particular annotation number, so it is possible to build a list where the same object is references several times with different annotations. If this is the case, the collision is resolved by using the latest annotation version among references.
+4. `ds:<name>[.v<num>]` - dataset name with an optional version number. Any valid LDB dataset can serve as a source of objects. Note that every dataset has objects paired with a particular annotation number, so it is possible to build a list where the same object is referenced several times with different annotations. If this is the case, the collision is resolved by using the latest annotation version among references.
 
 *Use case:*
 ```
