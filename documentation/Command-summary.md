@@ -57,7 +57,7 @@ Below is an example of QuickStart, where user queries a remote storage in two co
 
 ```
 $ ldb stage ds:my-numerals 
-$ ldb add gs://iterative/roman-numerals --query class == "i"
+$ ldb add gs://iterative/roman-numerals --query 'class == "i"'
 ```
 
 # INIT \<directory\>
@@ -281,7 +281,7 @@ Builds a query (see LDB Query Syntax) using fixed JSON fields specific to LDB in
 
 *Use case:*
 ```
-$ ldb add --file PATH == 'gs:datasets/cat-bucket/.*'  # Object source is implicitly ds:root, filtered by regex
+$ ldb add --file 'PATH == "gs:datasets/cat-bucket/.*"'  # Object source is implicitly ds:root, filtered by regex
 ```
 
 `--query <annotation query terms>`
@@ -290,7 +290,7 @@ Permits a query (see LDB Query Syntax) that references arbitrary JSON fields pre
 
 *Use case:*
 ```
-$ ldb add --query class == 'cats'
+$ ldb add --query 'class == "cats"'
 ```
 
 `--ml <model with arguments>`
@@ -299,7 +299,7 @@ Passes a list of objects through an ML model that sorts them according to match 
 
 *Use case:*
 ```
-$ ldb add --ml CLIP "cat sitting on a chair" --limit 100. # returns 100 images that best match semantic embedding
+$ ldb add --ml CLIP 'cat sitting on a chair' --limit 100. # returns 100 images that best match semantic embedding
 ```
 
 `--limit <integer>`

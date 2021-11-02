@@ -54,7 +54,7 @@ Logical modifications to dataset staged in the workspace are usually made with A
 
 | Step | Command |
 | --- | --- |
-| Add objects by annotation | `$  ldb add s3://iterative/ImageNet-1K —-query *class == "cat"` |
+| Add objects by annotation | `$  ldb add s3://iterative/ImageNet-1K —-query '*class == "cat"'` |
 | Sample objects from a location | `$  ldb add azure://iterative/OpenImage-1K --sample-rate 10` |
 | Check the status of a staged dataset | `$  ldb list`|
 
@@ -62,7 +62,7 @@ LDB is not limited to querying existing annotations. Custom ML models can be emp
 
 | Step | Command |
 | --- | --- |
-| Add objects by ML query: | `$  ldb add gs://iterative/COCO-3K —-ml clip ~= "dog dance" --num 100` |
+| Add objects by ML query: | `$  ldb add gs://iterative/COCO-3K —-ml 'clip ~= "dog dance"' --num 100` |
 | Check the status of a staged dataset | `$  ldb list`|
 
 At this point, our workspace holds membership info for all cat images from ImageNet, randomly sampled images from COCO, and ten images that mostly resemble dancing dogs from OpenImage. Once this dataset is ready, it can be instantiated (materialized) in the desired output format to train the model.
