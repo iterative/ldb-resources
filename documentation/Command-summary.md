@@ -393,9 +393,11 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 
 Preview dataset instantiates data objects using a specific lambda function (for example, downscaling to specific size for image previews). Has no effect if storage does not support object lambdas, or code access points are not configured.
 
-# COMMIT
+# COMMIT [message]
 
 `COMMIT` takes the currently staged dataset and saves it to LDB. This action makes workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is a new version of dataset.
+
+The optional `message` flag will be added as the commit message and shown in `ldb status` when called with a dataset as an argument.
 
 # DIFF \<ds:\<name\>\> [ds:\<name\>]
 
