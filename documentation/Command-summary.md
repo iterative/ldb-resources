@@ -320,7 +320,7 @@ LDB Query is defined as:
 QUERY:   TERM | TERM <AND | OR> QUERY
 TERM:    JMESPATH operator TARGET
 ```
-optionally grouped by parentheses.
+terms are optionally grouped by parentheses.
 
 
 Where, 
@@ -335,7 +335,7 @@ Examples of LDB queries:
 ```
 
 ```
-*.classes[0] != "cat.*" AND length(*.classes) < 5
+( *.classes[0] != "cat.*" ) AND ( length(*.classes) < 5 )
 ```
 
 
@@ -351,22 +351,22 @@ Examples of LDB queries:
 
 ## flags 
 
-`--remove`  removes indicated tags
+`--remove`  removes indicated tags from objects or datasets
 
 # SYNC \< target-folder \>
 
-`SYNC` synchronizes workspace state with staged dataset found in \< object-folder \>. It acts as a combination of `ADD` and `DEL` commands to realign the staged dataset with objects and annotations found in \< target-folder \>
+`SYNC` synchronizes workspace state with dataset instance found at \< target-folder \>. It acts as a combination of `ADD` and `DEL` commands and logically clones \<target-folder\> to staged dataset, overwriting it.
 
 _Use case:_
 ```
 $ ldb instantiate ./     # instantiate the workspace dataset
 $ rm cats1.jpg           # delete one object file
-$ ldb sync ./            # pick up the changes in workspace
+$ ldb sync ./            # pick up changes in workspace
 ```
 
 # INSTANTIATE [\< object id(s) \>] [flags]
 
-`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty). `INSTANTIATE` takes any valid object ids - hashsums or full object paths.
+`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths.
 
 ## flags
  
@@ -376,7 +376,7 @@ Only instantiates annotations (no data objects). Can be combined with `--format`
 
 `--format <name>`
 
-Specific annotation output format. Supported formats mirror the `INDEX` command.
+Specific annotation output format. The list of formats mirror those in `INDEX` command with `--format` flag.
 
 `--preserve-names`
 
@@ -384,15 +384,15 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 
 `--preview [integer]`
 
-Preview dataset instantiates data objects passing a specific lambda (for example, downscaling size for images). Has no effect if storage does not support object lambdas or code access points not configured.
+Preview dataset instantiates data objects using a specific lambda function (for example, downscaling to specific size for image previews). Has no effect if storage does not support object lambdas, or code access points are not configured.
 
 # COMMIT
 
-`COMMIT` takes the currently staged dataset and saves it to LDB. This action makes workspace "clean" meaning any changes are saved and it can be deleted if needed. The result of `COMMIT` command is a dataset with updated version.
+`COMMIT` takes the currently staged dataset and saves it to LDB. This action makes workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is a new version of dataset.
 
 # DIFF \<ds:\<name\>\> [ds:\<name\>]
 
-`DIFF` prints a list of member differences between two datasets. `DIFF` with one-argument can only run from a workspace and assumes first comparand to be staged dataset.
+`DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and assumes the first comparand to be staged dataset.
 
 # LIST  \<arg-list\>
 
