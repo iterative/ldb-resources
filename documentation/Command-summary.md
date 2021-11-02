@@ -197,7 +197,9 @@ $ ldb stage ds:cats ./
 $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to dataset
 ```
 
-2. `object_path` - can be fully qualified (down to an object), or reference a folder. If `object-path` is fully qualified, LDB tries to obtains object hashsum and match it to known objects. If hashsum is not known, LDB falls back to indexing the containing folder (if permitted by storage rules). If `object-path` is a folder in the first place, `ADD` proceeds to call `INDEX` before serving the content of path.
+2. `object_path` - can be fully qualified (down to an object), or reference a folder in registered storage locations. If `object-path` is fully qualified, LDB tries to get object hashsum and match it to known objects. If hashsum was not seen before, LDB falls back to `INDEX` containing folder. If `object-path` is a folder, `ADD` calls `INDEX` before recursively processing objects in path. 
+
+In all cases of `INDEX` involvement within `ADD`, it will fail if objects are not in default format. 
 
 ```
 $ ldb stage ds:cats ./
