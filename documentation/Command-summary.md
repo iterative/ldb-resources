@@ -36,7 +36,7 @@ If no method of configuration succeeds, all LDB commands will fail, except for `
 
 ## Quickstart 
 
-QuickStart allows the individual user to begin working with LDB without any initial configuration. Instead, QuickStart makes some configuration assumptions, and can demonstrate tangible value in LDB trial within 3-4 commands.
+QuickStart allows the individual user to begin working with LDB without explicit configuration. To that end, QuickStart makes strong configuration assumptions, and in return brings tangible value in as little as 3-4 commands.
 
 `STAGE` is the only LDB command that can trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to create a new LDB repository before proceeding with staging a dataset.
 
@@ -89,9 +89,9 @@ LDB keeps track of storage locations for several reasons, the primary being engi
 
 LDB supports the following storage URI types: fs, Google Cloud, AWS, and Azure. 
 
-The minimum and sufficient set of permissions for LDB is to **list, stat and read** any objects at `<storage-URI>`. `ADD-STORAGE` fails if permissions are not sufficient, and succeeds with a warning if permissions are too wide. `ADD-STORAGE` also checks if `<storage-URI>` falls within an already registered URI, and prints an error if this the case. Permissions are re-checked if existing storage location is added again.
+The minimum and sufficient set of permissions for LDB is to **list, stat and read** any objects at `<storage-URI>`. `ADD-STORAGE` fails if permissions are not sufficient, and succeeds with a warning if permissions are too wide. `ADD-STORAGE` also checks if `<storage-URI>` falls within an already registered URI, and prints an error if this the case. Permissions are re-checked if an existing storage location is re-added.
 
-Since LDB assumes that storage is immutable, it never attempts to modify or move files in storage. However, LDB may be required to add files (under unique path), which happens if user wants to register new samples from a filesystem outside the configured storage locations (for example, in personal workspace). Storage location marked `read-add` will permit LDB to store such samples if this feature is needed.
+Since LDB assumes that storage is immutable, it never attempts to alter or move files in storage. However, LDB may be required to push files to storage (under unique paths), which happens if user wants data samples sourced outside the configured storage (for example, from personal workspace). Destination configured as `read-add` will permit LDB to copy such samples into storage.
 
 ## flags
 
@@ -99,28 +99,32 @@ Since LDB assumes that storage is immutable, it never attempts to modify or move
 
 Storage location registered with this flag must allow for adding files. 
 
-LDB supports at most one read-add location, and uses it to save _previously unseen_ local data files that `ADD` command may encounter outside the registered storage. Users can change or remove the `read-add` attribute by repeatedly adding locations with or without this flag. Attempt to add a second`read-add` location to LDB should fail prompting the user to remove the attribute from existing location first. 
+LDB supports at most one `read-add` location, and uses it to save _previously unseen_ local data files that `ADD` command may encounter outside the registered storage. Users can change or remove the `read-add` attribute by repeatedly adding locations with or without this flag. Attempt to add a second`read-add` location to LDB should fail prompting the user to remove the attribute from existing location first. 
 
 `read-add` location should never be used to store any data objects that originate at cloud locations. Attempt to reference unregistered cloud location in `ADD` command will fail immediately.
 
-*Use case:* 
-
-```
-(workspace)$ ldb add ./cat.jpg
-     error: object 0x564d is not in LDB and no read-add location configured
-$
-```
-There are no `read-add` storage locations registered, and user tries to add a file from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed somewhere in storage, the ADD command will fail.
     
 *Use case:* 
 
 ```
-(workspace)$ ldb add ./cat.jpg
-     warning: object 0x564d copied to gs://add-storage/auto-import220211-11
+(workspace)$ ldb add-storage gs://add-storage --read-add 
+  new storage location gs://add-storage successfully registered.
+
+(workspace)$ ldb add ./cat1.jpg
+     warning: object 0x564d copied to gs://add-storage/auto-import220211-11/cat1.jpg
 $
 ```
 
-There is a location `gs://add-storage` registered with `read-add` attribute,  and user tries to add file from a workspace into a dataset. If LDB does not have an object with identical hashsum already indexed, the `ADD` command adds `cat1.jpg` into `gs://add-storage` under the unique folder name, indexes it, and adds this object to dataset.
+There is a location `gs://add-storage` registered with `read-add` attribute, and user tries to add file from a workspace into a dataset. If LDB does not have an object with identical hashsum already indexed, the `ADD` command copies `cat1.jpg` into `gs://add-storage` under the unique folder name, indexes it, and adds this object to dataset.
+
+*Use case:* 
+
+```
+(workspace)$ ldb add ./cat1.jpg
+     error: object 0x564d is not in LDB and no read-add location configured
+$
+```
+There are no `read-add` storage locations registered, and user tries to add a file from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed somewhere in storage, the ADD command fails.
 
 ## access configuration
 
@@ -152,10 +156,19 @@ If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and pr
 allows to clobber the workspace regardless of what is there.
     
 
-# INDEX \<storage folder URI(s) | storage file(s) URI(s)\> [flags]
+# INDEX \<storage folder URI(s) | storage object URI(s)\> [flags]
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. It assumes URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is provided and no format flag specified, this folder is traversed recursively to recover objects and annotations. 
 
+_Use case:_
+```
+$ ldb index gs://my-storage/new-folder  # traverse this folder to find data objects in default format
+```
+
+_Use case:_
+```
+$ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotation URI
+```
 
 ## flags
 
@@ -169,7 +182,9 @@ If no flags are used, LDB assumes the default format – which is one .json file
 
 `ADD` allows for multiple objects (or object groups) of one type to be specified in a command, and applies filters to all referenced objects. If no sources for objects are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
 
-A special case for `ADD` arises when targeting a path outside of storage. Most commonly, such target is a current workspace where objects were added or annotations edited in-place. This mode of operation is only supported for annotations in the default LDB format (one .json file per every data object).
+While normally `ADD` uses sources already indexed by LDB (such as `ds:root` or another dataset, or pre-indexed objects referenced by valid ids), it can also target a folder in storage. In that case, an `INDEX` command is automatically run for this folder to ensure that any possible changes are picked. 
+
+A special case for `ADD` arises when targeting paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flasg in `ADD-STORAGE` for discussion).
 
 
 ## object identifiers supported by `ADD`
@@ -182,11 +197,14 @@ $ ldb stage ds:cats ./
 $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to dataset
 ```
 
-2. `object_path` - any valid path registered with `ADD-STORAGE` to objects and annotations in storage. The path can be fully qualified (down to an object), or reference a folder. In all cases, `ADD` calls `INDEX` to index the content of path first.
+2. `object_path` - can be fully qualified (down to an object), or reference a folder. If `object-path` is fully qualified, LDB tries to obtains object hashsum and match it to known objects. If hashsum is not known, LDB falls back to indexing the containing folder (if permitted by storage rules). If `object-path` is a folder in the first place, `ADD` proceeds to call `INDEX` before serving the content of path.
 
 ```
 $ ldb stage ds:cats ./
-$ ldb add gs://my-datasets/cats/white-cats/  # location registered but not recently idexed
+$ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder contains unindexed data
+  indexing gs://my-datasets/cats/white-cats/
+  23 objects found, 20 new objects added to index, 3 annotations updated
+  23 objects added to workspace (ds:cats)
 ```
 
 3. `object_path` - any valid *fs* path NOT registered with `ADD-STORAGE`. The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it expects annotations in default format and works in the following way:
@@ -344,7 +362,7 @@ $ ldb sync ./            # pick up the changes in workspace
 
 # INSTANTIATE [\< object id(s) \>] [flags]
 
-`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty).
+`INSTANTIATE` partially or fully re-creates dataset in a workspace. If object id(s) are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty). `INSTANTIATE` takes any valid object ids - hashsums or full object paths.
 
 ## flags
  
@@ -370,16 +388,16 @@ Preview dataset instantiates data objects passing a specific lambda (for example
 
 # DIFF \<ds:\<name\>\> [ds:\<name\>]
 
-`DIFF` takes one or two dataset names and prints a list of member differences between them. One-argument version can only run from a workspace and assumes the staged dataset as a first argument.
+`DIFF` prints a list of member differences between two datasets. `DIFF` with one-argument can only run from a workspace and assumes first comparand to be staged dataset.
 
 # LIST  \<arg-list\>
 
 `LIST` can take exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
-Unlike `ADD`, `LIST` can also run without arguments, in which case it prints the objects in a staged dataset.
+Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds-root` as the object source.
 
-# STATUS  [ds:\<name\>]
+# STATUS  [ds:\<name\>[.v<number>]
 
-`STATUS` summarizes the state of a staged dataset (when run with no arguments). This includes uncomitted changes and current object count. If called with an argument, prints a summary for a named dataset.
+When run without arguments from a workspace, `STATUS` summarizes the state of a staged dataset. This includes any uncomitted changes and current object count. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
 
 # PULL [object-ids]
 
