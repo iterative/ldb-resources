@@ -166,6 +166,10 @@ allows to clobber the workspace regardless of what is there.
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. It assumes URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is provided and no format flag specified, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name).
 
+LDB maintains a current annotation version for every data object where at least one associated annotation has been indexed. LDB will update the current annotation version for a data object only under the following conditions:
+ * An annotation for the data object is found during indexing
+ * The discovered annotation is new, meaning LDB has not indexed an identifical annotation for the same data object before
+
 _Use case:_
 ```
 $ ldb index gs://my-storage/new-folder  # traverse this folder to find data objects in default format
@@ -183,17 +187,23 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 # ADD  \< object-list \> [filters]
 
 Where,
-* `object-list` is one or more of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
+* `object-list` is a sequence of one or more arguments, which must be one of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`. You may not pass arguments of different types in the same call to `ADD`. For example you may pass multiple datasets to `ADD` but not both a dataset and an object identifer, `0x<sum>`. You must use separate calls for different argument types.
 
-`ADD` is the main workhorse of LDB as it allows to add data sample(s) to dataset from various sources. 
+`ADD` is the main workhorse of LDB as it allows users to add any data sample(s) to the currently staged workspace dataset from various sources. 
 
-`ADD` builds a list of objects referenced by hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into staged dataset. 
+`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset.
+
+By default, when a data object is added to the workspace dataset, an associated annotation will be added with it. If datasets are passed to `ADD`, the annotations in those dataset will be used, giving preference to the last dataset argument. Otherwise LDB identifies the current annotation for the data object in the root dataset, if any, and uses it. See the `INDEX` command about how the current annotation is set. If a data object is already a member of the workspace dataset and it is added, its annotation will be updated according to this policy. This includes removing a data objects annotation if a dataset is added where that data object has not annotation.
+
+When a data object is added from a dataset, an annotation may be added with it. If the object comes from a dataset
+
+By default, a data object's default annotation is included. For datasets, the default annotation is simply the annotation in the dataset. During indexing, LDB sets the default annotation for a data object to the last unique annotation indexed for that data object.
 
 `ADD` allows for multiple objects (or object groups) of one type to be specified in a command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – all objects indexed by LDB.
 
 While normally `ADD` references sources already indexed by LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
-A special case for `ADD` arises when targeting ephemeral filesystem (fs) paths outside of configured storage locations. Most commonly, such target would be a current workspace to where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see `read-add` flag in `ADD-STORAGE` for discussion).
+A special case for `ADD` arises when targeting ephemeral filesystem (fs) paths outside of configured storage locations. Most commonly, such a target would be a current workspace where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see the `--read-add` option in `ADD-STORAGE` for discussion).
 
 
 ## object identifiers supported by `ADD`
