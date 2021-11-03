@@ -187,8 +187,8 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 # ADD  \< object-list \> [filters]
 
 Where,
-* `object-list` is a sequence of one or more arguments of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
-* You may not pass arguments of different types in the same call to `ADD`. For example you may pass multiple datasets to `ADD` but not both a dataset and an object identifer, `0x<sum>`. You must use separate calls for different argument types.
+* `object-list` is one or more arguments of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
+* A single `ADD` call may only use one of these types. For example you may pass multiple datasets to `ADD` but not both a dataset and an object identifer, `0x<sum>`.
 
 `ADD` is the main workhorse of LDB as it allows users to add any data sample(s) to the currently staged workspace dataset from various sources. 
 
