@@ -189,7 +189,7 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 # ADD  \< object-list \> [filters]
 
 Where,
-* `object-list` is one or more arguments of one of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
+* `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
 
 `ADD` is the main workhorse of LDB as it allows users to add any data sample(s) to the currently staged workspace dataset from various sources. 
 
@@ -215,9 +215,10 @@ $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to
 
 In all cases of `INDEX` involvement within `ADD`, it will fail if objects are not in the default format (one annotation file per each data objects).
 
+*Use case:*
 ```
 $ ldb stage ds:cats ./
-$ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder contains unindexed data
+$ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder may contains unindexed data
   indexing gs://my-datasets/cats/white-cats/
   23 objects found, 20 new objects added to index, 3 annotations updated
   23 objects added to workspace (ds:cats)
