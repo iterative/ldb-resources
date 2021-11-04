@@ -97,7 +97,7 @@ LDB supports the following storage URI types: fs, Google Cloud, AWS, and Azure.
 
 The minimum and sufficient set of permissions for LDB is to **list, stat and read** any objects at `<storage-URI>`. `ADD-STORAGE` fails if permissions are not sufficient, and succeeds with a warning if permissions are too wide. `ADD-STORAGE` also checks if `<storage-URI>` falls within an already registered URI, and prints an error if this the case. Permissions are re-checked if an existing storage location is re-added.
 
-Since LDB assumes that storage is immutable, it never attempts to alter or move files in storage. However, LDB may be required to push files to storage (under unique paths), which happens if user wants data samples sourced outside the configured storage (for example, from personal workspace). Destination configured as `read-add` will permit LDB to copy such samples into storage.
+Since LDB assumes that storage is immutable, it never attempts to alter or move data files. However, LDB may be required to push *new* files to storage if user chooses to source objects from ephemeral _fs_ locations (for example, a personal workspace). Destination configured as `read-add` will permit LDB to automatically save such objects into immutable storage.
 
 ## flags
 
@@ -196,17 +196,13 @@ Where,
 
 `ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset.
 
-By default, when a data object is added to the workspace dataset, an associated annotation will be added with it. If datasets are passed to `ADD`, the annotations in those dataset will be used, giving preference to the last dataset argument. Otherwise LDB identifies the current annotation for the data object in the root dataset, if any, and uses it. See the `INDEX` command about how the current annotation is set. If a data object is already a member of the workspace dataset and it is added, its annotation will be updated according to this policy. This includes removing a data objects annotation if a dataset is added where that data object has not annotation.
-
-When a data object is added from a dataset, an annotation may be added with it. If the object comes from a dataset
-
-By default, a data object's default annotation is included. For datasets, the default annotation is simply the annotation in the dataset. During indexing, LDB sets the default annotation for a data object to the last unique annotation indexed for that data object.
-
 `ADD` allows for multiple objects (or object groups) of one type to be specified in a command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – all objects indexed by LDB.
 
 While normally `ADD` references sources already indexed by LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
 A special case for `ADD` arises when targeting ephemeral filesystem (fs) paths outside of configured storage locations. Most commonly, such a target would be a current workspace where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see the `--read-add` option in `ADD-STORAGE` for discussion).
+
+By default, when a data object is added to the workspace, an associated annotation will go with it. The particular annotation version would be determined by the source. In case of collisions (same object is added with multiple annotation versions), the latest annotation wins.
 
 
 ## object identifiers supported by `ADD`
@@ -274,9 +270,17 @@ $ ldb stage ds:cats
 $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and v.2 of ds:white_cats
 ```
 
-## filters supported by `ADD`
+## filters and modifiers supported by `ADD`
 
-`ADD` can be called with several filter flags. If multiple flags are specified, filters will be pipelined, so their order may matter. Multiple filters of one type are not permitted in one `ADD` command.
+`ADD` can be called with several filter and modifier flags. If multiple flags are specified, filters will be pipelined, so their order may matter. Multiple instances of one flag are not permitted in one `ADD` command.
+
+`--a_version <number>`
+
+Sets a particular annotation version. If no matching version found, drops the object.
+
+`--u_version <number>` 
+
+Sets a particular user annotation version. If no matching versin found, drops the object.
 
 `--file <filesystem attributes query>`
 
@@ -286,8 +290,6 @@ Builds a query (see LDB Query Syntax) using fixed JSON fields specific to LDB in
 * A_MTIME - annotation modification time.
 * INDEXED - data object first indexing time. Not affected by re-indexing (data objects are immutable).
 * A_INDEXED - annotation last indexing time. Affected by re-indexing (annotations are mutable).
-* A_VERSION - sets an explicit LDB annotation version.
-* U_VERSION - sets an explicit user-defined annotation version.
 * SIZE - data object file size in Kilobytes, Megabytes or Gigabytes (qualifier K, M or G).
 * PATH - data object path. If same data object was indexed under multiple paths, will match either one.
 * NAME - data object name. If same data object was indexed under multiple names, will match either one.
@@ -346,7 +348,7 @@ terms are optionally grouped by parentheses.
 Where, 
 * JMESPATH is any valid [JMESPATH](https://jmespath.org) expression
 * operator is one of:  `==`  `>`  `<` `!=` 
-* TARGET is one of: `JSON_OBJECT` `STRING_REGEX` `NUMBER`
+* TARGET is one of: `JMESPATH` `JSON_OBJECT` `STRING_REGEX` `NUMBER`
 
 Examples of LDB queries:
 
