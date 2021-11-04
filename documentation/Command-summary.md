@@ -189,21 +189,17 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 # ADD  \< object-list \> [filters]
 
 Where,
-* `object-list` is one or more arguments of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
-* A single `ADD` call may only use one of these types. For example you may pass multiple datasets, but not both a dataset and an object hashsum.
+* `object-list` is one or more arguments of one of the following object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
 
 `ADD` is the main workhorse of LDB as it allows users to add any data sample(s) to the currently staged workspace dataset from various sources. 
 
-`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset.
+`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset. When a data object is added to the workspace, an associated annotation will go with it. The particular annotation version would be determined by the source. In case of version collisions (same object with multiple annotation versions), the latest annotation wins.
 
-`ADD` allows for multiple objects (or object groups) of one type to be specified in a command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – all objects indexed by LDB.
+`ADD` allows for multiple objects (or object groups) of one type to be specified in one command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – which is all objects indexed by LDB.
 
-While normally `ADD` references sources already indexed by LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
+While normally `ADD` references sources already known to LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
-A special case for `ADD` arises when targeting ephemeral filesystem (fs) paths outside of configured storage locations. Most commonly, such a target would be a current workspace where new objects were added directly, or where some annotations were edited in-place. `ADD` can understand such changes and does the right thing to manage data samples and annotations (this mode of operation is only supported for annotations in the default LDB format, see the `--read-add` option in `ADD-STORAGE` for discussion).
-
-By default, when a data object is added to the workspace, an associated annotation will go with it. The particular annotation version would be determined by the source. In case of collisions (same object is added with multiple annotation versions), the latest annotation wins.
-
+A special case for `ADD` arises when targeting ephemeral filesystem paths (anything outside the configured storage locations). Most commonly, such a target would be a current workspace where new objects were added directly, or where annotations were edited in-place. `ADD` can understand such changes and will save new objects into permanent storage (see the `--read-add` option in `ADD-STORAGE` for discussion).
 
 ## object identifiers supported by `ADD`
 
@@ -215,9 +211,9 @@ $ ldb stage ds:cats ./
 $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to dataset
 ```
 
-2. `object_path` - any fully qualified (down to an object), or folder path in registered storage locations. If `object-path` is fully qualified, LDB tries to get object hashsum and match it to known objects. If hashsum was not seen before, LDB falls back to `INDEX` the object. If `object-path` is a folder, `ADD` calls `INDEX` immediately and then recursively processes indexed objects in path. 
+2. `object_path` - any fully qualified (down to an object), or folder path within registered storage locations. If `object-path` is a folder, `ADD` calls `INDEX` to recursively process all objects in this folder. If `object-path` is fully qualified, `ADD` will first check if this object is already indexed, and will call `INDEX` otherwise. Shell GLOB patterns are supported.
 
-In all cases of `INDEX` involvement within `ADD`, it will fail if objects are not in default format. 
+In all cases of `INDEX` involvement within `ADD`, it will fail if objects are not in the default format (one annotation file per each data objects).
 
 ```
 $ ldb stage ds:cats ./
