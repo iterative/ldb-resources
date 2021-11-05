@@ -164,13 +164,12 @@ allows to clobber the workspace regardless of what is there.
 
 # INDEX \<storage folder URI(s) | storage object URI(s)\> [flags]
 
-`INDEX` updates LDB repository with data objects and annotations given as arguments. If the LDB instance was created via quickstart with the `STAGE` command, then any location may be indexed. If a shared LDB instance was created with the `INIT` command, then LDB assumes URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is provided and no format flag specified, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name).
+`INDEX` updates LDB repository with data objects and annotations given as arguments. If LDB instance was created via QuickStart (see `STAGE`), then any cloud location may be indexed by default. If LDB instance was created with the `INIT` command, then LDB assumes indexed URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is supplied to `INDEX` with no format flag, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name). All hidden paths are excluded during indexing, which means any path where any of the directory or filenames begins with a dot (`.`) will not be indexed.
 
-All hidden paths are excluded during indexing. This means any path where any of the directory or filenames begins with a dot (`.`).
+LDB maintains a "current" annotation version for every data object with at least one indexed annotation. LDB will update the "current" annotation version for a data object under the two following conditions:
 
-LDB maintains a current annotation version for every data object where at least one associated annotation has been indexed. LDB will update the current annotation version for a data object only under the following conditions:
- * An annotation for the data object is found during indexing
- * The discovered annotation is new, meaning LDB has not indexed an identifical annotation for the same data object before
+ * This object is re-indexed (explicitly or implicitly), and an associated annotation for this data object was successfully recovered.
+ * This annotation was not seen before (re-indexing older annotation versions will have no effect on LDB).
 
 _Use case:_
 ```
@@ -197,7 +196,7 @@ Where,
 
 `ADD` allows for multiple objects (or object groups) of one type to be specified in one command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – which is all objects indexed by LDB.
 
-While normally `ADD` references sources already known to LDB (such objects in a dataset, or pre-indexed objects via valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
+While normally `ADD` references sources already known to LDB (objects in a dataset, or pre-indexed objects with valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
 A special case for `ADD` arises when targeting ephemeral filesystem paths (anything outside the configured storage locations). Most commonly, such a target would be a current workspace where new objects were added directly, or where annotations were edited in-place. `ADD` can understand such changes and will save new objects into permanent storage (see the `--read-add` option in `ADD-STORAGE` for discussion).
 
