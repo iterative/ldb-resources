@@ -40,9 +40,9 @@ ldb_dir = '/some/absolute/path'
 If both ways of configuration are present, the environment variable takes precedence.
 If no method of configuration succeeds, all LDB commands will fail, except for `INIT` which does not require an existing installation, and `STAGE` when used in QuickStart (see below).
 
-## Quickstart 
+## QuickStart 
 
-QuickStart allows the individual user to begin working with LDB without explicit configuration. To that end, QuickStart makes strong configuration assumptions, and in return brings tangible value in as little as 3-4 commands.
+QuickStart allows the individual user to begin working with LDB without explicit configuration. To that end, QuickStart makes strong configuration assumptions, and in return can jumpstart the LDB workflow with as little as 3-4 commands.
 
 `STAGE` is the only LDB command that can trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to create a new LDB repository before proceeding with staging a dataset.
 
