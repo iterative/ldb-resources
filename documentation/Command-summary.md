@@ -228,6 +228,11 @@ $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder
   * If `object_path` is the workspace:
       -  `ADD` will process updated annotations even without paired data objects (see `INSTANTIATE --annotations-only`)
       -  `ADD` will ignore "preview" data objects (see `INSTANTIATE --preview`)
+  
+  * In all other cases:
+      - If previously indexed data objects are found, they are added to staged dataset, alongside with annotations
+      - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added to dataset.
+      - If new objects (unknown to LDB) are found but no `read-add` storage configured, `ADD` command fails.
        
 *Use case:*
 ```
@@ -236,11 +241,6 @@ $ ldb instantiate --annotations-only
 $ sed -i 's/class=cat/class=dog/g' cat1.json 
 $ ldb add ./                  # result: annotation for cat1.jpg got a new version in LDB, and in ds:cats
 ```
-  
-  * In all cases:
-      - If previously indexed data objects are found, they are added to staged dataset, alongside with annotations
-      - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added to dataset.
-      - If new objects (unknown to LDB) are found but no `read-add` storage configured, `ADD` command fails.
 
 *Use case:*
 ```
@@ -270,13 +270,6 @@ $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and
 
 `ADD` can be called with several filter and modifier flags. If multiple flags are specified, filters will be pipelined, so their order may matter. Multiple instances of one flag are not permitted in one `ADD` command.
 
-`--a_version <number>`
-
-Sets a particular annotation version. If no matching version found, drops the object.
-
-`--u_version <number>` 
-
-Sets a particular user annotation version. If no matching versin found, drops the object.
 
 `--file <filesystem attributes query>`
 
@@ -304,13 +297,13 @@ Permits a query (see LDB Query Syntax) that references arbitrary JSON fields pre
 $ ldb add --query 'class == "cats"'
 ```
 
-`--ml <model with arguments>`
+`--sort <model with arguments>`
 
-Passes a list of objects through an ML model that sorts them according to match criteria. Often used with `--limit`. 
+Passes a list of objects through external program (or ML model) that sorts them according to match criteria. Often used with `--limit`. 
 
 *Use case:*
 ```
-$ ldb add --ml CLIP 'cat sitting on a chair' --limit 100. # returns 100 images that best match semantic embedding
+$ ldb add --ml CLIP 'cat sitting on a chair' --limit 100. # returns 100 images that best match the provided semantic embedding
 ```
 
 `--limit <integer>`
@@ -319,7 +312,7 @@ Cuts the input list of objects at \<integer\> samples.
 
 `--sample <probability>`
 
-Passes every object in input list with given Bernoulli probability.
+Permits every object in input list with a given Bernoulli probability.
 
 ```
 $ ldb add ds:cats --sample 0.9 
@@ -332,7 +325,9 @@ Passes objects with referenced tag, equivalent to --query TAG == \<string\>
 
 ## LDB Query Language
 
-LDB Query is defined as:
+Ability to construct complex queries is on of key features of LDB that permits it to extract data objects that are best suitable for training. LDB query language builds on top of [JMESPATH](https://jmespath.org) and supports JSON slices, projections, and reductions. This means, for example, that ML engineer can request only images with a given number of a particular class object detected.
+
+More formally, queries are defined as:
 
 ```
 QUERY:   TERM | TERM <AND | OR> QUERY
@@ -342,7 +337,7 @@ terms are optionally grouped by parentheses.
 
 
 Where, 
-* JMESPATH is any valid [JMESPATH](https://jmespath.org) expression
+* JMESPATH is any valid JMESPATH expression
 * operator is one of:  `==`  `>`  `<` `!=` 
 * TARGET is one of: `JMESPATH` `JSON_OBJECT` `STRING_REGEX` `NUMBER`
 
@@ -396,7 +391,7 @@ Only instantiates annotations (no data objects). Can be combined with `--format`
 
 Specific annotation output format. The list of formats mirror those in `INDEX` command with `--format` flag.
 
-`--preserve-names`
+`--preserve-paths`
 
 Instantiate objects preserving full storage paths. Only supported for default LDB format (annotation file per every object).
 
