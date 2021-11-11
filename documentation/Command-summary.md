@@ -412,6 +412,16 @@ The optional `message` flag will be added as the commit message and shown in `ld
 `LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
 Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds-root` as the object source.
 
+## flags
+
+`-s` or  `--summary` 
+
+just prints object counts
+
+`-v` or  `--verbose`
+
+detailed object information
+
 # STATUS  [ds:\<name\>[.v<number>]
 
 When run without arguments from a workspace, `STATUS` summarizes state of a staged dataset. This includes any uncomitted changes and current object counts. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
