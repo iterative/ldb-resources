@@ -46,12 +46,13 @@ QuickStart allows the individual user to begin working with LDB without explicit
 
 `STAGE` is the only LDB command that can trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to create a new LDB repository before proceeding with staging a dataset.
 
- Under the hood, QuickStart consists of the following two steps:
+ Under the hood, QuickStart consists of the following three steps:
 
 * New LDB instance is created in user's home directory: `~/.ldb/private_instance`
 * Default storage configuration defaults to wide-open settings: 
     * All cloud locations are permitted to host data objects.
     * A `read-add` folder is created in user's home directory (see `ADD-STORAGE`).
+    * An `auto-index` option is set in LDB config, permitting `ADD` to process previously unindexed storage (see `ADD`)
  
 Below is an example of QuickStart, where user queries a remote storage in two commands right after the LDB installation:
 
