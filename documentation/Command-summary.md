@@ -13,7 +13,7 @@ LDB identifies data objects by hashsum - which is a primary data object identifi
 
 LDB identifies annotations for data objects based on the rules of the ingress format, and saves them internally. Annotations in LDB are paired to objects and are not directly addressable. It is, however, possible to specify annotation version for a data object, or instantiate annotations without related data samples. 
  
-## LDB workspace
+## LDB workspaces
 
 To work on a dataset, LDB stages it in a workspace (see `STAGE` below). Workspace holds all information for a dataset that is being modified. One user might have several workspaces in different directories. Any changes to a dataset (adding & removing objects, changing tags, etc) remain local to workspace until the `COMMIT` 
 
@@ -46,10 +46,10 @@ QuickStart allows the individual user to begin working with LDB without explicit
 
 `STAGE` is the only LDB command that can trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to create a new LDB repository before proceeding with staging a dataset.
 
- Under the hood, QuickStart process consists of the following two steps:
+ Under the hood, QuickStart consists of the following two steps:
 
-* LDB instance is created in the user's home directory: `~/.ldb/private_instance`
-* Default storage configuration is created with wide-open settings: 
+* New LDB instance is created in user's home directory: `~/.ldb/private_instance`
+* Default storage configuration defaults to wide-open settings: 
     * All cloud locations are permitted to host data objects.
     * A `read-add` folder is created in user's home directory (see `ADD-STORAGE`).
  
@@ -113,12 +113,11 @@ LDB supports at most one `read-add` location, and uses it to save _previously un
 *Use case:* 
 
 ```
-(workspace)$ ldb add-storage gs://add-storage --read-add 
+$ ldb add-storage gs://add-storage --read-add 
   new storage location gs://add-storage successfully registered.
 
-(workspace)$ ldb add ./cat1.jpg
+$ ldb add ./cat1.jpg
      warning: object 0x564d copied to gs://add-storage/auto-import220211-11/cat1.jpg
-$
 ```
 
 There is a location `gs://add-storage` registered with `read-add` attribute, and user tries to add file from a workspace into a dataset. If LDB does not have an object with identical hashsum already indexed, the `ADD` command copies `cat1.jpg` into `gs://add-storage` under the unique folder name, indexes it, and adds this object to dataset.
@@ -126,9 +125,8 @@ There is a location `gs://add-storage` registered with `read-add` attribute, and
 *Use case:* 
 
 ```
-(workspace)$ ldb add ./cat1.jpg
+$ ldb add ./cat1.jpg
      error: object 0x564d is not in LDB and no read-add location configured
-$
 ```
 There are no `read-add` storage locations registered, and user tries to add a file from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed somewhere in storage, the ADD command fails.
 
@@ -190,15 +188,15 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 Where,
 * `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
 
-`ADD` is the main workhorse of LDB as it allows users to add any data sample(s) to the currently staged workspace dataset from various sources. 
+`ADD` is the main workhorse of LDB as it allows data sample(s) to be added to a dataset staged in the workspace. 
 
-`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset. When a data object is added to the workspace, an associated annotation will go with it. The particular annotation version would be determined by the source. In case of version collisions (same object with multiple annotation versions), the latest annotation wins.
+`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset. When data object is added to the workspace, an associated annotation will go with it. The particular annotation version will be determined by the source identifier. In case of version collisions (same object re-added multiple times with divergent annotation versions), the latest annotation will be kept.
 
-`ADD` allows for multiple objects (or object groups) of one type to be specified in one command. If no sources for objects are provided, `ADD` assumes source to be `ds:root` – which is all objects indexed by LDB.
+`ADD` allows for multiple objects (or object sets) of one type to be specified in one command. If no explicit object sources are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
 
-While normally `ADD` references sources already known to LDB (objects in a dataset, or pre-indexed objects with valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
+While normally `ADD` references sources already known to LDB (pre-indexed objects with valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
-A special case for `ADD` arises when targeting ephemeral filesystem paths (anything outside the configured storage locations). Most commonly, such a target would be a current workspace where new objects were added directly, or where annotations were edited in-place. `ADD` can understand such changes and will save new objects into permanent storage (see the `--read-add` option in `ADD-STORAGE` for discussion).
+A special scenario for `ADD` arises when it targets ephemeral filesystem paths (anything outside the configured storage locations). Most commonly, such targets would be in the current workspace (where new objects were added directly, or where annotations were edited in-place). `ADD` can understand such changes and will save new data objects into permanent storage (see the `--read-add` option in `ADD-STORAGE`).
 
 ## object identifiers supported by `ADD`
 
@@ -210,14 +208,14 @@ $ ldb stage ds:cats ./
 $ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to dataset
 ```
 
-2. `object_path` - any fully qualified (down to an object), or folder path within registered storage locations. If `object-path` is a folder, `ADD` calls `INDEX` to recursively process all objects in this folder. If `object-path` is fully qualified, `ADD` will first check if this object is already indexed, and will call `INDEX` otherwise. Shell GLOB patterns are supported.
+2. `object_path` - any fully qualified (down to an object), or folder path within registered storage locations. If `object-path` is a folder, `ADD` calls `INDEX` to recursively process all objects in this folder. If `object-path` is fully qualified, `ADD` will first check if this object is already indexed, and will call `INDEX` (assuming default format) otherwise. Shell GLOB patterns are supported.
 
-In all cases of `INDEX` involvement within `ADD`, it will fail if objects are not in the default format (one annotation file per each data objects).
+In all cases of implicit `INDEX` involvement within `ADD`, it will fail if objects are not in the default format (one annotation file per each data objects).
 
 *Use case:*
 ```
 $ ldb stage ds:cats ./
-$ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder may contains unindexed data
+$ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder contains new data
   indexing gs://my-datasets/cats/white-cats/
   23 objects found, 20 new objects added to index, 3 annotations updated
   23 objects added to workspace (ds:cats)
@@ -226,12 +224,12 @@ $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder
 3. `object_path` - any valid *fs* path NOT registered with `ADD-STORAGE`. The path can be fully qualified (down to objects), or reference a folder. When `ADD` is called on unregistered fs path, it expects annotations in default format and works in the following way:
 
   * If `object_path` is the workspace:
-      -  `ADD` will process updated annotations even without paired data objects (see `INSTANTIATE --annotations-only`)
-      -  `ADD` will ignore "preview" data objects (see `INSTANTIATE --preview`)
+      -  `ADD` will process updated annotations even in absense of paired data objects (see `INSTANTIATE --annotations-only`)
+      -  `ADD` will ignore data object previews (see `INSTANTIATE --preview`)
   
   * In all other cases:
-      - If previously indexed data objects are found, they are added to staged dataset, alongside with annotations
-      - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added to dataset.
+      - If previously indexed data objects are found, they are added to staged dataset, alongside with their annotations
+      - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added.
       - If new objects (unknown to LDB) are found but no `read-add` storage configured, `ADD` command fails.
        
 *Use case:*
@@ -303,7 +301,7 @@ Passes a list of objects through external program (or ML model) that sorts them 
 
 *Use case:*
 ```
-$ ldb add --ml CLIP 'cat sitting on a chair' --limit 100. # returns 100 images that best match the provided semantic embedding
+$ ldb add --ml CLIP 'cat sitting on a chair' --limit 100 # returns 100 images that best match the provided semantic embedding
 ```
 
 `--limit <integer>`
@@ -312,7 +310,7 @@ Cuts the input list of objects at \<integer\> samples.
 
 `--sample <probability>`
 
-Permits every object in input list with a given Bernoulli probability.
+Passes every object in input list with a given Bernoulli probability.
 
 ```
 $ ldb add ds:cats --sample 0.9 
@@ -320,7 +318,7 @@ $ ldb add ds:cats --sample 0.9
 
 `--tag <string>`
 
-Passes objects with referenced tag, equivalent to --query TAG == \<string\>
+Passes objects with referenced tag, equivalent to --query LDB_TAG == \<string\>
 
 
 ## LDB Query Language
@@ -368,7 +366,7 @@ Examples of LDB queries:
 
 # SYNC \< target-folder \>
 
-`SYNC` synchronizes workspace state with dataset instance found at \< target-folder \>. It acts as a combination of `ADD` and `DEL` commands and logically clones \<target-folder\> to staged dataset, overwriting it.
+`SYNC` synchronizes workspace state with dataset instance found at \< target-folder \>. It acts as a combination of `ADD` and `DEL` commands and logically clones \<target-folder\> to staged dataset, effectively overwriting it.
 
 _Use case:_
 ```
@@ -395,32 +393,32 @@ Specific annotation output format. The list of formats mirror those in `INDEX` c
 
 Instantiate objects preserving full storage paths. Only supported for default LDB format (annotation file per every object).
 
-`--preview [integer]`
+`--preview [lambda_id]`
 
-Preview dataset instantiates data objects using a specific lambda function (for example, downscaling to specific size for image previews). Has no effect if storage does not support object lambdas, or code access points are not configured.
+Preview flag instantiates data objects after passing them through a given lambda function (for example, downscaling to specific size for image previews). It has no effect if cloud storage does not support object lambdas, or code access point for `lambda_id` was not configured.
 
 # COMMIT [message]
 
-`COMMIT` takes the currently staged dataset and saves it to LDB. This action makes workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is a new version of dataset.
+`COMMIT` takes the currently staged dataset and saves it to LDB. This action renders workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is always a new version of dataset.
 
 The optional `message` flag will be added as the commit message and shown in `ldb status` when called with a dataset as an argument.
 
 # DIFF \<ds:\<name\>\> [ds:\<name\>]
 
-`DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and assumes the first comparand to be staged dataset.
+`DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and uses as the first comparand.
 
 # LIST  \< object-list \> [filters]
 
-`LIST` can take exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
+`LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
 Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds-root` as the object source.
 
 # STATUS  [ds:\<name\>[.v<number>]
 
-When run without arguments from a workspace, `STATUS` summarizes the state of a staged dataset. This includes any uncomitted changes and current object count. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
+When run without arguments from a workspace, `STATUS` summarizes state of a staged dataset. This includes any uncomitted changes and current object counts. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
 
 # PULL [object-id(s)]
 
-`PULL` changes annotation versions for indicated object(s) to latest version in LDB. If no `object-id(s)` specified, applies to all objects in a dataset.
+`PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace.
 
 
 
