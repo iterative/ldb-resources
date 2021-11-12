@@ -49,10 +49,10 @@ QuickStart allows the individual user to begin working with LDB without explicit
  Under the hood, QuickStart consists of the following three steps:
 
 * New LDB instance is created in user's home directory: `~/.ldb/private_instance`
-* Default storage configuration defaults to wide-open settings: 
+* Storage configuration defaults to wide-open settings: 
     * All cloud locations are permitted to host data objects.
     * A `read-add` folder is created in user's home directory (see `ADD-STORAGE`).
-    * An `auto-index` option is set in LDB config, permitting `ADD` to process previously unindexed storage (see `ADD`)
+* An `auto-index` option is set in LDB config, permitting `ADD` to process previously unindexed storage (see `ADD`)
  
 Below is an example of QuickStart, where user queries a remote storage in two commands right after the LDB installation:
 
@@ -98,7 +98,7 @@ LDB supports the following storage URI types: fs, Google Cloud, AWS, and Azure.
 
 The minimum and sufficient set of permissions for LDB is to **list, stat and read** any objects at `<storage-URI>`. `ADD-STORAGE` fails if permissions are not sufficient, and succeeds with a warning if permissions are too wide. `ADD-STORAGE` also checks if `<storage-URI>` falls within an already registered URI, and prints an error if this the case. Permissions are re-checked if an existing storage location is re-added.
 
-Since LDB assumes that storage objects are immutable, it never attempts to alter or move them. However, LDB may be required to push *new* files to storage if user chooses to source objects from ephemeral _fs_ paths (for example, a personal workspace). Destination configured as `read-add` will permit LDB to automatically save such objects into immutable storage.
+Since LDB assumes that storage objects are immutable, it never attempts to alter or move them. However, LDB may be required to push *new* files to storage if user chooses to source objects from ephemeral _fs_ paths (for example, from a personal workspace). Destination configured as `read-add` will permit LDB to automatically save such objects into immutable storage.
 
 ## flags
 
