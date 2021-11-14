@@ -301,6 +301,8 @@ $ rm -rf green_cats/ red_cats/                 # delete temporary datasets
 
 ```
 
+ADD with a `workspace_folder` argument can also be used to share datasets between different LDB instances. In this latter case, the only requirement is to ensure that destination LDB instance has access to all file paths of the source workspace.
+
 ## filters and modifiers supported by `ADD`
 
 `ADD` can be called with several filter and modifier flags. If multiple flags are specified, filters will be pipelined, so their order may matter. Multiple instances of one flag are not permitted in one `ADD` command.
