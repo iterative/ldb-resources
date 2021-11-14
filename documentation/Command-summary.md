@@ -161,7 +161,7 @@ If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and pr
 allows to clobber the workspace regardless of what is there.
     
 
-# INDEX \<storage folder URI(s) | storage object URI(s)\> [flags]
+# INDEX \<storage folder URI(s) | storage object URI(s)\ | workspace folder> [flags]
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. If LDB instance was created via QuickStart (see `STAGE`), then any cloud location may be indexed by default. If LDB instance was created with the `INIT` command, then LDB assumes indexed URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is supplied to `INDEX` with no format flag, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name). All hidden paths are excluded during indexing, which means any path where any of the directory or filenames begins with a dot (`.`) will not be indexed.
 
@@ -187,7 +187,7 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 # ADD  \< object-list \> [filters]
 
 Where,
-* `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]`
+* `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | workspace_folder
 
 `ADD` is the main workhorse of LDB as it allows data sample(s) to be added to a dataset staged in the workspace. 
 
@@ -281,6 +281,24 @@ $ ldb add ./                  # result: cat1.jpg copied to read-add storage, and
 ```
 $ ldb stage ds:cats
 $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and v.2 of ds:white_cats
+```
+
+5. `workspace_folder` - ADD can take a workspace folder name as an argument. This helps to avoid saving temporary datasets to LDB. 
+
+*Use case:*
+```
+$ mkdir red_cats; cd red_cats
+$ ldb stage ds:red_cats ./                     # create some temporary dataset 
+$ ldb add ds:cats --query 'cat_color == red'   # fill it from some source
+$ cd .. ; mkdir green_cats; cd green_cats      # create another dataset 
+$ ldb stage ds:red_cats ./                     # create another temporary dataset
+$ ldb add ds:cats --query 'cat_color == green' # fill it from another source
+$ cd ..  
+$ ldb stage ds:red_and_green_cats ./           # make a permanent dataset
+$ ldb add ./red_cats ./green_cats              # merge two temporary datasets into it 
+$ ldb commit                                   # save a permanent dataset
+$ rm -rf green_cats/ red_cats/                 # delete temporary datasets
+
 ```
 
 ## filters and modifiers supported by `ADD`
