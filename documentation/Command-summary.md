@@ -187,7 +187,7 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 # ADD  \< object-list \> [filters]
 
 Where,
-* `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | workspace_folder
+* `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | `workspace_folder`
 
 `ADD` is the main workhorse of LDB as it allows data sample(s) to be added to a dataset staged in the workspace. 
 
