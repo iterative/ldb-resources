@@ -193,7 +193,7 @@ Where,
 
 `ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset. When data object is added to the workspace, an associated annotation will go with it. The particular annotation version will be determined by the source identifier. In case of version collisions (same object re-added multiple times with divergent annotation versions), the latest annotation will be kept.
 
-`ADD` allows for multiple objects (or object sets) of one type to be specified in one command. If no explicit object sources are provided, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
+`ADD` allows for multiple objects (or object sets) of one type to be specified in one command. If no explicit object sources are provided and the `--query` or `--file` option is used, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
 
 While normally `ADD` references sources already known to LDB (pre-indexed objects with valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
 
