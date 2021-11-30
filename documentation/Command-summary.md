@@ -283,7 +283,7 @@ $ ldb stage ds:cats
 $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and v.2 of ds:white_cats
 ```
 
-5. `workspace_folder` - ADD can take a workspace folder name as an argument. This helps to avoid saving temporary datasets to LDB. 
+5. `ws:workspace_folder` - ADD can take a workspace folder name as an argument. This helps to avoid saving temporary datasets to LDB. 
 
 *Use case:*
 ```
@@ -295,7 +295,7 @@ $ ldb stage ds:red_cats ./                     # create another temporary datase
 $ ldb add ds:cats --query 'cat_color == green' # fill it from another source
 $ cd ..  
 $ ldb stage ds:red_and_green_cats ./           # make a permanent dataset
-$ ldb add ./red_cats ./green_cats              # merge two temporary datasets into it 
+$ ldb add ws:./red_cats ws:./green_cats              # merge two temporary datasets into it 
 $ ldb commit                                   # save a permanent dataset
 $ rm -rf green_cats/ red_cats/                 # delete temporary datasets
 
@@ -469,5 +469,10 @@ When run without arguments from a workspace, `STATUS` summarizes state of a stag
 
 `PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace.
 
+# EVAL
+```
+ldb eval [--file] query [path [path ...]]
+```
+The `query` argument must be a valid JMESPath query to be run over annotations if used without the `--file` flag or over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
 
-
+This will print out each resulting data object and the result of the given query. This is useful for debugging queries for other commands such as `add` and `list`.
