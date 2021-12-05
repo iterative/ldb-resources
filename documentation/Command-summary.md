@@ -182,7 +182,7 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 
 ## flags
 
-`--format < folder-labels | label-studio | COCO | OpenImage | ImageNet >`  -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema.
+`--format < folder-labels | label-studio | COCO | OpenImage | ImageNet | bare >`  -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema.
 
 # ADD  \< object-list \> [filters]
 
