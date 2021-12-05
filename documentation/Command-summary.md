@@ -295,7 +295,7 @@ $ ldb stage ds:red_cats ./                     # create another temporary datase
 $ ldb add ds:cats --query 'cat_color == green' # fill it from another source
 $ cd ..  
 $ ldb stage ds:red_and_green_cats ./           # make a permanent dataset
-$ ldb add ws:./red_cats ws:./green_cats              # merge two temporary datasets into it 
+$ ldb add ws:./red_cats ws:./green_cats        # merge two temporary datasets into it 
 $ ldb commit                                   # save a permanent dataset
 $ rm -rf green_cats/ red_cats/                 # delete temporary datasets
 
@@ -367,7 +367,7 @@ Ability to construct complex queries is on of key features of LDB that permits i
 More formally, queries are defined as:
 
 ```
-QUERY:   TERM | TERM <AND | OR> QUERY
+QUERY:   TERM | !TERM | TERM && QUERY | TERM || QUERY
 TERM:    JMESPATH operator TARGET
 ```
 terms are optionally grouped by parentheses.
@@ -375,19 +375,19 @@ terms are optionally grouped by parentheses.
 
 Where, 
 * JMESPATH is any valid JMESPATH expression
-* operator is one of:  `==`  `>`  `<` `!=` 
-* TARGET is one of: `JMESPATH` `JSON_OBJECT` `STRING_REGEX` `NUMBER`
+* operator is one of:  `==`  `>` `>=` `<` `<=` `!=` 
+* TARGET is one of: `JMESPATH` `JSON_OBJECT` `STRING` `NUMBER`
 
 Examples of LDB queries:
 
 ```
-*.classes[0:1] == {["cats", "dogs"]}
+*.classes[0:1] == `{["cats", "dogs"]}`
 ```
 
 ```
-( *.classes[0] != "cat.*" ) AND ( length(*.classes) < 5 )
+( *.classes[0] != regex(cat.*) ) && ( length(*.classes) < `5` )
 ```
-
+More query examples are given [here](LDB-queries.md)
 
 # DEL \< object-list \> [filters]
 
