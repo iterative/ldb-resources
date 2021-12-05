@@ -58,7 +58,7 @@ Now let us assume ResNet50 was trained on the starter data, and for every traini
 }
 ```
 
-These output annotations are available in a bucket `gs://iterative/starter-inference/`.
+These output annotations are available in a bucket `gs://iterative/inference/`.
 
 As usual for inferences, we can observe that some training inputs were not generalized properly, or their confidence remained low. 
 Some of these errors highlght the problems with data: the underlying objects could be noisy, incorrect, or paired with a wrong label.
@@ -70,7 +70,7 @@ We can stage a new dataset and query annotations from inference to fill it with 
 | Step | Command |
 | --- | --- |
 | Start a new dataset  | `$ ldb stage ds:to-examine` |
-| Add misclassified objects | `$ ldb add gs://iterative/starter-inference/ --query class != inference.class` |
+| Add misclassified objects | `$ ldb add gs://iterative/inference/ --query class != inference.class` |
 
 
 Now we have created a new dataset `"to-examine"` that holds references to data objects that we want to inspect. 
@@ -112,7 +112,7 @@ Inference is not the only metric you can use to close the data-train loop. Obvio
 
 | Step | Command |
 | --- | --- |
-| Check objects with low confidence | `$ ldb list gs://iterative/starter-inference/ --query inference.confidence < 0.55` |
+| Check objects with low confidence | ``$ ldb list gs://iterative/inference/ --query 'inference.confidence < `0.55`'`` |
 
 ### Dataset merging and class balancing
 
@@ -122,7 +122,7 @@ To that end, LDB supports `--limit ` and `--sample-ratio` arguments that collect
 
 | Step | Command |
 | --- | --- |
-| Fill workspace with desired class samples |   `ldb add ds:generated-numerals --query class == "i"  --limit 100` |
+| Fill workspace with desired class samples |   ``ldb add ds:generated-numerals --query 'class == `i`'  --limit 100`` |
 
 
 ### Isolating objects with helper ML models
@@ -136,7 +136,7 @@ A classical solution to this problem is to run a helper model that would produce
 
 | Step | Command |
 | --- | --- |
-| Add visually similar images to a working dataset  | `$ ldb add gs://iterative/handwritten --ml CLIP "iii"  --limit 100` |
+| Add visually similar images to a working dataset  | `$ ldb add gs://iterative/handwritten --sort CLIP "iii" --limit 100` |
 
 
 ### Indexing storage locations
@@ -150,7 +150,7 @@ Repeated queries waste time, and coupling queries with storage locations is cumb
 
 | Step | Command |
 | --- | --- |
-| List all objects matching annotation field in the index | `$ ldb list ds:root --query class == "i" ` |
+| List all objects matching annotation field in the index | ``$ ldb list ds:root --query 'class == `i`' `` |
 | List all objects matching a tag in the index  | `$ ldb list ds:root --tag "training" `| 
 
 Also note that LDB addresses data objects by hashsum, and therefore only keeps track of unique data samples. However, data objects are often coupled with annotations that may change over time and are not unique. This presents two additional problems: first, how to update an annotation, and second – how to ensure reproducibility in a dataset when annotations are a moving target?
@@ -182,7 +182,7 @@ Pull command also works for individual data objects (referenced by hashsum or ob
 
 | Step | Command |
 | --- | --- |
-| Bump annotations to the latest version | `$ ldb add 0xFD45DE --version 2` |
+| Bump annotations to the latest version | `$ ldb add 0xFD45DE --label-version 2` |
 
 Finally, it might be convenient to correct minor errors in annotations right from the workspace. This can be done with staging the dataset, editing annotations, and adding the workspace (as a whole, or by individual files) back into a dataset:
 
