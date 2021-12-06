@@ -467,7 +467,7 @@ When run without arguments from a workspace, `STATUS` summarizes state of a stag
 
 # PULL [object-id(s)]
 
-`PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace.
+`PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace. Pull action applied to objects not in the current workspace are ignored.
 
 # EVAL
 ```
