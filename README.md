@@ -130,17 +130,17 @@ If your data is indexed in storage by LDB while your models are run by DVC, the 
 ### pip **(PyPi)**
 
 ```bash
-pip install ldb
+pip install ldb-alpha
 ```
 
 ### brew **(Homebrew/Mac OS)**
 
 ```bash
-brew install ldb
+TBD
 ```
 
 ## Contributing
 
 ```diff
-- boilerplate contribution call to action
+TBD
 ```
