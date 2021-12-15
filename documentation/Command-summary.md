@@ -476,3 +476,18 @@ ldb eval [--file] query [path [path ...]]
 The `query` argument must be a valid JMESPath query to be run over annotations if used without the `--file` flag or over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
 
 This will print out each resulting data object and the result of the given query. This is useful for debugging queries for other commands such as `add` and `list`.
+
+# COMPLETION
+```
+ldb completion [-h] [-q | -v] [-s {bash,zsh,tcsh}]
+```
+To add tab-completion for a particular shell, save the output of this command into a file in your shell's completion directory. Use the `-s` option to specify your shell. For example, on a Linux machine, adding bash completion might be:
+```
+ldb completion -s bash | sudo tee /usr/share/bash-completion/completions/ldb
+```
+And adding zsh completion might be:
+```
+ldb completion -s zsh | sudo tee /usr/local/share/zsh/site-functions/_ldb
+```
+
+The exact location of each shell's completion directory varies from system to system.
