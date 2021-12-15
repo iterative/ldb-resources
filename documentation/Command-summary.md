@@ -477,6 +477,12 @@ The `query` argument must be a valid JMESPath query to be run over annotations i
 
 This will print out each resulting data object and the result of the given query. This is useful for debugging queries for other commands such as `add` and `list`.
 
+# DS
+```
+ldb ds [-h] [-q | -v]
+```
+Prints the latest version of each saved dataset.
+
 # COMPLETION
 ```
 ldb completion [-h] [-q | -v] [-s {bash,zsh,tcsh}]
