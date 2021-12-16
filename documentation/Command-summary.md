@@ -182,7 +182,7 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 
 ## flags
 
-`--format < folder-labels | label-studio | COCO | OpenImage | ImageNet | bare >`  -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema.
+`--format [ strict | bare | folder-labels | label-studio | COCO | OpenImage | ImageNet ]`  -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema. `strict` is the default and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
 
 # ADD  \< object-list \> [filters]
 
@@ -322,7 +322,7 @@ Builds a query (see LDB Query Syntax) using fixed JSON fields specific to LDB in
 
 *Use case:*
 ```
-$ ldb add --file 'PATH == "gs:datasets/cat-bucket/.*"'  # Object source is implicitly ds:root, filtered by regex
+$ ldb add --file 'regex(fs.path, `"gs:datasets/cat-bucket/.*"`)'  # Object source is implicitly ds:root, filtered by regex
 ```
 
 `--query <annotation query terms>`
@@ -362,21 +362,7 @@ Passes objects with referenced tag, equivalent to --query LDB_TAG == \<string\>
 
 ## LDB Query Language
 
-Ability to construct complex queries is on of key features of LDB that permits it to extract data objects that are best suitable for training. LDB query language builds on top of [JMESPATH](https://jmespath.org) and supports JSON slices, projections, and reductions. This means, for example, that ML engineer can request only images with a given number of a particular class object detected.
-
-More formally, queries are defined as:
-
-```
-QUERY:   TERM | !TERM | TERM && QUERY | TERM || QUERY
-TERM:    JMESPATH operator TARGET
-```
-terms are optionally grouped by parentheses.
-
-
-Where, 
-* JMESPATH is any valid JMESPATH expression
-* operator is one of:  `==`  `>` `>=` `<` `<=` `!=` 
-* TARGET is one of: `JMESPATH` `JSON_OBJECT` `STRING` `NUMBER`
+Ability to construct complex queries is on of key features of LDB that permits it to extract data objects that are best suitable for training. LDB uses [JMESPath](https://jmespath.org) and supports JSON slices, projections, and reductions. This means, for example, that ML engineer can request only images with a given number of a particular class object detected.
 
 Examples of LDB queries:
 
@@ -385,7 +371,7 @@ Examples of LDB queries:
 ```
 
 ```
-( *.classes[0] != regex(cat.*) ) && ( length(*.classes) < `5` )
+( ! regex(classes[0], `"cat.*"` ) && length(classes) < `5`
 ```
 More query examples are given [here](LDB-queries.md)
 
@@ -409,9 +395,9 @@ More query examples are given [here](LDB-queries.md)
 
 _Use case:_
 ```
-$ ldb instantiate ./     # instantiate the workspace dataset
+$ ldb instantiate        # instantiate the workspace dataset
 $ rm cats1.jpg           # delete one object file
-$ ldb sync ./            # pick up changes in workspace
+$ ldb sync               # pick up changes in workspace
 ```
 
 # INSTANTIATE [\< object id(s) \>] [flags]
@@ -471,11 +457,13 @@ When run without arguments from a workspace, `STATUS` summarizes state of a stag
 
 # EVAL
 ```
-ldb eval [--file] query [path [path ...]]
+ldb eval [-h] [-q | -v] [-j] [--query <query>] [--file <query>] [<path> [<path> ...]]
 ```
-The `query` argument must be a valid JMESPath query to be run over annotations if used without the `--file` flag or over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
-
 This will print out each resulting data object and the result of the given query. This is useful for debugging queries for other commands such as `add` and `list`.
+
+The `query` argument must be a valid JMESPath query to be run over annotations if used with `--query` flag and over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
+
+The `-j` or `--json-only` option will print only JSON query results. Without it, each JSON object is preceded by the corresponding data object hash.
 
 # DS
 ```

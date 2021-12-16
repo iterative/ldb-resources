@@ -127,7 +127,7 @@ If your data is indexed in storage by LDB while your models are run by DVC, the 
 
 ## Installation
 
-### pip **(PyPi)**
+### pip **(PyPI)**
 
 ```bash
 pip install ldb-alpha
