@@ -5,7 +5,7 @@ LDB defines datasets as collections of pointers to immutable data objects paired
 
 Since datasets are just collections, LDB can modify them without moving the underlying data objects. To examine the physical data objects or annotations in dataset, it must be partially or fully instantiated (see `INSTANTIATE` below). 
 
-LDB datasets support names with [a-Z0-9-\_] ANSI characters. LDB commands require dataset names to carry a mandatory `ds:` prefix, and alows for optional `.v[0-9]*` postfix that denotes a dataset version number.  
+LDB datasets support names with `[A-Za-z0-9_-]` ANSI characters. LDB commands require dataset names to carry a mandatory `ds:` prefix, and allows for optional `.v[0-9]*` postfix that denotes a dataset version number.  
 
 ## LDB object identifiers
 
@@ -58,7 +58,7 @@ Below is an example of QuickStart, where user queries a remote storage in two co
 
 ```
 $ ldb stage ds:my-numerals 
-$ ldb add gs://iterative/roman-numerals --query 'class == "i"'
+$ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 ```
 
 # INIT \<directory\>
@@ -70,12 +70,16 @@ In addition to creating an LDB instance, `INIT` makes a global configuration fil
 Running `ldb init <path>` creates the following directory structure:
 ```
 path/
+├── config
+├── custom_code/
+│   └── ldb_user_functions/
 ├── data_object_info/
 ├── datasets/
-└── objects/
-    ├── annotations/
-    ├── collections/
-    └── dataset_versions/
+├── objects/
+│   ├── annotations/
+│   ├── collections/
+│   └── dataset_versions/
+└── storage
 ```
 After finishing, `INIT` prints the summary of work and a reminder on how to change active LDB instance pointers.
 
@@ -288,16 +292,16 @@ $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and
 *Use case:*
 ```
 $ mkdir red_cats; cd red_cats
-$ ldb stage ds:red_cats ./                     # create some temporary dataset 
-$ ldb add ds:cats --query 'cat_color == red'   # fill it from some source
-$ cd .. ; mkdir green_cats; cd green_cats      # create another dataset 
-$ ldb stage ds:red_cats ./                     # create another temporary dataset
-$ ldb add ds:cats --query 'cat_color == green' # fill it from another source
+$ ldb stage ds:red_cats ./                        # create some temporary dataset 
+$ ldb add ds:cats --query 'cat_color == `red`'    # fill it from some source
+$ cd .. ; mkdir green_cats; cd green_cats         # create another dataset 
+$ ldb stage ds:red_cats ./                        # create another temporary dataset
+$ ldb add ds:cats --query 'cat_color == `green`'  # fill it from another source
 $ cd ..  
-$ ldb stage ds:red_and_green_cats ./           # make a permanent dataset
-$ ldb add ws:./red_cats ws:./green_cats        # merge two temporary datasets into it 
-$ ldb commit                                   # save a permanent dataset
-$ rm -rf green_cats/ red_cats/                 # delete temporary datasets
+$ ldb stage ds:red_and_green_cats ./              # make a permanent dataset
+$ ldb add ws:./red_cats ws:./green_cats           # merge two temporary datasets into it 
+$ ldb commit                                      # save a permanent dataset
+$ rm -rf green_cats/ red_cats/                    # delete temporary datasets
 
 ```
 
@@ -322,7 +326,7 @@ Builds a query (see LDB Query Syntax) using fixed JSON fields specific to LDB in
 
 *Use case:*
 ```
-$ ldb add --file 'regex(fs.path, `"gs:datasets/cat-bucket/.*"`)'  # Object source is implicitly ds:root, filtered by regex
+$ ldb add --file 'regex(fs.path, `gs:datasets/cat-bucket/.*`)'  # Object source is implicitly ds:root, filtered by regex
 ```
 
 `--query <annotation query terms>`
@@ -331,7 +335,7 @@ Permits a query (see LDB Query Syntax) that references arbitrary JSON fields pre
 
 *Use case:*
 ```
-$ ldb add --query 'class == "cats"'
+$ ldb add --query 'class == `cats`'
 ```
 
 `--sort <model with arguments>`
@@ -367,13 +371,77 @@ Ability to construct complex queries is on of key features of LDB that permits i
 Examples of LDB queries:
 
 ```
-*.classes[0:1] == `{["cats", "dogs"]}`
+classes[0:1] == `["cats", "dogs"]`
 ```
 
 ```
-( ! regex(classes[0], `"cat.*"` ) && length(classes) < `5`
+( ! regex(classes[0], `cat.*` ) && length(classes) < `5`
 ```
 More query examples are given [here](LDB-queries.md)
+
+### LDB-provided Custom Query Functions
+
+LDB provides a number of custom JMESPath functions. These are specified below with a signature in the format used by the [JMESPath spec documentation](https://jmespath.org/specification.html#built-in-functions):
+```
+return_type function_name(type $argname)
+```
+
+Regex functions:
+
+These use the Python standard library's `re` module internally.
+
+**regex**
+```
+bool regex(string $input_str, string $pattern)
+```
+Returns a boolean indicating whether or not `$input_str` matches `$pattern`.
+
+**regex_match**
+```
+string|null regex_match(string $input_str, string $pattern)
+```
+Returns a string containing the matched group if `$input_str` matches `$pattern` and `null` otherwise.
+
+Math functions:
+Each of the following takes two arguments, which may be either a one-dimension array of numbers (vector) or a single number and applies a binary operator. If both arguments are an array, then the operation is applied element-wise. If at least one argument is an array, then an array is returned.
+
+**add**, **sub**, **mul**, **div**
+```
+array|number add(array|number $x1, array|number $x2)
+array|number sub(array|number $x1, array|number $x2)
+array|number mul(array|number $x1, array|number $x2)
+array|number div(array|number $x1, array|number $x2)
+```
+
+**neg**
+```
+array|number neg(array|number $x)
+```
+Returns the negation of the given number or each number in the given array.
+
+
+### User-defined Custom Query Functions
+
+Additional custom JMESPath functions may be added by placing a Python file in the `custom_code/ldb_user_functions/` directory within an ldb instance. By default, this would be:
+```
+~/.ldb/private_instance/custom_code/ldb_user_functions/
+```
+Any dependencies that this file relies on should be supplied by the user in this directory as well, so it is generally best to only use the Python standard library. In order to register your custom functions, at least one of the Python files in this directory must contain a `CUSTOM_FUNCTIONS` variable with a mapping (`dict`) of function names to a two-element tuple. The first tuple element should be the function and the second, should be a list of acceptable json types for each argument. If an argument accepts more than one type, they should separated by a vertical bar (`|`). For example if you didn't want to use the `add` function provided by LDB, you could create functions `add_nums`, `add_arrays` by creating a file `~/.ldb/private_instance/custom_code/ldb_user_functions/math_funcs.py` with the following:
+```
+def add_nums(x1, x2):
+    return x1 + x2
+
+
+def add_arrays(a1, a2):
+    return [x1 + x2 for x1, x2 in zip(a1, a2)]
+
+
+CUSTOM_FUNCTIONS = {
+    "add_nums": (add_nums, ["number", "number"]),
+    "add_arrays": (add_arrays, ["array", "array"]),
+}
+```
+For an argument that could be a number or array, you would use `"array|number"` instead of just `"number"`.
 
 # DEL \< object-list \> [filters]
 

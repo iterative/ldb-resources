@@ -28,7 +28,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb add --query class == "cat"   # quotes optional 
+    $ ldb add --query 'class == `cat`'
     ```
     
 - **Get objects where attribute compares against numeric constant**
@@ -135,7 +135,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # quotes required here to shield &&
-    $ ldb list --query 'class==`cat` && breed.size==`large`'  
+    $ ldb list --query 'class == `cat` && breed.size == `large`'  
     
     ```
     
@@ -153,8 +153,8 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb list -s --query 'class==`cat`' 
-    $ ldb list -s --query 'class==`dog`' 
+    $ ldb list -s --query 'class == `cat`' 
+    $ ldb list -s --query 'class == `dog`' 
     ```
     
 - TODO beta: **Examine objects where inference results differ between model runs**
