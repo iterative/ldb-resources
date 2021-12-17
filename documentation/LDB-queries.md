@@ -5,8 +5,8 @@ LDB uses [JMESPATH](https://jmespath.org/specification.html) as a query language
 The way LDB treats JMESPATH expressions is as follows:
 
 - All query-enabled commands expand the provided list of objects and evaluate JMESPATH over annotations one-by-one.
-- **ADD**, **DEL**, **LIST** evaluate the result of JMESPATH as true/false – which determines whether an object is selected for processing. Rules for "falsy" evaluation are as follows: `boolean false, null, empty object, empty list, empty string` (i.e. `[]`, `{}`, `""`, `false`, `null`). Everything else, including `0` and `0.0` evaluate to `true`.
-See the JMESPath documentation: [https://jmespath.org/specification.html#or-expressions](https://jmespath.org/specification.html#or-expressions)
+- **ADD**, **DEL**, **LIST** evaluate the result of JMESPATH as true/false – which determines whether an object is selected for processing. Rules for "falsy" evaluation are as follows: `boolean false, null, empty object, empty list, empty string` (i.e. `[]`, `{}`, `""`, `false`, `null`). 
+[Everything else, including `0` and `0.0` evaluates to `true`.](https://jmespath.org/specification.html#or-expressions)
 - **EVAL** prints raw JMESPATH query output over annotations
 
 Here are some query examples, from simple to more advanced:
@@ -227,9 +227,10 @@ Here are some query examples, from simple to more advanced:
     	    {
     	       "label": "dog"
     	    },
-          {
+            {
     	       "label": "dog"
     	    }
+        ]
     }
     ```
     
@@ -261,9 +262,10 @@ Here are some query examples, from simple to more advanced:
     	    {
     	       "label": "dog"
     	    },
-          {
+            {
     	       "label": "mouse"
     	    }
+        ]
     }
     ```
     
@@ -335,10 +337,10 @@ Advanced examples
     $ ldb eval 'instances[0]' 0x0dc11270eb2c136b454859df4b472aed
     
     {
-    			  "label": [
-    				    "cat",
-    				    "dog"
-    				]
+         "label": [
+    		"cat",
+    		"dog"
+    	 ]
     }
     ```
     
@@ -514,7 +516,7 @@ Advanced examples
     
      Goal: calculate cumulative duration of "Positive" sections
     
-    ```json
+    ```shell
     $ ldb eval --query 'sum(segments[?contains(labels, `Positive`)].sub(end, start))'
     $ ldb list --query 'sum(segments[?contains(labels, `Positive`)].sub(end, start)) > `0.3`'
     ```
