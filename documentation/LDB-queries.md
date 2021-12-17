@@ -200,7 +200,7 @@ Here are some query examples, from simple to more advanced:
     	    {
     	       "label": "dog"
     	    },
-          {
+            {
     	       "label": "dog"
     	    }
        ]
@@ -323,7 +323,7 @@ Advanced examples
     	    {
     	        "label": "dog"
     	    },
-          {
+            {
     	        "label": "mouse"
     	    }
        ]
