@@ -186,7 +186,33 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 
 ## flags
 
-`--format [ strict | bare | folder-labels | label-studio | COCO | OpenImage | ImageNet ]`  -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema. `strict` is the default and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
+`--format <format>` - options: `{auto,auto-detect,strict,strict-pairs,bare,bare-pairs,infer,tensorflow-inferred,annot,annotation-only}` -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema. `auto-detect` is the default. Some of these are simply short aliases for longer format names.
+
+Format descriptions:
+ * `auto`, `auto-detect` - Auto-detect the data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
+ * `strict`, `strict-pairs` - Only complete pairs of files will be indexed. The annotation file in each pair must have a name ending with `.json` and contain valid json. The data object file must have the same file name but with a different extension, and it must be in the same directory as the annotation file.
+ * `bare`, `bare-pairs` - File pairs are detected as with `strict-pairs`, but bare data objects (without corresponding annotation files) are indexed too. Any file whose name does not end with `.json` will be considered a data object file.
+ * `infer`, `tensorflow-inferred` - Annotation files will be generated containing labels that are inferred from each data object file's directory. This is based on the `labels="inferred"` option in TensorFlow's [`tf.keras.utils.image_dataset_from_directory`](https://www.tensorflow.org/api_docs/python/tf/keras/utils/image_dataset_from_directory). All files should be data object files that do **not** end with `.json`. The name of the directory passed to `ldb index` will be used as the label for data objects contained directly inside of it. Data objects within subdirectories will have nested labels. For example, if you called `ldb index --format tensorflow-inferred ~/data/animals/cat`, then `~/data/animals/cat/0001.png` would have the annotation `{"label": "cat"}` and `~/data/animals/cat/tabby/0001.png` would have the annotation `{"label": {"cat": "tabby"}}`. This would allow for query such as `ldb list --query label.cat.tabby`.
+ * `annot`, `annotation-only` - Only annotation files ending with `.json` may exist under the given location. Each annotation file must contain a JSON object with the key `ldb_meta.data_object_id` pointing to a data object hash with the `0x` prefix. This hash must specify a data object that already exists in LDB. This JSON object must also contain an `annotation` key whose value will be used as the annotation for the specified data object. For example, some `.json` file may contain:
+```
+{
+  "annotation": {
+    "label": 1
+  }
+  "ldb_meta": {
+    "data_object_id": "0x2c4a9d28cc2ce780d17bea08d45d33b3"
+  }
+}
+```
+This results in ldb using the following as the annotation for data object `0x2c4a9d28cc2ce780d17bea08d45d33b3`:
+```
+{
+  "label": 1
+}
+```
+
+
+and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
 
 # ADD  \< object-list \> [filters]
 
@@ -476,9 +502,9 @@ $ ldb sync               # pick up changes in workspace
  
 `--annotations`, `--annotations-only`
 
-Only instantiates annotations (no data objects). Can be combined with `--format`
+Only instantiates annotations (no data objects). Can be combined with `--format`.
 
-`--format <name>`
+`--format <format>` - choices: `{strict,strict-pairs,bare,bare-pairs,infer,tensorflow-inferred,annot,annotation-only}` -  sets schema for data objects and annotations. See `INDEX` for details about each format.
 
 Specific annotation output format. The list of formats mirror those in `INDEX` command with `--format` flag.
 
