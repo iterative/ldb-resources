@@ -136,7 +136,7 @@ A classical solution to this problem is to run a helper model that would produce
 
 | Step | Command |
 | --- | --- |
-| Add visually similar images to a working dataset  | `$ ldb add gs://iterative/handwritten --sort CLIP "iii" --limit 100` |
+| Add visually similar images to a working dataset  | `$ ldb add gs://iterative/handwritten --pipe clip-classify "iii" --limit 100` |
 
 
 ### Indexing storage locations

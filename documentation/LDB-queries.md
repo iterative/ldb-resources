@@ -300,7 +300,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb add --sort CLIP 'sitting cat' --limit 20
+    $ ldb add --pipe clip-text 'sitting cat' --limit 20
     
     ```
     

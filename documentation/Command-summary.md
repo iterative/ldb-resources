@@ -364,13 +364,13 @@ Permits a query (see LDB Query Syntax) that references arbitrary JSON fields pre
 $ ldb add --query 'class == `cats`'
 ```
 
-`--sort <model with arguments>`
+`--pipe <executable with arguments>`
 
-Passes a list of objects through external program (or ML model) that sorts them according to match criteria. Often used with `--limit`. 
+Passes a list of objects through external program (e.g. an ML model) that filters or sorts them according to match criteria. Often used with `--limit`. 
 
 *Use case:*
 ```
-$ ldb add --ml CLIP 'cat sitting on a chair' --limit 100 # returns 100 images that best match the provided semantic embedding
+$ ldb add --pipe clip-text 'cat sitting on a chair' --limit 100 # returns 100 images that best match the provided semantic embedding
 ```
 
 `--limit <integer>`
