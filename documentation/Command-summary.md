@@ -366,7 +366,7 @@ $ ldb add --query 'class == `cats`'
 
 `--pipe <executable with arguments>`
 
-Passes a list of objects through external program (e.g. an ML model) that filters or sorts them according to match criteria. Often used with `--limit`. 
+Passes a list of objects through external program (e.g. an ML model) that filters or sorts them according to match criteria. Often used with `--limit`. LDB ships with two ready-made ML plugins (clip and resnet), but more [custom plugins](documentation/Plugins.md) can be added.
 
 *Use case:*
 ```
