@@ -135,7 +135,7 @@ pip install ldb-alpha
 ### pip with ML plugins **(PyPI)**
 
 ```bash
-pip install '.[clip-plugin,resnet-plugin]' ldb-alpha
+pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
 ```
 
 ## Contributing
