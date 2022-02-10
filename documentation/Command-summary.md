@@ -137,9 +137,11 @@ There are no `read-add` storage locations registered, and user tries to add a fi
 
 ## access configuration
 
-TODO document storage access configuration here
+ALPHA-LATE 
+document cloud storage access configuration here
 
-TODO object lambda access configuration here
+BETA 
+document object lambda access configuration here
 
 
 # STAGE \<ds:\<name\>[.v\<number\>]\>  \<workspace_folder\>
