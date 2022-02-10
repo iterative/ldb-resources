@@ -366,7 +366,7 @@ $ ldb add --query 'class == `cats`'
 
 `--pipe <executable with arguments>`
 
-Passes a list of objects through external program (e.g. an ML model) that filters or sorts them according to match criteria. Often used with `--limit`. LDB ships with two ready-made ML plugins (clip and resnet), but more [custom plugins](documentation/Plugins.md) can be added.
+Passes a list of objects through external program (e.g. an ML model) that filters or sorts them according to match criteria. Often used with `--limit`. LDB can be installed with two ready-made ML plugins (clip and resnet), but more custom plugins can be added. See the Pipe Plugins section below.
 
 *Use case:*
 ```
@@ -388,6 +388,32 @@ $ ldb add ds:cats --sample 0.9
 `--tag <string>`
 
 Passes objects with referenced tag, equivalent to --query LDB_TAG == \<string\>
+
+
+## Pipe Plugins
+
+The `--pipe` option for LDB dataset commands `list`, `eval`, `add`, `del` takes one or more arguments which will be called as a subprocesses. The first argument should be the name of some script or executable which filters or sorts the dataset members passed to it. If this is only a name rather than a path, the first place LDB looks is in the `custom_code/ldb_user_filters/` directory within an ldb instance. By default this would be:
+```
+~/.ldb/private_instance/custom_code/ldb_user_filters/
+```
+Any executable available by name or path may be used. This internal directory is simply a place to isolate scripts from the rest of your environment if you wish.
+
+If multiple arguments are given to `--pipe`, they are all called together as a single command. Flags or options (arguments beginning with `-`) should be avoided as they will collide with LDB's options. Complex commands may be wrapped in a script, so that only positional arguments are needed.
+
+A script intended for use by `--pipe` should expect a json array via stdin where each item is three element array in the form `[data_object_hash, data_object_path, annotation_path]`. LDB will instantiate the dataset in a temporary location, so the data object and annotation paths will point to files in this location. The script should then provide its filtered results as a series of data object hashes separated by new lines. This could be any type of sort or filter operation.
+
+Here is a simple example of a python script that reverses the order if items in a dataset:
+
+```python3
+import json
+import sys
+
+if __name__ == "__main__":
+    for data_object_hash, *_ in reversed(json.loads(sys.stdin.read())):
+        print(data_object_hash, flush=True)
+```
+
+Because datasets are unordered collections, a sort operation is most useful when combined with a following filter operation such as `--limit`.
 
 
 ## LDB Query Language

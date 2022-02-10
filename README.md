@@ -128,18 +128,18 @@ If your data is indexed in storage by LDB while your models are run by DVC, the 
 
 ### pip **(PyPI)**
 
-```bash
+```sh
 pip install ldb-alpha
 ```
 
 ### pip with ML plugins **(PyPI)**
 
-```bash
+```sh
 pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
 ```
 
 ## Contributing
 
-```diff
+```
 TBD
 ```
