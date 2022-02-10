@@ -579,7 +579,7 @@ When run without arguments from a workspace, `STATUS` summarizes state of a stag
 ```
 ldb eval [-h] [-q | -v] [-j] [--query <query>] [--file <query>] [<path> [<path> ...]]
 ```
-This will print out each resulting data object and the result of the given query. This is useful for debugging queries for other commands such as `add` and `list`.
+This works the same as `list`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items just as with `list`, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `add` and `list`.
 
 The `query` argument must be a valid JMESPath query to be run over annotations if used with `--query` flag and over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
 
