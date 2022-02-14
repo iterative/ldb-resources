@@ -31,6 +31,11 @@ A dataset containing 200 images of cats and dogs.
 ldb add-storage dogs-and-cats
 ldb index dogs-and-cats
 ldb eval ds:root --limit 10 --query '[class, inference.class]'
+
+mkdir my-workspace
+cd my-workspace
+ldb stage ds:orange-cats
+ldb add ds:root --pipe clip-text 'orange cats' --limit 10
 ```
 
 ### TextOCR
@@ -47,4 +52,6 @@ ldb add-storage textocr
 ldb index --format bare textocr
 ldb list ds:root --summary
 ldb list ds:root --query 'length(anns) >= `20`' --summary
+ldb eval ds:root --limit 1 --query 'anns[*].utf8_string'
+ldb list ds:root --query 'length(anns[?regex(utf8_string, `\\d`)]) >= `1`' --summary
 ```
