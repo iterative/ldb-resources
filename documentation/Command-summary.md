@@ -404,7 +404,7 @@ If multiple arguments are given to `--pipe`, they are all called together as a s
 
 A script intended for use by `--pipe` should expect a json array via stdin where each item is three element array in the form `[data_object_hash, data_object_path, annotation_path]`. LDB will instantiate the dataset in a temporary location, so the data object and annotation paths will point to files in this location. The script should then provide its filtered results as a series of data object hashes separated by new lines. This could be any type of sort or filter operation.
 
-Here is a simple example of a python script that reverses the order if items in a dataset:
+Here is a simple example of a python script that reverses the order of items in a dataset:
 
 ```python3
 import json
@@ -415,7 +415,7 @@ if __name__ == "__main__":
         print(data_object_hash, flush=True)
 ```
 
-Because datasets are unordered collections, a sort operation is most useful when combined with a following filter operation such as `--limit`.
+Because datasets are unordered collections, an ordering or sorting operation is most useful when combined with a following filter operation such as `--limit`.
 
 
 ## LDB Query Language
