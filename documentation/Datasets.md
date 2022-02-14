@@ -15,6 +15,9 @@ curl -L https://remote.ldb.ai/datasets/DATASET_NAME/DATASET_NAME.tar.gz | tar xz
 
 ## Datasets
 
+* [Dogs and Cats](#dogs-and-cats)
+* [TextOCR](#textocr)
+
 ### Dogs and Cats
 
 A dataset containing 200 images of cats and dogs.
