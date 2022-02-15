@@ -2,7 +2,7 @@
 
 ## Downloading
 
-Zip files and and gzipped tarballs are available for some public datasets. These can be downloaded from the URLs provided under [Datasets](#datasets) with a browser or with a CLI tool such as [DVC](https://dvc.org/doc/install):
+Zip files and and gzipped tarballs are available for some public datasets to get started and play with LDB workflows. These can be downloaded from the URLs provided under [Datasets](#datasets) with a browser or with a CLI tool such as [DVC](https://dvc.org/doc/install):
 ```
 dvc get-url https://remote.ldb.ai/datasets/DATASET_NAME/DATASET_NAME.zip
 unzip DATASET_NAME.zip
