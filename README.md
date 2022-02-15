@@ -76,12 +76,12 @@ Logical modifications to dataset staged in the workspace are usually made with A
 
 **Configuring immutable storage locations (optional)**
 
-LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically copies data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storage paths, configure them as immutable locations with `add-storage` command:
+LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically copies data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storage paths, configure them as immutable locations with `ADD-STORAGE` command:
 
 
 | Step | Command |
 | --- | --- |
-| Add immutable storage uri  | `$  ldb add-storage ~/dogs-and-cats` |
+| Register new immutable storage  | `$  ldb add-storage ~/dogs-and-cats` |
 
 Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage location, LDB index may go crazy.
 
@@ -91,12 +91,12 @@ Please remember that LDB is an indexing service. If you move or erase indexed da
 | Step | Command |
 | --- | --- |
 | Index images from storage | `$ ldb index ~/dogs-and-cats` |
-| Add cat objects from index by annotation | ```$ ldb add ds:root --query 'class && class == `cat`'``` |
+| Add cat objects from index by annotation | ```$ ldb add ds:root --query 'class == `cat`'``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
+Note the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
 
-In previously indexed storage locations or for new storage folders that LDB can recognize, we can use `ADD` command directly without indexing first:
+In previously indexed storage locations, we can use `ADD` command directly over storage paths:
 
 | Step | Command |
 | --- | --- |
@@ -131,7 +131,7 @@ LDB can pick the resulting changes right from the workspace:
 | Insert new object directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
 | Pick object list and annotation changes that happened in workspace | `$ ldb add ./`|
 
-To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
+To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the `COMMIT` command.
 
 ### Dataset saving and versioning
 
@@ -146,7 +146,7 @@ Every new commit creates a new dataset version in LDB. By default, a reference t
 | Stage a particular version of a dataset | `$  ldb stage ds:my-cats.v3` |
 | Compare current workspace to a previous dataset version | `$  ldb diff ds:my-cats.v2`|
 
-If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
+If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the `PULL` command.
 
 ### TODO Annotation version manipulations
 
