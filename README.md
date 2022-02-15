@@ -1,6 +1,6 @@
 # α README
 
-Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
+Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in *cloud storage* and *data lakes*, organizing pointers to data samples into datasets.
 
 **LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
 
@@ -55,6 +55,7 @@ These datasets can then be shared and versioned within LDB, which makes collabor
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the data workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
+
 Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed discussion of the Data-driven AI methodology.
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automatically in the `~/.ldb` directory the first time an LDB dataset is created or an LDB query is run. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md).
@@ -90,7 +91,7 @@ Please remember that LDB is an indexing service. If you move or erase indexed da
 | Step | Command |
 | --- | --- |
 | Index images from storage | `$ ldb index ~/dogs-and-cats` |
-| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class & class == `cat`'``` |
+| Add cat objects from index by annotation | ```$ ldb add ds:root --query 'class && class == `cat`'``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
 Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
@@ -99,7 +100,7 @@ In previously indexed storage locations or for new storage folders that LDB can 
 
 | Step | Command |
 | --- | --- |
-| Add cat objects from folder by annotation | ```$ ldb add ~/dogs-and-cats —-query 'class == `cat`' ``` |
+| Add cat objects from folder by annotation | ```$ ldb add ~/dogs-and-cats --query 'class == `cat`' ``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
 It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates.
@@ -116,7 +117,7 @@ At this point, our workspace holds membership info for all cat images from sampl
 
 | Step | Command |
 | --- | --- |
-| Instantiate all objects into the workspace | `$ ldb instantiate `|
+| Instantiate all objects into the workspace | `$ ldb instantiate`|
 | See the resulting physical dataset | `$ ls`|
 
 After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
@@ -151,7 +152,7 @@ If newer annotations will become available for the data object, they can be read
 
 | Step | Command |
 | --- | --- |
-| Add an object with particular label version | `$  ldb add —-label-version 2 aws://my-awesome-bucket/1.jpg ` |
+| Add an object with particular label version | `$  ldb add --label-version 2 aws://my-awesome-bucket/1.jpg` |
 | Bump label version for an object to latest | `$   ldb add aws://my-awesome-bucket/1.jpg` |
 | Bump all labels in a dataset to latest | `$ ldb pull`|
  
