@@ -7,6 +7,11 @@ The way LDB treats JMESPATH expressions is as follows:
 - All query-enabled commands expand the provided list of objects and evaluate JMESPATH over annotations one-by-one.
 - **ADD**, **DEL**, **LIST** evaluate the result of JMESPATH as true/false – which determines whether an object is selected for processing. Rules for "falsy" evaluation are as follows: `boolean false, null, empty object, empty list, empty string` (i.e. `[]`, `{}`, `""`, `false`, `null`). 
 [Everything else, including `0` and `0.0` evaluates to `true`.](https://jmespath.org/specification.html#or-expressions)
+
+
+`Tip` one common mistake to watch: `null == null` -> True
+
+If you evaluate one missing key against another, the result is a match. See "Get objects where annotation includes certain key" below.
 - **EVAL** prints raw JMESPATH query output over annotations
 
 Here are some query examples, from simple to more advanced:
