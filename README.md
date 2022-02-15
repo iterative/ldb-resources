@@ -1,24 +1,46 @@
 # α README
 
-Label Database or **LDB** is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the **existing cloud storages or data lakes** and use these data pointers to form datasets.
+Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
 
 **LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
 
 **Key LDB features**:
 
 *  MLOps-grade **command line** experience. 
-* Lightweight management of data sources. Data objects can exist anywhere in S3, Google Cloud, Azure, or local storage. There is **no need to move or duplicate** data objects in order to create, share or modify a dataset. 
-* Advanced manipulation and versioning for datasets. Datasets can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
+* Lightweight management of data sources. Data objects can exist anywhere in local storage, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify a dataset (named collection of pointers).
+* Advanced manipulation and versioning for datasets. Collections can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
 * Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
 
 ### Contents
 
+- [Installation](#installation)
 - [How LDB works](#how-ldb-works)
 - [Quick start](#quick-start)
 - [Comparison to related technologies](#comparison-to-related-technologies)
-- [Installation](#installation)
 - [Contributing to LDB](contributing-to-LDB)
+
+## Installation
+
+### pip **(PyPI core)**
+
+```sh
+pip install ldb-alpha
+```
+
+### installation with ML plugins **(optional)**
+
+```sh
+pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
+```
+
+### sample dataset with curl **(optional)**
+```
+curl -L https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.tar.gz | tar xz
+```
+
+More sample datasets [here](documentation/Datasets.md)
+
 
 ### How LDB works
 
@@ -37,34 +59,58 @@ Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for mo
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automatically in the `~/.ldb` directory the first time an LDB dataset is created or an LDB query is run. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md).
 
-Whenever a new dataset is required or an existing dataset needs an update, it must first be staged in the data workspace. Staging does not automatically instantiate the dataset, but creates a draft state of the dataset membership info and all metadata. LDB prefixes all dataset names with `ds:`
-
 ### Stage a new dataset 
+
+Whenever a new dataset is required or an existing dataset needs an update, it must first be staged in the data workspace. Staging does not automatically instantiate the dataset, but creates a draft state of dataset membership info and all metadata. LDB prefixes dataset names with `ds:`
 
 | Step | Command |
 | --- | --- |
-| Create a new dataset in the workspace | `$  ldb stage ds:my-new-dataset ./` |
+| Create a workspace folder | `$ mkdir working-dataset; cd working-dataset` |
+| Create a new dataset in the workspace | `$  ldb stage ds:my-cats ./` |
 | Check the status of staged data | `$  ldb status ` |
 
-While working in this data workspace, all subsequent dataset manipulations will apply to the staged dataset. 
+While working in this workspace, all subsequent dataset manipulations will apply to the staged dataset. 
 
 Logical modifications to dataset staged in the workspace are usually made with ADD and DEL commands that may reference individual objects, other datasets, and employ annotation queries (see [LDB queries](documentation/LDB-queries.md) for details).
+
+**Configuring immutable storage locations (optional)**
+
+LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically copies data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storage paths, configure them as immutable locations with `add-storage` command:
+
+
+| Step | Command |
+| --- | --- |
+| Add immutable storage uri  | `$  ldb add-storage ~/dogs-and-cats` |
+
+Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage location, LDB index may go crazy.
+
 
 ### Modifying a dataset
 
 | Step | Command |
 | --- | --- |
-| Add objects by annotation | `$ ldb add s3://iterative/ImageNet-1K —-query class == "cat"` |
+| Index images from storage | `$ ldb index ~/dogs-and-cats` |
+| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class & class == `cat`'``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-LDB is not limited to querying the existing annotations. Custom ML plugins can be employed for queries beyond JSON fields:
+Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
+
+In previously indexed storage locations or for new storage folders that LDB can recognize, we can use `ADD` command directly without indexing first:
 
 | Step | Command |
 | --- | --- |
-| Add objects by ML query: | `$ ldb add azure://iterative/OpenImage-1K --pipe clip-text 'orange cat' --limit 10` |
+| Add cat objects from folder by annotation | ```$ ldb add ~/dogs-and-cats —-query 'class == `cat`' ``` |
+| Check the status of a staged dataset | `$  ldb list`|
+
+It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates.
+LDB is also not limited to querying the existing annotations. If installed, custom ML plugins can be employed for queries beyond JSON fields:
+
+| Step | Command |
+| --- | --- |
+| Add objects by ML query: | `$ ldb add ds:root --pipe clip-text 'orange dog' --limit 10` |
 | Check the status of a staged dataset | `$ ldb list`|
 
-At this point, our workspace holds membership info for all cat images from ImageNet, and ten images from OpenImage that best resemble an orange cat. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
+At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
 
 ### Instantiation
 
@@ -80,6 +126,8 @@ LDB can pick the resulting changes right from the workspace:
 
 | Step | Command |
 | --- | --- |
+| Alter some annotation     | `$ sed -i '' 's/dog/cat/g' dog-1088.json` |
+| Insert new object directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
 | Pick object list and annotation changes that happened in workspace | `$ ldb add ./`|
 
 To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
@@ -124,19 +172,6 @@ For example, DVC actively manages the model repository, and interprets datasets 
 
 If your data is indexed in storage by LDB while your models are run by DVC, the two tools will happily work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache. 
 
-## Installation
-
-### pip **(PyPI)**
-
-```sh
-pip install ldb-alpha
-```
-
-### pip with ML plugins **(PyPI)**
-
-```sh
-pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
-```
 
 ## Contributing
 
