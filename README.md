@@ -148,12 +148,12 @@ Every new commit creates a new dataset version in LDB. By default, a reference t
 
 If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
 
-### Annotation versioning
+### TODO Annotation version manipulations
 
 | Step | Command |
 | --- | --- |
-| Add an object with particular label version | `$  ldb add --label-version 2 aws://my-awesome-bucket/1.jpg` |
-| Bump label version for an object to latest | `$   ldb add aws://my-awesome-bucket/1.jpg` |
+| Add an object with a particular label version | `$  ldb add --label-version 2 aws://my-awesome-bucket/1.jpg` |
+| Bump label version for an object to latest in index | `$   ldb add aws://my-awesome-bucket/1.jpg` |
 | Bump all labels in a dataset to latest | `$ ldb pull`|
  
 
@@ -177,5 +177,5 @@ If your data is indexed in storage by LDB while your models are run by DVC, the 
 ## Contributing
 
 ```
-TBD
+TODO
 ```
