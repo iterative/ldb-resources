@@ -120,7 +120,7 @@ LDB can pick the resulting changes right from the workspace:
 | --- | --- |
 | Alter some annotation     | `$ sed -i 's/dog/cat/g' dog-1088.json` |
 | Inject some new object with label directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
-| Pick object list and annotation changes that happened in workspace | `$ ldb add ./`|
+| Pick object and annotation changes in workspace | `$ ldb add ./`|
 
 To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
@@ -139,7 +139,7 @@ Every new commit creates a new dataset version in LDB. By default, a reference t
 
 If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
 
-### Annotation versioning
+### TODO Granular annotation versioning
 
 | Step | Command |
 | --- | --- |
@@ -150,23 +150,19 @@ If newer annotations will become available for the data object, they can be read
 
 ## Comparison to related technologies
 
-A fair question when considering a new ML tool is whether it is worth the investment of time to adopt. This section discusses some LDB alternatives.
+One good question when considering a new ML tool is whether it is worth the investment of time to adopt. 
 
-First and foremost, LDB is focused on **Data-driven AI cycles**. This means it is most useful when data corpus is dynamic, and where the models are expressive enough to benefit from enhanced data samples and annotations. 
+Without a tool like LDB, a team iterating on data typically takes one of the common recipes: (1) datasets as file folders, (2) datasets as spreadsheets, or (3) datasets under control of ML framework. All these solutions have their limits we discuss in the greater detail [here](/documentation/alternatives-to-LDB.md).
 
-Without a tool like LDB, a team facing the problem of progressively training on better data typically attempts to organize their data sources into datasets by one of the common recipes: (1) datasets as file folders, (2) datasets as spreadsheets or database pages, or (3) datasets under control of an end-to-end ML framework. All these solutions have their limits that we discuss in the greater detail [here](/documentation/alternatives-to-LDB.md).
+A second good question is why one should choose LDB over general data versioning (like [DVC](https://dvc.org/) or [PachyDerm](pachyderm.com)). The answer is that capabilities of LDB and general versioning systems do not overlap. 
 
-A second question is why one should choose LDB over general data versioning services (like [DVC](https://dvc.org/) or [PachyDerm](pachyderm.com) ) since they can also manage the datasets.
+For example, DVC actively manages the model repository and interprets datasets as cache under full version control. On the other hand, LDB is an indexing service over immutable storage, and treats datasets as collections of pointers. This lightweight approach relies on storage immutability to guarantee access, but offers higher speed and better flexibility. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
 
-The answer is that capabilities of LDB and general versioning systems do not overlap. 
-
-For example, DVC actively manages the model repository, and interprets datasets as file folders under the full version control where access to all objects are guaranteed. On the other hand, LDB is an indexing service over existing immutable storage, and treats datasets as collections of entities. This lightweight approach relies on storage immutability to guarantee access, but offers higher speed and better flexibility in return. In addition, LDB understands annotations and can group sparse objects into datasets by queries.
-
-If your data is indexed in storage by LDB while your models are run by DVC, the two tools will happily work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache. 
+If your data is indexed by LDB while your models are run by DVC, the two tools will happily work together. DVC can recognize LDB datasets as data sources, and LDB can utilize the shared DVC cache. 
 
 
 ## Contributing
 
 ```
-TBD
+TODO
 ```
