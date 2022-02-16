@@ -143,7 +143,7 @@ If newer annotations will become available for the data object, they can be read
 
 | Step | Command |
 | --- | --- |
-| Add an object with particular label version | `$  ldb add —-label-version 2 aws://my-awesome-bucket/1.jpg ` |
+| Add object with particular label version | `$  ldb add —-label-version 2 aws://my-awesome-bucket/1.jpg ` |
 | Bump label version for an object to latest | `$   ldb add aws://my-awesome-bucket/1.jpg` |
 | Bump all labels in a dataset to latest | `$ ldb pull`|
  
