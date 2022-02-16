@@ -1,6 +1,6 @@
 # α README
 
-Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in *cloud storage* and *data lakes*, organizing pointers to data samples into datasets.
+Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
 
 **LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
 
@@ -55,7 +55,6 @@ These datasets can then be shared and versioned within LDB, which makes collabor
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the data workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
-
 Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed discussion of the Data-driven AI methodology.
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. A private LDB instance will be created automatically in the `~/.ldb` directory the first time an LDB dataset is created or an LDB query is run. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md).
@@ -76,14 +75,14 @@ Logical modifications to dataset staged in the workspace are usually made with A
 
 **Configuring immutable storage locations (optional)**
 
-LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically copies data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storage paths, configure them as immutable locations with `ADD-STORAGE` command:
+LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically copies data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storage paths, register them with `ADD-STORAGE` command:
 
 
 | Step | Command |
 | --- | --- |
-| Register new immutable storage  | `$  ldb add-storage ~/dogs-and-cats` |
+| Register immutable storage  | `$  ldb add-storage ~/dogs-and-cats` |
 
-Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage location, LDB index may go crazy.
+Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage, LDB index may break.
 
 
 ### Modifying a dataset
@@ -91,20 +90,12 @@ Please remember that LDB is an indexing service. If you move or erase indexed da
 | Step | Command |
 | --- | --- |
 | Index images from storage | `$ ldb index ~/dogs-and-cats` |
-| Add cat objects from index by annotation | ```$ ldb add ds:root --query 'class == `cat`'``` |
+| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class & class == `cat`'``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-Note the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
+Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates.
 
-In previously indexed storage locations, we can use `ADD` command directly over storage paths:
-
-| Step | Command |
-| --- | --- |
-| Add cat objects from folder by annotation | ```$ ldb add ~/dogs-and-cats --query 'class == `cat`' ``` |
-| Check the status of a staged dataset | `$  ldb list`|
-
-It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates.
-LDB is also not limited to querying the existing annotations. If installed, custom ML plugins can be employed for queries beyond JSON fields:
+LDB is also not limited to querying the existing annotations. If installed, custom ML plugins can be employed for queries beyond JSON:
 
 | Step | Command |
 | --- | --- |
@@ -117,7 +108,7 @@ At this point, our workspace holds membership info for all cat images from sampl
 
 | Step | Command |
 | --- | --- |
-| Instantiate all objects into the workspace | `$ ldb instantiate`|
+| Instantiate all objects into the workspace | `$ ldb instantiate `|
 | See the resulting physical dataset | `$ ls`|
 
 After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
@@ -127,11 +118,11 @@ LDB can pick the resulting changes right from the workspace:
 
 | Step | Command |
 | --- | --- |
-| Alter some annotation     | `$ sed -i '' 's/dog/cat/g' dog-1088.json` |
-| Insert new object directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
+| Alter some annotation     | `$ sed -i 's/dog/cat/g' dog-1088.json` |
+| Inject some new object with label directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
 | Pick object list and annotation changes that happened in workspace | `$ ldb add ./`|
 
-To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the `COMMIT` command.
+To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
 ### Dataset saving and versioning
 
@@ -146,14 +137,14 @@ Every new commit creates a new dataset version in LDB. By default, a reference t
 | Stage a particular version of a dataset | `$  ldb stage ds:my-cats.v3` |
 | Compare current workspace to a previous dataset version | `$  ldb diff ds:my-cats.v2`|
 
-If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the `PULL` command.
+If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
 
-### TODO Annotation version manipulations
+### Annotation versioning
 
 | Step | Command |
 | --- | --- |
-| Add an object with a particular label version | `$  ldb add --label-version 2 aws://my-awesome-bucket/1.jpg` |
-| Bump label version for an object to latest in index | `$   ldb add aws://my-awesome-bucket/1.jpg` |
+| Add an object with particular label version | `$  ldb add —-label-version 2 aws://my-awesome-bucket/1.jpg ` |
+| Bump label version for an object to latest | `$   ldb add aws://my-awesome-bucket/1.jpg` |
 | Bump all labels in a dataset to latest | `$ ldb pull`|
  
 
@@ -177,5 +168,5 @@ If your data is indexed in storage by LDB while your models are run by DVC, the 
 ## Contributing
 
 ```
-TODO
+TBD
 ```
