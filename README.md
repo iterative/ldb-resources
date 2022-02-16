@@ -18,7 +18,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 - [How LDB works](#how-ldb-works)
 - [Quick start](#quick-start)
 - [Comparison to related technologies](#comparison-to-related-technologies)
-- [Contributing to LDB](#contributing-to-LDB)
+- [Contributing to LDB](#contributing)
 
 ## Installation
 
