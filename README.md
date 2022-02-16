@@ -18,7 +18,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 - [How LDB works](#how-ldb-works)
 - [Quick start](#quick-start)
 - [Comparison to related technologies](#comparison-to-related-technologies)
-- [Contributing to LDB](contributing-to-LDB)
+- [Contributing to LDB](#contributing-to-LDB)
 
 ## Installation
 
@@ -95,7 +95,7 @@ Please remember that LDB is an indexing service. If you move or erase indexed da
 
 Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
 
-LDB is also not limited to querying the existing annotations. If installed, custom ML plugins can be employed for queries beyond JSON:
+LDB is also not limited to querying the existing annotations. If installed, [custom ML plugins](documentation/Plugins.md) can be employed for queries beyond JSON:
 
 | Step | Command |
 | --- | --- |
