@@ -75,12 +75,12 @@ Logical modifications to dataset staged in the workspace are usually made with A
 
 **Configuring immutable storage locations (optional)**
 
-LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically copies data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storage paths, register them with `ADD-STORAGE` command:
+LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically attempts to copy data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storages, register them with `ADD-STORAGE` command:
 
 
 | Step | Command |
 | --- | --- |
-| Register immutable storage  | `$  ldb add-storage ~/dogs-and-cats` |
+| Register some immutable storage location  | `$  ldb add-storage ~/dogs-and-cats` |
 
 Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage, LDB index may break.
 
@@ -90,10 +90,10 @@ Please remember that LDB is an indexing service. If you move or erase indexed da
 | Step | Command |
 | --- | --- |
 | Index images from storage | `$ ldb index ~/dogs-and-cats` |
-| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class & class == `cat`'``` |
+| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class == `cat`'``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
-Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates.
+Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
 
 LDB is also not limited to querying the existing annotations. If installed, custom ML plugins can be employed for queries beyond JSON:
 
@@ -102,7 +102,7 @@ LDB is also not limited to querying the existing annotations. If installed, cust
 | Add objects by ML query: | `$ ldb add ds:root --pipe clip-text 'orange dog' --limit 10` |
 | Check the status of a staged dataset | `$ ldb list`|
 
-At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
+At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
 
 ### Instantiation
 
@@ -118,9 +118,9 @@ LDB can pick the resulting changes right from the workspace:
 
 | Step | Command |
 | --- | --- |
-| Alter some annotation     | `$ sed -i 's/dog/cat/g' dog-1088.json` |
-| Inject some new object with label directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
-| Pick object and annotation changes in workspace | `$ ldb add ./`|
+| Edit some annotation     | `$ sed -i 's/dog/cat/g' dog-1088.json` |
+| Inject a new annotated sample directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
+| Pick object and annotation changes from workspace | `$ ldb add ./`|
 
 To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
