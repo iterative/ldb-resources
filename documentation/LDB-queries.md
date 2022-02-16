@@ -11,7 +11,7 @@ The way LDB treats JMESPATH expressions is as follows:
 
 `Tip` one common mistake to watch: `null == null` -> True
 
-If you evaluate one missing key against another, the result is a match. See "Get objects where annotation includes certain key" below.
+If you evaluate one "falsy" key against another, the result is a match. See "Get objects where annotation key is not null" below.
 - **EVAL** prints raw JMESPATH query output over annotations
 
 Here are some query examples, from simple to more advanced:
@@ -101,7 +101,7 @@ Here are some query examples, from simple to more advanced:
     
     ```
     
-- **Get objects where annotation includes certain key**
+- **Get objects where certain key is not null or false**
     
     Input: dataset where objects have annotations with "class" JSON field:
     
@@ -115,10 +115,10 @@ Here are some query examples, from simple to more advanced:
     }
     ```
     
-    Goal: print objects where annotations have a key evaluating to 
+    Goal: print objects where annotations have a valid breed.type key
     
     ```bash
-    # non-empty key is resolved to "true"
+    # non-"falsy" key is resolved to "true"
     $ ldb list --query breed.type
     
     ```
