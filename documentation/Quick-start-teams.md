@@ -28,5 +28,17 @@ You can add new storage locations to LDB at any time, but you cannot remove stor
 
 | Step | Command |
 | --- | --- |
-| Add a storage location | ` $  ldb add-storage gs://my-awesome-bucket/` |
-| Verify current LDB storage locations | `$  ldb status ds:root` |
+| Add a new storage location | ` $  ldb add-storage gs://my-awesome-bucket/` |
+| Verify current LDB storage locations | `$  ldb add-storage status` |
+
+### Registering a "read-add" storage location
+
+By default, LDB only allows for objects from immutable storage locations. LDB only needs read and stat permissions for those locations and relies on external data engineering processes to get new samples there. However, in some cases, it is convenient to add new samples to LDB index right when you work in your data workspace. For example, an engineer may choose to quickly modify an image, auido record, or text while browsing data in LDB workspace.
+
+In that case, LDB can be configured to support a 'read-add' storage location where new data objects are copied when indexing from emphemeral locations (such as  a workspace). This configuration must be explicitily specified, and will require "append" privileges at this location:
+
+| Step | Command |
+| --- | --- |
+| Add a new 'read-add' storage location | ` $  ldb add-storage -a gs://our-append-bucket/` |
+
+
