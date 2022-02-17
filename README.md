@@ -86,12 +86,18 @@ LDB assumes data samples live in immutable locations from which they are indexed
 
 Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage, LDB index may break.
 
+### Indexing storage folder
+
+Once the storage location is registered, it can be indexed. During indexing, LDB recognizes all unique objects and associates them with annotations (if present). Whenever new samples are added, their location must be reindexed for LDB to pick the changes. Annotations updated for the old data objects will be registered with a new version.
+
+| Step | Command |
+| --- | --- |
+| Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
 ### Modifying a dataset
 
 | Step | Command |
 | --- | --- |
-| Index images from storage | `$ ldb index ~/dogs-and-cats` |
 | Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class == `cat`'``` |
 | Check the status of a staged dataset | `$  ldb list`|
 
