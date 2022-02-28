@@ -414,11 +414,10 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[?contains(label,`cat`)] | [0] | label[?@==`cat`]' 0x0dc11270eb2c136b454859df4b472aed
+    $ ldb eval 'instances[?contains(label,`dog`)] | [0] | label[?@==`cat`]' 0x0dc11270eb2c136b454859df4b472aed
     
     [
-       "a",
-       "b"
+       "cat"
     ]
     ```
     
