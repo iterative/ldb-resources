@@ -410,6 +410,18 @@ Advanced examples
     ]
     ```
     
+    Pipes (flattening and filters after filers):
+    
+    ```bash
+     
+    $ ldb eval 'instances[?contains(label,`cat`)] | [0] | label[?@==`cat`]' 0x0dc11270eb2c136b454859df4b472aed
+    
+    [
+       "a",
+       "b"
+    ]
+    ```
+    
 - **Object transforms:  list, hash**
     
     Input: Annotation for object `0x18de96e5871380ce1594b55d906ca816`:
