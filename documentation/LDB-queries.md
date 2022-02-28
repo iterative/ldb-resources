@@ -410,7 +410,7 @@ Advanced examples
     ]
     ```
     
-    Pipes (flattening and filters after filers):
+    Pipes (flattening and sequential filters):
     
     ```bash
      
