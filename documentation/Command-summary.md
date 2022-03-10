@@ -342,7 +342,7 @@ ADD with a `workspace_folder` argument can also be used to share datasets betwee
 
 `--file <filesystem attributes query>`
 
-Builds a query (see LDB Query Syntax) using fixed JSON fields specific to LDB index. The list is:
+Builds a query (see [LDB Query Syntax](./LDB-queries.md)) using fixed JSON fields specific to LDB index. The list is:
 
 * MTIME - data object modification time. 
 * A_MTIME - annotation modification time.
