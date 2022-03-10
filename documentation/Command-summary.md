@@ -24,7 +24,7 @@ Here is the internal structure of a workspace folder:
             └── workspace_dataset    
 ```
 
-Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `TAG`, `PULL` target only a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` will also target a staged dataset by default.
+Most LDB commands – `ADD`, `DEL`, `INSTANTIATE`, `COMMIT`, `TAG`, `PULL` target only a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` will also target a staged dataset by default.
 
 ## locating an LDB instance
 
@@ -510,17 +510,6 @@ For an argument that could be a number or array, you would use `"array|number"` 
 ## flags 
 
 `--remove`  removes indicated tags from objects or datasets
-
-# SYNC \< target-folder \>
-
-`SYNC` synchronizes workspace state with dataset instance found at \< target-folder \>. It acts as a combination of `ADD` and `DEL` commands and logically clones \<target-folder\> to staged dataset, effectively overwriting it.
-
-_Use case:_
-```
-$ ldb instantiate        # instantiate the workspace dataset
-$ rm cats1.jpg           # delete one object file
-$ ldb sync               # pick up changes in workspace
-```
 
 # INSTANTIATE [\< object id(s) \>] [flags]
 
