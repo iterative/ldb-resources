@@ -52,7 +52,6 @@ QuickStart allows the individual user to begin working with LDB without explicit
 * Storage configuration defaults to wide-open settings: 
     * All cloud locations are permitted to host data objects.
     * A `read-add` folder is created in user's home directory (see `ADD-STORAGE`).
-* An `auto-index` option is set in LDB config, permitting `ADD` to process previously unindexed storage (see `ADD`)
  
 Below is an example of QuickStart, where user queries a remote storage in two commands right after the LDB installation:
 
