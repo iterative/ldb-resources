@@ -11,27 +11,7 @@ The way LDB treats JMESPATH expressions is as follows:
 
 `Tip` one common mistake to watch: ``` `null` == `null` ``` -> True
 
-If you evaluate one "falsy" key against another, the result is a match. For example, if this were an annotation
-```json
-{
-  "category": "cat",
-  "prediction": {
-    "category": "cat"
-  }
-}
-```
-then the following statement would include it
-```
-ldb add ds:root --query `inference.class == class`
-```
-because `inference.class` and `class` are both missing, so they evaluate to `null`, and ``` `null` == `null` ``` evaluates to `true`.
-
-To only include cases where we actually have a truthy value under `inference.class`, we could instead use:
-```
-ldb add ds:root --query `inference.class && inference.class == class`
-```
-
-See "Get objects where certain key is not null or false" below. 
+If you evaluate one "falsy" key against another, the result is a match. See "Get objects where certain key is not null or false" below. 
 
 - **EVAL** prints raw JMESPATH query output over annotations
 
@@ -142,6 +122,26 @@ Here are some query examples, from simple to more advanced:
     # non-"falsy" key is resolved to "true"
     $ ldb list --query breed.type
     
+    ```
+
+    This can be useful for excluding annotations where keys that may be missing are compared. For example, if this were an annotation
+    ```json
+    {
+      "category": "cat",
+      "prediction": {
+        "category": "cat"
+      }
+    }
+    ```
+    then the following command would include it
+    ```
+    ldb add ds:root --query `inference.class == class`
+    ```
+    because `inference.class` and `class` are both missing, so they evaluate to `null`, and ``` `null` == `null` ``` evaluates to `true`.
+    
+    To include only the annotations where we actually have a truthy value under `inference.class`, we could instead use:
+    ```
+    ldb add ds:root --query `inference.class && inference.class == class`
     ```
     
 - **Combine query terms**
