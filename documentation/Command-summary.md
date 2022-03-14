@@ -427,7 +427,7 @@ if __name__ == "__main__":
 
 Scripts should be created and called the same way they would be called on the commandline. For example a python script like the one above could be run the following ways:
 
-**Platform independent**
+#### Platform independent
 
 Place python code in `reverse.py` and call with `python3 path/to/reverse.py`. The disadvantage of this method is that you have to specify the full path to `reverse.py`.
 
@@ -436,7 +436,7 @@ Example usage:
 ldb add --pipe python3 path/to/reverse.py --limit 10
 ```
 
-**Unix**
+#### Unix
 
 On Linux, MacOS, or other unix-like systems, simply put the python code in `reverse` with a shebang at the top:
 ```
@@ -451,7 +451,7 @@ Example usage:
 ldb add --pipe reverse --limit 10
 ```
 
-**Windows**
+#### Windows
 
 To run the python script with a single command, put the code in `reverse.py`, and create a batch file, `reverse.bat` in the same directory with:
 ```
@@ -468,7 +468,7 @@ Example usage:
 ldb add --pipe reverse --limit 10
 ```
 
-**Examples**
+#### Plugin script examples
 
 For examples, see [plugins]. Copy the files in here to the ldb instance's plugin directory to make `reverse` available on Unix-like or Windows environments.
 
