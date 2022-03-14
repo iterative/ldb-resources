@@ -415,6 +415,8 @@ A script intended for use by `--pipe` should expect a json array via stdin where
 Here is a simple example of a python script that reverses the order of items in a dataset:
 
 ```python3
+#!/usr/bin/env python
+
 import json
 import sys
 
