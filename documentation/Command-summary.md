@@ -106,6 +106,14 @@ Since LDB assumes that storage objects are immutable, it never attempts to alter
 
 ## flags
 
+`-o / --options <key> <value>`
+
+Specify a key/value to pass to the fsspec filesystem instance created when accessing this storage location. For example, to use a specific AWS profile with an s3 storage location:
+
+```
+ldb add-storage s3:/bucket/some/prefix -o profile profile-name
+```
+
 `--read-add` 
 
 Storage location registered with this flag must allow for adding files. 
