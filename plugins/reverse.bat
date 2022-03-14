@@ -1,2 +1,2 @@
 @echo off
-python3 "%~dp0\\reverse.py"
+python3 "%~dp0\reverse.py"

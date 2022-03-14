@@ -456,7 +456,7 @@ ldb add --pipe reverse --limit 10
 To run the python script with a single command, put the code in `reverse.py`, and create a batch file, `reverse.bat` in the same directory with:
 ```
 @echo off
-python3 "%~dp0\\reverse.py"
+python3 "%~dp0\reverse.py"
 ```
 
 Then use the full path of `reverse.bat`, make sure `reverse.bat` is in a location where it can be called, or place both `reverse.py` and `reverse.bat` in the ldb instance's plugin directory.
