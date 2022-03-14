@@ -470,7 +470,7 @@ ldb add --pipe reverse --limit 10
 
 #### Plugin script examples
 
-For examples, see [plugins](plugins). Copy the files in here to the ldb instance's plugin directory to make `reverse` available on Unix-like or Windows environments.
+For examples, see [plugins](../plugins). Copy the files in here to the ldb instance's plugin directory to make `reverse` available on Unix-like or Windows environments.
 
 
 ## LDB Query Language
