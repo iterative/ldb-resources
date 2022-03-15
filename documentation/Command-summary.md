@@ -429,7 +429,7 @@ Scripts should be created and called the same way they would be called on the co
 
 #### Platform independent
 
-Place python code in `reverse.py` and call with `python3 path/to/reverse.py`. The disadvantage of this method is that you have to specify the full path to `reverse.py`.
+Place python code in `reverse.py` and call with `python3 path/to/reverse.py`. The disadvantage of this method is that you have to specify the path to `reverse.py`.
 
 Example usage:
 ```
@@ -442,7 +442,7 @@ On Linux, MacOS, or other unix-like systems, simply put the python code in `reve
 ```
 #!/usr/bin/env python3
 ```
-Make sure `reverse` is executable (`chmod +x reverse` or `chmod u+x reverse`). Then use the full path to `reverse`, make sure `reverse` is on your `$PATH`, or place `reverse` in the ldb instance's plugin directory:
+Make sure `reverse` is executable (`chmod +x reverse` or `chmod u+x reverse`). Then use the path to `reverse`, make sure `reverse` is on your `$PATH`, or place `reverse` in the ldb instance's plugin directory:
 ```
 mv reverse ~/.ldb/private_instance/custom_code/ldb_user_filters/
 ```
