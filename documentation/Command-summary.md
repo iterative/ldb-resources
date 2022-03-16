@@ -410,6 +410,8 @@ Any executable available by name or path may be used. This internal directory is
 
 If multiple arguments are given to `--pipe`, they are all called together as a single command. Flags or options (arguments beginning with `-`) should be avoided as they will collide with LDB's options. Complex commands may be wrapped in a script, so that only positional arguments are needed.
 
+Because datasets are unordered collections, an ordering or sorting operation is most useful when combined with a following filter operation such as `--limit`.
+
 A script intended for use by `--pipe` should expect a json array via stdin where each item is three element array in the form `[data_object_hash, data_object_path, annotation_path]`. LDB will instantiate the dataset in a temporary location, so the data object and annotation paths will point to files in this location. The script should then provide its filtered results as a series of data object hashes separated by new lines. This could be any type of sort or filter operation.
 
 Here is a simple example of a python script that reverses the order of items in a dataset:
@@ -423,7 +425,52 @@ if __name__ == "__main__":
         print(data_object_hash, flush=True)
 ```
 
-Because datasets are unordered collections, an ordering or sorting operation is most useful when combined with a following filter operation such as `--limit`.
+Scripts should be created and called the same way they would be called on the commandline. For example a python script like the one above could be run the following ways:
+
+#### Platform independent
+
+Place python code in `reverse.py` and call with `python3 path/to/reverse.py`. The disadvantage of this method is that you have to specify the path to `reverse.py`.
+
+Example usage:
+```
+ldb add --pipe python3 path/to/reverse.py --limit 10
+```
+
+#### Unix
+
+On Linux, MacOS, or other unix-like systems, simply put the python code in `reverse` with a shebang at the top:
+```
+#!/usr/bin/env python3
+```
+Make sure `reverse` is executable (`chmod +x reverse` or `chmod u+x reverse`). Then use the path to `reverse`, make sure `reverse` is on your `$PATH`, or place `reverse` in the ldb instance's plugin directory:
+```
+mv reverse ~/.ldb/private_instance/custom_code/ldb_user_filters/
+```
+Example usage:
+```
+ldb add --pipe reverse --limit 10
+```
+
+#### Windows
+
+To run the python script with a single command, put the code in `reverse.py`, and create a batch file, `reverse.bat` in the same directory with:
+```
+@echo off
+python3 "%~dp0\reverse.py"
+```
+
+Then use the full path of `reverse.bat`, make sure `reverse.bat` is in a location where it can be called, or place both `reverse.py` and `reverse.bat` in the ldb instance's plugin directory.
+```
+ldb add --pipe reverse --limit 10
+```
+Example usage:
+```
+ldb add --pipe reverse --limit 10
+```
+
+#### Plugin script examples
+
+For examples, see [plugins](../plugins). Copy the files in here to the ldb instance's plugin directory to make `reverse` available on Unix-like or Windows environments.
 
 
 ## LDB Query Language
