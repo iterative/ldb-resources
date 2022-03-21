@@ -240,6 +240,27 @@ Here are some query examples, from simple to more advanced:
     $ ldb add --query 'length(instances) == `3`' 
     ```
     
+- **Class balance statistics**
+  Input: JSON annotation with a class name field
+    
+    ```json
+    {
+      "class": "cat",
+      "breed": {
+        "type": "main-coon",
+        "size": "large"
+      }
+    }
+    ```
+    Desired: dataset object count per class 
+   
+   ```bash
+   $ ldb eval -j --query 'class' ds:pets | sort | uniq -c
+     100 "cat"
+     100 "dog"
+
+   ```
+    
 - **Histogram printing for numeric parameter**
     
     Input: JSON annotation that may have several object instances in a dataset 
@@ -260,7 +281,7 @@ Here are some query examples, from simple to more advanced:
     }
     ```
     
-    Desired: histogram for distribution of numeric key across samples in dataset (uses external program **hist** form **bashplotlib**)
+    Desired: histogram for distribution of numeric key across samples in dataset (uses external program **hist** from [bashplotlib](https://github.com/glamp/bashplotlib ))
     
     ```bash
     
