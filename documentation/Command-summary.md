@@ -143,10 +143,7 @@ $ ldb add ./cat1.jpg
 ```
 There are no `read-add` storage locations registered, and user tries to add a file from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed somewhere in storage, the ADD command fails.
 
-## access configuration
-
-ALPHA-LATE 
-document cloud storage access configuration here
+## lambda configuration
 
 BETA 
 document object lambda access configuration here
