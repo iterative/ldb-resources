@@ -286,7 +286,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb eval -q 'length(instances)' ds:pets | hist -n
+    $ ldb eval -j 'length(instances)' ds:pets | hist -n
     
      6| o          
      5| o          
@@ -295,6 +295,27 @@ Here are some query examples, from simple to more advanced:
      2| o   o     o
      1| o   o  o  o
        -----------
+    ```
+- **Statistics evaluation for numeric parameter**
+    
+    Input: JSON annotation that has some numeric field
+    
+    ```json
+    {
+      "img": {
+        "height": 768,
+        "width": 1024
+      }
+    }
+    ```
+    
+    Desired: histogram for distribution of numeric key across samples in dataset (uses external program **hist** from [num](https://github.com/numcommand/num)) (requires GNU gawk, e.g. `brew install --build-from-source gawk`)
+    
+    ```bash
+    
+    $ ldb eval -j  ds:images --query 'img.height'  | grep -v null | num stddev median
+    
+     185.858
     ```
     
 - **Query** **objects when keys can be absent**
