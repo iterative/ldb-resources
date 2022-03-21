@@ -241,6 +241,7 @@ Here are some query examples, from simple to more advanced:
     ```
     
 - **Class balance statistics**
+
   Input: JSON annotation with a class name field
     
     ```json
