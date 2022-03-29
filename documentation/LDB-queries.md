@@ -282,11 +282,11 @@ Here are some query examples, from simple to more advanced:
     }
     ```
     
-    Desired: histogram for distribution of numeric key across samples in dataset (uses external program **hist** from [bashplotlib](https://github.com/glamp/bashplotlib ))
+    Desired: histogram for distribution of some numeric key across samples in dataset (uses external program **hist** from [bashplotlib](https://github.com/glamp/bashplotlib ))
     
     ```bash
     
-    $ ldb eval -j 'length(instances)' ds:pets | hist -n
+    $ ldb eval -j ds:pets --query 'length(instances)'  | hist -n
     
      6| o          
      5| o          
