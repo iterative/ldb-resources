@@ -253,7 +253,7 @@ Here are some query examples, from simple to more advanced:
       }
     }
     ```
-    Desired: dataset object count per class 
+    Desired: object count per class 
    
    ```bash
    $ ldb eval -j --query 'class' ds:pets | sort | uniq -c
