@@ -364,7 +364,7 @@ $ ldb add --file 'regex(fs.path, `gs:datasets/cat-bucket/.*`)'  # Object source 
 
 `--query <annotation query terms>`
 
-Permits a query (see LDB Query Syntax) that references arbitrary JSON fields present in object annotation.
+Permits a query (see [LDB Query Syntax](./LDB-queries.md)) that references arbitrary JSON fields present in object annotation.
 
 *Use case:*
 ```
