@@ -574,9 +574,9 @@ $ rm cats1.jpg           # delete one object file
 $ ldb sync               # pick up changes in workspace
 ```
 
-# INSTANTIATE [\< object id(s) \>] [flags]
+# INSTANTIATE [\< object id(s) \>] [\< sub-folder \>] [flags]
 
-`INSTANTIATE` partially or fully re-creates dataset in a workspace. If valid `object id(s)` are given, only those objects (with annotations) are instantiated. This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths.
+`INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
 
 ## flags
  
