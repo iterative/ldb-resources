@@ -61,7 +61,7 @@ $ ldb stage ds:my-numerals
 $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 ```
 
-# INIT \<directory\>
+# INIT `<directory>`
 
 `INIT` creates a new LDB instance (repository) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` does not attempt to locate an active LDB instance, and permits a new LDB repository to reside anywhere in a filesystem.
 
@@ -92,7 +92,7 @@ If a target directory already contains an existing LDB instance,  `INIT` fails &
 If the target directory contains data (but not an LDB instance), `INIT` fails without an option to override. The user must provide an empty directory.
 
 
-# ADD-STORAGE \<storage-URI\>
+# ADD-STORAGE `<storage-URI>`
 
 `ADD-STORAGE` registers a disk (or cloud) data storage location into LDB and verifies the requisite permissions. 
 
@@ -149,7 +149,7 @@ BETA
 document object lambda access configuration here
 
 
-# STAGE \<ds:\<name\>[.v\<number\>]\>  \<workspace_folder\>
+# STAGE `<ds:<name>[.v<number>]>`  `<workspace_folder>`
 
 `STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<name>`, a new dataset is created. If `<name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
 
@@ -172,7 +172,7 @@ If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and pr
 allows to clobber the workspace regardless of what is there.
     
 
-# INDEX \<storage folder URI(s) | storage object URI(s)\ | workspace folder> [flags]
+# INDEX `<storage folder URI(s) | storage object URI(s) | workspace folder>`
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. If LDB instance was created via QuickStart (see `STAGE`), then any cloud location may be indexed by default. If LDB instance was created with the `INIT` command, then LDB assumes indexed URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is supplied to `INDEX` with no format flag, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name). All hidden paths are excluded during indexing, which means any path where any of the directory or filenames begins with a dot (`.`) will not be indexed.
 
@@ -221,7 +221,7 @@ This results in ldb using the following as the annotation for data object `0x2c4
 
 and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
 
-# ADD  \< object-list \> [filters]
+# ADD  `< object-list >` `[filters]`
 
 Where,
 * `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | `workspace_folder`
@@ -549,11 +549,11 @@ CUSTOM_FUNCTIONS = {
 ```
 For an argument that could be a number or array, you would use `"array|number"` instead of just `"number"`.
 
-# DEL \< object-list \> [filters]
+# DEL `<object-list>` `[filters]`
 
 `DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If objects provided to `DEL` are not in the dataset, `DEL` does nothing.
 
-# TAG [text-tag text-tag ...]  \< object-list \> [filters]
+# TAG `[text-tag text-tag ...]`  `<object-list>` `[filters]`
 
 `TAG` is a text string in ANSI character set [0-9A-z-\_]. Multiple tags can be attached to datasets or individual objects. Tags attached to objects are inherited – which means they will exist on all instances of an object in all datasets irrespective of their annotations. Tags attached to datasets are not inherited - which means, objects added from a dataset featuring a particular tag will not carry this tag forward.
 
@@ -563,7 +563,7 @@ For an argument that could be a number or array, you would use `"array|number"` 
 
 `--remove`  removes indicated tags from objects or datasets
 
-# SYNC \< target-folder \>
+# SYNC `<target-folder>`
 
 `SYNC` synchronizes workspace state with dataset instance found at \< target-folder \>. It acts as a combination of `ADD` and `DEL` commands and logically clones \<target-folder\> to staged dataset, effectively overwriting it.
 
@@ -574,7 +574,7 @@ $ rm cats1.jpg           # delete one object file
 $ ldb sync               # pick up changes in workspace
 ```
 
-# INSTANTIATE [\< object id(s) \>] [\< sub-folder \>] [flags]
+# INSTANTIATE `[object id(s)]` `[sub-folder]`
 
 `INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
 
@@ -596,17 +596,17 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 
 Preview flag instantiates data objects after passing them through a given lambda function (for example, downscaling to specific size for image previews). It has no effect if cloud storage does not support object lambdas, or code access point for `lambda_id` was not configured.
 
-# COMMIT [message]
+# COMMIT `[message]`
 
 `COMMIT` takes the currently staged dataset and saves it to LDB. This action renders workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is always a new version of dataset.
 
 The optional `message` flag will be added as the commit message and shown in `ldb status` when called with a dataset as an argument.
 
-# DIFF \<ds:\<name\>\> [ds:\<name\>]
+# DIFF `<ds:<name>>` `[ds:<name>]`
 
 `DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and uses as the first comparand.
 
-# LIST  \< object-list \> [filters]
+# LIST  `<object-list>` `[filters]`
 
 `LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
 Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds-root` as the object source.
@@ -621,29 +621,37 @@ just prints object counts
 
 detailed object information
 
-# STATUS  [ds:\<name\>[.v<number>]
+# STATUS  `[ds:<name>[.v<number>]`
 
 When run without arguments from a workspace, `STATUS` summarizes state of a staged dataset. This includes any uncomitted changes and current object counts. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
 
-# PULL [object-id(s)]
+# PULL `[object-id(s)]`
 
 `PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace. Pull action applied to objects not in the current workspace are ignored.
+
+# DS
+Lists latest versions of all datasets in LDB repository.
+
+## flags
+
+`-q` or  `--quiet` 
+
+TODO 
+
+`-v` or  `--verbose`
+
+TODO
 
 # EVAL
 ```
 ldb eval [-h] [-q | -v] [-j] [--query <query>] [--file <query>] [<path> [<path> ...]]
 ```
-This works the same as `list`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items just as with `list`, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `add` and `list`.
+EVAL works the same way as `LIST`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `add` and `list`.
 
 The `query` argument must be a valid JMESPath query to be run over annotations if used with `--query` flag and over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
 
 The `-j` or `--json-only` option will print only JSON query results. Without it, each JSON object is preceded by the corresponding data object hash.
 
-# DS
-```
-ldb ds [-h] [-q | -v]
-```
-Prints the latest version of each saved dataset.
 
 # COMPLETION
 ```
