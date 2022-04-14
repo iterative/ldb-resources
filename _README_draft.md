@@ -175,7 +175,7 @@ However, there are also cases where explicit indexing is preferable. For one exa
 | Index storage location in default format | `$ ldb index s3://ldb-public/dogs-and-cats` |
 | Index location in Tensorflow format | `$ ldb index --format infer gcp://ldb-public/dogs-and-cats`|
 
-Another use of explicit indexing in LDB is object tagging. Object tags in LDB are global – which means the tag assigned to a data object is visible in all datasets that reference it regardless of annotation presence and versions. Tags can be assigned 
+Another use of explicit indexing in LDB is object tagging. Object tags in LDB are global – which means the tag assigned to a data object is visible in all datasets that reference it regardless of annotation presence and versions. Tags can be assigned during index or later (via TAG command):
 
 | Step | Command |
 | --- | --- |
@@ -194,7 +194,7 @@ $ ldb add ./cat1.jpg       # result: staged dataset ds:cats now includes cat1.jp
 
 ### Annotation versioning
 
-LDB keeps track of annotation versions and increments them in index every time a new version is found. In the meanwhile, sample in the dataset keeps the version of annotation it was coupled with when added to dataset. In case of conflict, when dataset gets a sample with both earlier and later annotation version, the latest wins.
+LDB keeps track of annotation versions and increments them in index every time a new version is found. In the meanwhile, sample in the dataset keeps the version of annotation it was coupled with when added. In case of conflict a where dataset gets a sample with both earlier and later annotation version, the latest wins.
 
 For example, let us assume we staged a dataset `ds:cats` that contain object id 0xffc9779b0ff19 with annotion v.1 of the following form:
 
@@ -215,7 +215,6 @@ If we instantiate this object, this is the annotation we are going to see:
 | Examine the result  | `$ cat ffc9779b0ff19.json`    |
 
 Now let us change this annotation in-place and re-index:
-
  
 | Step | Command |
 | --- | --- |
@@ -239,17 +238,67 @@ Finally, since index now stores both annotation version, it is possible to expli
 
 | Step | Command |
 | --- | --- |
-| Enforce non-default annotation version | `$ ldb add  0xffc9779b0ff19` --apply-version 1 |
+| Enforce non-default annotation version | `$ ldb add  0xffc9779b0ff19 --apply-version 1` |
 | Construct filter based on annotation version comparison | `$ ldb add --vquery 'v1.class != v2.class'` |
 
 
-### Advanced queries and query debugging
+### Query debugging
 
+JMESPATH queries can become complicated, so it is useful to understand how LDB constructs and evaluates them.
 
+LDB treats any expression that results in null, boolean false, or an empty objects as 'falsy' that fails the filter, and treats every other output (including 0) as 'truthy' that passes the filter. Any reference to a non-existing key immediately fails the filter.
 
+To understand exactly what LDB does in each case, it is useful to utilize EVAL and observe the result of  JSON query reduction. EVAL without --query simply returns the entire latest annotation:
 
-### Instantiation and reindexing
+```
+$ ldb eval  0xffa97795d32350dc450f41c4ce725886
+0xffa97795d32350dc450f41c4ce725886
+{
+  "class": "dog",
+  "id": "1025",
+  "inference": {
+    "class": "cat",
+    "confidence": 0.56
+  },
+  "num_annotators": 3
+}
+```
 
+A missing key produces 'false' – which means this query would fail the filter:
+
+```
+ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+0xffa97795d32350dc450f41c4ce725886
+false
+```
+A valid JMESPATH expression should produce valid object that passes the filter:
+
+```
+ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+0xffa97795d32350dc450f41c4ce725886
+{
+  "class": "cat",
+  "confidence": 0.56
+}
+```
+
+### Advanced instantiation options
+
+We already saw that LDB can instantiate a dataset partially of fully using WORK or INSTANTIATE (with an optional format change).
+There are, however, two more instantiation options that can be useful.
+
+First, `--infer` allows reconstructing a dataset using a plugin that can modify annotations, objects, or both. This can be useful, for example, for applying a helper ML model to pre-annotate or gauge data object complexity:
+
+| Step | Command |
+| --- | --- |
+| Instantiate this object | `$ ldb instantiate 0xffc9779b0ff19 --infer ` |
+| Reindex results  | `$ ldb index ./ffc9779b0ff19.json`    |
+
+Second, `--apply` option can be employed with ADD to permanently reference a transformation plugin – such as an augmentation routine, or still picture extraction from video based on the annotation mask. Multiple transformations can attach to the same input sample, and every transformation can be a sequence of actions (e.g. rotate, flip, etc):
+
+| Step | Command |
+| --- | --- |
+| Apply flip transform | `$ ldb add ds:numerals --apply  flip_augmentation --sample 0.1` |
 
 
 
