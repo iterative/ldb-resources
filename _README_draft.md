@@ -40,7 +40,7 @@ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'
 
 LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future. This means it is safe to give LDB access to storage as it never needs privileges to erase or modify data objects.
 
-![ldb-intro](images/ldb-struct.png =288x500)
+<img src="images/ldb-struct.png" width="500" height="288" align="left">
 
 The main use case for LDB is to create and maintain persistent collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or other datasets (e.g. samples annotated with a certain class, created at given time, contains a given number of event instances, etc). 
 
@@ -49,7 +49,7 @@ Datasets can then be shared and versioned within LDB, which makes collaboration 
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into ephemeral workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
-Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology.
+Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology and to [command summary](documentation/Command-summary.md) for additional information on command options.
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md). If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. 
 
@@ -73,7 +73,7 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 
 Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-heads"` with samples annotated for horizontal distance between cat eyes less than 30 pixels. To run complex JSON queries, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
 
-* Note that objects in folders `"large-cats"` and `"small-heads"` can be overlapping, but LDB uses local cache to avoid creation of multiple copies.
+* Note that objects in folders `"large-cats"` and `"small-heads"` can be overlapping, but LDB uses local cache to avoid duplication.
 * Also note that the first query explicitly referenced cloud storage (web url), while the second did not. LDB indexes data objects at first encounter, so subsequent queries can run from internal LDB index.
 
 ### Creating datasets from querying data objects directly
@@ -137,7 +137,7 @@ What is the intersection of workspaces `"large-cats"` and `"orange-cats"` ? How 
 
 LDB can answer these questions by combination of ADD, DEL, and LIST commands with queries. Query syntax in LDB uses the following building blocks:
 
-* source objects: come from any combination of datasets (_ds:NAME_), workspaces (_ws:FOLDER_), storage paths, or object-ids (hashsums)
+* source objects: come from any combination of datasets (`ds:`_NAME_), workspaces (`ws:`_FOLDER_), storage paths, or object-ids (hashsums)
 * query pipeline: combination of JSON queries via `--query`, sampling and limiting options `--sample`, `--shuffle`, `--limit`, and plugins with `--pipe`
 
 Examples: 
@@ -161,18 +161,28 @@ Fill quota per class:
 
 | Step | Command |
 | --- | --- |
-| Shuffle and limit the source | ```$ ldb list ds:root --query --shuffle --limit 10'``` |
+| Shuffle and limit the source | ```$ ldb list ds:root --query 'class == `cat`' --shuffle --limit 10'``` |
 
 
 ### Storage indexing and object tags
 
+In the examples above, we have seen how a cloud location can be indexed at first reference by WORK command. In LDB, both ADD and WORK can index unseen objects from storage path implicitly.
+
+However, there are also cases where explicit indexing is preferable. For one example, indexing a large storage location may take time and is best scheduled in off-peak hours. For another example, source data can come with annotations in format other than LDB default and needs to be converted. For a third example, annotations can be periodically updated and need to be loaded into index.
+
 | Step | Command |
 | --- | --- |
-| Instantiate all objects into the workspace | `$ ldb instantiate `|
-| See the resulting physical dataset | `$ ls`|
+| Index storage location in default format | `$ ldb index s3://ldb-public/dogs-and-cats` |
+| Index location in Tensorflow format | `$ ldb index --format infer gcp://ldb-public/dogs-and-cats`|
 
-After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
-LDB can pick the resulting changes right from the workspace:
+Another use of explicit indexing in LDB is object tagging. Object tags in LDB are global – which means the tag assigned to a data object is visible in all datasets that reference it regardless of annotation presence and versions. Tags can be assigned 
+
+| Step | Command |
+| --- | --- |
+| Index storage path and assign tags | `$ ldb index s3://ldb-public/cats/cat.100'*' --add-tags cats,testing` |
+| Make sure test objects did not leak into current workspace | `$ ldb del ws:./ --tag testing` |
+
+* Note the quoted asterisk to denote S3 path wildcard
 
 ### Annotation versioning
 
