@@ -88,7 +88,7 @@ LDB ships with CLIP and ResNet plugins for image filtering, but [custom ML plugi
 
 ### Saving and versioning datasets
 
-We have used `WORK` command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as *workspace*. Most LDB commands run from within workspace, using it as a context.
+We have used `WORK` command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as *workspace*. Most LDB commands are designed to run from within the workspace, using it as a context.
 
 A workspace can be made into a named dataset by saving it to LDB:
 
@@ -97,7 +97,7 @@ A workspace can be made into a named dataset by saving it to LDB:
 | Change into workspace | `$ cd ./large-cats` |
 | Save this dataset into LDB | `$ ldb commit` |
 
-Now dataset `ds:large-cats` is saved. Since LDB defines the dataset as a collection of data objects and annotations, a particular dataset version will always remain reproducible. 
+Now dataset `ds:large-cats` is saved. Since LDB defines the dataset as a collection of specific data objects and annotation versions, any version of a dataset will remain reproducible. 
 
 If we change a dataset and save it again, this will create a new version, but we can still refer to the previous one if needed:
 
@@ -108,26 +108,21 @@ If we change a dataset and save it again, this will create a new version, but we
 | Compare to a previous version | `$ ldb diff ds:large-cats.v1` |
 
 * Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
-* Since LDB is an indexing service, locally instantiated data is disposable. After we are done with the workspace, we can safely delete it.
+* Since LDB is an indexing service, locally instantiated dataset is fully disposable. After we are done with the workspace, we can safely delete it.
 
-### Workspace operations
+### Logical operations in workspace
 
-| Step | Command |
-| --- | --- |
-| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class == `cat`'``` |
-| Check the status of a staged dataset | `$  ldb list`|
+LDB groups data objects and annotations into datasets by references. This means dataset membership information change is a logical operation that does not require physical data objects to be present. This is important, for example, when a dataset is large and inconvenient to materialize every time a minor membership change is required.
 
-Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
+Therefore, LDB normally uses separate commands to stage a dataset (create a workspace), change dataset membership, and instantiate:
 
-LDB is also not limited to querying the existing annotations. If installed, [custom ML plugins](documentation/Plugins.md) can be employed for queries beyond JSON:
+![ldb-intro](images/workspace.png)
 
-| Step | Command |
-| --- | --- |
-| Add objects by ML query: | `$ ldb add ds:root --pipe clip-text 'orange dog' --limit 10` |
-| Check the status of a staged dataset | `$ ldb list`|
+LDB index holds references to all known data objects by hash-sums (object-ids) in a dataset with a special name _ds:root_. Any other datasets can be saved into LDB referring to arbitrary combinations of objects and annotation versions. In the example above, LDB has three datasets: _ds:cats_, _ds:dogs_, and _ds:pets_. Command STAGE takes dataset name as an argument and copies meta-information about this dataset into a workspace. At this point, objects can be added to dataset with ADD, or removed with DEL. A dataset is saved back to LDB with COMMIT.
 
-At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
+Note, that instantiation is not required for changing the dataset with ADD and DEL. Whenever access to physical objects is needed, INSTANTIATE command is used to materialize the dataset partially or fully. It is also possible to modify physical objects in workspace and pick the changes back with SYNC.
 
+Command WORK we have used in the previous sections simply unites STAGE, ADD, and INSTANTIATE. It can stage a named dataset, add objects to it by query and instantiate the result in one shot. 
 
 ### Dataset algebra
 
