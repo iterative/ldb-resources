@@ -109,6 +109,25 @@ If we change a dataset and save it again, this will create a new version, but we
 
 * Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
 
+### Workspace operations
+
+| Step | Command |
+| --- | --- |
+| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class == `cat`'``` |
+| Check the status of a staged dataset | `$  ldb list`|
+
+Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
+
+LDB is also not limited to querying the existing annotations. If installed, [custom ML plugins](documentation/Plugins.md) can be employed for queries beyond JSON:
+
+| Step | Command |
+| --- | --- |
+| Add objects by ML query: | `$ ldb add ds:root --pipe clip-text 'orange dog' --limit 10` |
+| Check the status of a staged dataset | `$ ldb list`|
+
+At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
+
+
 ### Dataset algebra
 
 How many objects in `"large-cats"` and `"large-heads"` are the same? 
@@ -137,23 +156,6 @@ There are many ways to answer this question, but one way is to use LIST command 
 After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
 LDB can pick the resulting changes right from the workspace:
 
-### Workspace-only operations
-
-| Step | Command |
-| --- | --- |
-| Add cat objects from index by annotation | ```$ ldb add ds:root —-query 'class == `cat`'``` |
-| Check the status of a staged dataset | `$  ldb list`|
-
-Note the use of single quotes to shield query from shell expansion, and the use of backticks to denote the literal value ("cat"). Also note that a special name `ds:root` designates the entire LDB index which references all known objects. 
-
-LDB is also not limited to querying the existing annotations. If installed, [custom ML plugins](documentation/Plugins.md) can be employed for queries beyond JSON:
-
-| Step | Command |
-| --- | --- |
-| Add objects by ML query: | `$ ldb add ds:root --pipe clip-text 'orange dog' --limit 10` |
-| Check the status of a staged dataset | `$ ldb list`|
-
-At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
 
 ### Advanced queries and query debugging
 
