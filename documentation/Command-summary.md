@@ -24,7 +24,7 @@ Here is the internal structure of a workspace folder:
             └── workspace_dataset    
 ```
 
-Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `TAG`, `PULL` target only a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` will also target a staged dataset by default.
+Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `PULL` require a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` – will also target a staged dataset by default, but do not require a staged dataset if they are passed other dataset identifiers.
 
 ## locating an LDB instance
 
@@ -172,7 +172,7 @@ If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and pr
 allows to clobber the workspace regardless of what is there.
     
 
-# INDEX `<storage folder URI(s) | storage object URI(s) | workspace folder>`
+# INDEX `<storage folder URI(s) | storage object URI(s) | local filesystem folder>`
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. If LDB instance was created via QuickStart (see `STAGE`), then any cloud location may be indexed by default. If LDB instance was created with the `INIT` command, then LDB assumes indexed URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is supplied to `INDEX` with no format flag, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name). All hidden paths are excluded during indexing, which means any path where any of the directory or filenames begins with a dot (`.`) will not be indexed.
 
@@ -194,6 +194,8 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 ## flags
 
 `--format <format>` - options: `{auto,auto-detect,strict,strict-pairs,bare,bare-pairs,infer,tensorflow-inferred,annot,annotation-only}` -  sets schema for data objects and annotations. `INDEX` fails if URI is not conformant with schema. `auto-detect` is the default. Some of these are simply short aliases for longer format names.
+
+`--add-tags <tags>` Comma-separated list of tags to add to indexed data objects.
 
 Format descriptions:
  * `auto`, `auto-detect` - Auto-detect the data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
@@ -392,10 +394,27 @@ Passes every object in input list with a given Bernoulli probability.
 $ ldb add ds:cats --sample 0.9 
 ```
 
-`--tag <string>`
+`--tag <tags>`
 
-Passes objects with referenced tag, equivalent to --query LDB_TAG == \<string\>
+Comma-separated list of tags. Select only data objects that contain at least one.
 
+For example, the following are all equivalent:
+```
+ldb list --tag a,b --tag c
+ldb list --file "contains(tags, 'a') || contains(tags, 'b')" --file "contains(tags, 'c')"
+ldb list --file "contains_any(tags, ['a', 'b']) && contains(tags, 'c')"
+```
+
+`--no-tag <tags>`
+
+Comma-separated list of tags. Select only data objects where at least one of these tags is missing.
+
+For example, the following are equivalent:
+```
+ldb list --no-tag a,b --no-tag c
+ldb list --file "! contains(tags, 'a') || ! contains(tags, 'b')" --file "! contains(tags, 'c')"
+ldb list --file "! contains_all(tags, ['a', 'b']) && ! contains(tags, 'c')"
+```
 
 ## Pipe Plugins
 
@@ -553,15 +572,21 @@ For an argument that could be a number or array, you would use `"array|number"` 
 
 `DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If objects provided to `DEL` are not in the dataset, `DEL` does nothing.
 
-# TAG `[text-tag text-tag ...]`  `<object-list>` `[filters]`
+# TAG `<object-list>` `[filters]` `[-a <tags> ] [-r <tags>]`
 
-`TAG` is a text string in ANSI character set [0-9A-z-\_]. Multiple tags can be attached to datasets or individual objects. Tags attached to objects are inherited – which means they will exist on all instances of an object in all datasets irrespective of their annotations. Tags attached to datasets are not inherited - which means, objects added from a dataset featuring a particular tag will not carry this tag forward.
+`TAG` is a text string in the ANSI character set `[0-9A-z_-]`. Multiple tags can be attached to data objects. Tags attached to objects are global – which means they apply to all instances of an object in all datasets irrespective of their annotations.
 
 `TAG` takes the same arguments and filters as `ADD` command to identify datasets or individual objects to apply tags.
 
 ## flags 
 
-`--remove`  removes indicated tags from objects or datasets
+`-a <tags>`, `--add <tags>`
+
+Comma-separated list of tags to add to data objects
+
+`-r <tags>`, `--remove <tags>`
+
+Comma-separated list of tags to remove from data
 
 # SYNC `<target-folder>`
 
