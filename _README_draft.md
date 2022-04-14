@@ -12,6 +12,8 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 * Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
 
+Full LDB command summary [here](documentation/Command-summary.md)
+
 ### Contents
 
 - [Installation](#installation)
@@ -34,19 +36,10 @@ pip install ldb-alpha
 pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
 ```
 
-### sample dataset with curl **(optional)**
-```
-curl -L https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.tar.gz | tar xz
-```
-
-More sample datasets [here](documentation/Datasets.md)
-
-Full LDB command summary [here](documentation/Command-summary.md)
-
 
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve (instantiate) the datasets in the future (for training and examination).
+LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future.
 
 ![ldb-intro](images/ldb-struct.png)
 
@@ -57,23 +50,40 @@ Datasets can then be shared and versioned within LDB, which makes collaboration 
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into ephemeral workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
-Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed discussion of the Data-driven AI methodology.
+Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology.
 
-**LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md).
+**LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md). If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. 
 
-### Staging a new dataset 
+### Creating datasets by querying annotations
 
-Whenever a new dataset is required – or an existing dataset needs an update, it must first be staged in an empty folder (data workspace). Staging does not automatically instantiate the dataset, but creates a draft state of dataset membership info and metadata. LDB prefixes dataset names with `ds:`
+Ability to issue complex queries is key to dataset formation in LDB.  For demo, we will use an annotated dataset in the following JSON format:
+
+```
+{ 
+  "class": "cat",
+  "size": "large",
+  "features": {"left-eye":{"x": 318, "y": 222}, "right-eye":{"x": 340, "y": 224}},
+}
+```
 
 | Step | Command |
 | --- | --- |
-| Create a workspace folder | `$ mkdir working-dataset; cd working-dataset` |
-| Create a new dataset in the workspace | `$  ldb stage ds:my-cats ./` |
-| Check the status of staged data | `$  ldb status ` |
+| Install LDB | ```pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
+| Query large cats | ```$  ldb work https://ldb.ai/ds/cats.json --query 'size == `large`' large-cats ``` |
+| Only heads sized 30px+ | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) > `30`' large-heads ``` |
 
-While working in this workspace, all subsequent dataset manipulations will apply to the staged dataset. 
+Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and a folder `"large-heads"` with samples annotated for distance between eyes in excess of 30 pixels. We can build complex queries to annotatiions using the JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
 
-Logical modifications to dataset staged in the workspace are usually made with ADD and DEL commands that may reference individual objects, other datasets, and employ annotation queries (see [LDB queries](documentation/LDB-queries.md) for details).
+* Note that our datasets can be overlapping, yet LDB uses local cache to prevent tranferring and storing overlapping data objects multiple times.
+* Also note that first query explicitly referenced data storage location (web url), while the second did not. LDB indexes data objects at first reference, so subsequent queries to same storage location can run from internal index.
+
+### Creating datasets by querying data objects directly
+
+Querying annotations and labels is not the only way to create datasets. In addition to specifying data objects by paths, file attributes and annotation features, LDB can use ML plugins to filter data objects:
+
+| Step | Command |
+| --- | --- |
+| Create dataset by ML query: | `$ ldb work --pipe clip-text 'orange cat' --limit 10 orange-cats` |
 
 **Configuring immutable storage locations (optional)**
 
