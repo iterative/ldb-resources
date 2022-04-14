@@ -1,4 +1,4 @@
-# LDB workflow
+# Sample LDB workflow
 
 LDB is an MLOps tool that indexes the existing immutable storage for data files and allows for easy construction of datasets based on metadata queries. 
 These datasets are meant to be used for model training, and are usually further updated based on the model performance (Data-driven AI loop).
