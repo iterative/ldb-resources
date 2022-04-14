@@ -108,6 +108,7 @@ If we change a dataset and save it again, this will create a new version, but we
 | Compare to a previous version | `$ ldb diff ds:large-cats.v1` |
 
 * Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
+* Since LDB is an indexing service, locally instantiated data is disposable. After we are done with the workspace, we can safely delete it.
 
 ### Workspace operations
 
