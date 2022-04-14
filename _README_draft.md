@@ -40,7 +40,7 @@ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'
 
 LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future. This means it is safe to give LDB access to storage as it never needs privileges to erase or modify data objects.
 
-![ldb-intro](images/ldb-struct.png)
+![ldb-intro](images/ldb-struct.png =288x500)
 
 The main use case for LDB is to create and maintain persistent collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or other datasets (e.g. samples annotated with a certain class, created at given time, contains a given number of event instances, etc). 
 
@@ -108,7 +108,14 @@ If we change a dataset and save it again, this will create a new version, but we
 | Compare to a previous version | `$ ldb diff ds:large-cats.v1` |
 
 * Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
-* Since LDB is an indexing service, locally instantiated dataset is fully disposable. After we are done with the workspace, we can safely delete it.
+* Since LDB is an indexing service, locally instantiated dataset is fully disposable. 
+
+| Step | Command |
+| --- | --- |
+| Save workspace "orange-cats" | `$ cd ../orange-cats; ldb commit` |
+| But delete workspace "small-heads" | `$ cd .. ; rm -rf ./small-heads` |
+
+Deletion of workspace does not affect LDB index or data objects in storage.
 
 ### Logical operations in workspace
 
@@ -118,29 +125,44 @@ Therefore, LDB normally uses separate commands to stage a dataset (create a work
 
 ![ldb-intro](images/workspace.png)
 
-LDB index holds references to all known data objects by hash-sums (object-ids) in a dataset with a special name _ds:root_. Any other datasets can be saved into LDB referring to arbitrary combinations of objects and annotation versions. In the example above, LDB has three datasets: _ds:cats_, _ds:dogs_, and _ds:pets_. Command STAGE takes dataset name as an argument and copies meta-information about this dataset into a workspace. At this point, objects can be added to dataset with ADD, or removed with DEL. A dataset is saved back to LDB with COMMIT.
+LDB index holds references to all known data objects by hash-sums (object-ids) in a dataset with a special name _ds:root_. Any other datasets can be saved into LDB referring to arbitrary combinations of objects and annotation versions. In the example above, LDB has three datasets: _ds:cats_, _ds:dogs_, and _ds:pets_. Command STAGE takes dataset name as an argument and copies meta-information about this dataset from index into a workspace (or creates a new one if does not exist). At this point, objects can be added to workspace with ADD, or removed with DEL. A dataset is saved back to LDB index with COMMIT.
 
-Note, that instantiation is not required for changing the dataset with ADD and DEL. Whenever access to physical objects is needed, INSTANTIATE command is used to materialize the dataset partially or fully. It is also possible to modify physical objects in workspace and pick the changes back with SYNC.
+Note, that instantiation is not a pre-requistite for changing the dataset with ADD and DEL. Whenever access to physical objects is required, INSTANTIATE command is used to materialize the dataset partially or fully. It is also possible to modify physical objects in workspace and pick the changes back with SYNC.
 
-Command WORK we have used in the previous sections simply unites STAGE, ADD, and INSTANTIATE. It can stage a named dataset, add objects to it by query and instantiate the result in one shot. 
+LDB command WORK that we have used in the previous sections simply unites STAGE, ADD, and INSTANTIATE. It is a one-liner that can stage a named dataset, add objects to it by query, and instantiate the result. 
 
 ### Dataset algebra
 
-How many objects in `"large-cats"` and `"large-heads"` are the same? 
-There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
+What is the intersection of workspaces `"large-cats"` and `"orange-cats"` ? How to unite two datasets into a third one? What is the way to assemble a balanced dataset from multiple classes? 
+
+LDB can answer these questions by combination of ADD, DEL, and LIST commands with queries. Query syntax in LDB uses the following building blocks:
+
+* source objects: come from any combination of datasets (_ds:NAME_), workspaces (_ws:FOLDER_), storage paths, or object-ids (hashsums)
+* query pipeline: combination of JSON queries via `--query`, sampling and limiting options `--sample`, `--shuffle`, `--limit`, and plugins with `--pipe`
+
+Examples: 
+
+Combining two datasets:
 
 | Step | Command |
 | --- | --- |
-| Index images from storage | `$ ldb index ~/dogs-and-cats` |
+| Make a new workspace | `$ ldb stage ds:test ./` |
+| Add two datasets | `$ ldb add ds:large-cats ds:orange-cats` |
+| Subtract a dataset | `$ ldb del ds:orange-cats` |
 
-### Annotation versioning
-
-How many objects in `"large-cats"` and `"large-heads"` are the same? 
-There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
+Intersection of two queries:
 
 | Step | Command |
 | --- | --- |
-| Index images from storage | `$ ldb index ~/dogs-and-cats` |
+| Count cats that are large | ```$ ldb list -s ds:root --query 'class == `cat`' --query 'size == `large`'``` |
+| alternative syntax | ```$ ldb list -s ds:root --query 'class == `cat` && size == `large`'``` |
+
+Fill quota per class:
+
+| Step | Command |
+| --- | --- |
+| Shuffle and limit the source | ```$ ldb list ds:root --query --shuffle --limit 10'``` |
+
 
 ### Storage indexing and object tags
 
@@ -151,6 +173,15 @@ There are many ways to answer this question, but one way is to use LIST command 
 
 After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
 LDB can pick the resulting changes right from the workspace:
+
+### Annotation versioning
+
+How many objects in `"large-cats"` and `"large-heads"` are the same? 
+There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
+
+| Step | Command |
+| --- | --- |
+| Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
 
 ### Advanced queries and query debugging
