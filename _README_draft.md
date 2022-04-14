@@ -1,4 +1,4 @@
-# α README
+# β README
 
 Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
 
@@ -38,18 +38,18 @@ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'
 
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future. This means it is safe to give LDB access to storage as it never needs privileges to erase or modify data objects.
+LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future. This means it is safe to give LDB access to storage as it never needs privileges to erase or modify data samples.
 
 <img src="images/ldb-struct.png" width="500" height="288" align="left">
 
-The main use case for LDB is to create and maintain persistent collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or other datasets (e.g. samples annotated with a certain class, created at given time, contains a given number of event instances, etc). 
+The main use case for LDB is to create and maintain persistent collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or into other datasets (e.g. samples annotated with a certain class, created at given time, having a given number of masked instances, etc). 
 
 Datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership state (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into ephemeral workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
-Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology and to [command summary](documentation/Command-summary.md) for additional information on command options.
+Please refer to [sample LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology and to [command summary](documentation/Command-summary.md) for additional information on command options.
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md). If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. 
 
@@ -184,14 +184,63 @@ Another use of explicit indexing in LDB is object tagging. Object tags in LDB ar
 
 * Note the quoted asterisk to denote S3 path wildcard
 
+Finally, let us touch on the topic of storage immutability. LDB relies on existence of data objects in storage and requires them to be stable. For this reason, LDB keeps track of registered storage locations via command `ADD-STORAGE` and normally will not index data outside these locations – such from local directories. However, it is also possible to configure a special `read-add` storage, where LDB will copy data objects indexed outside registered paths. In private LDB instance, by default, all cloud locations are considered immutable, and `read-add` storage is configure user's homepage. Therefore, the following commands will work:
+
+```
+$ ldb stage ds:cats ./
+$ cp ~/storage/cat1.* ./   # bring some object from unregistered storage together with .json
+$ ldb add ./cat1.jpg       # result: staged dataset ds:cats now includes cat1.jpg
+```
+
 ### Annotation versioning
 
-How many objects in `"large-cats"` and `"large-heads"` are the same? 
-There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
+LDB keeps track of annotation versions and increments them in index every time a new version is found. In the meanwhile, sample in the dataset keeps the version of annotation it was coupled with when added to dataset. In case of conflict, when dataset gets a sample with both earlier and later annotation version, the latest wins.
+
+For example, let us assume we staged a dataset `ds:cats` that contain object id 0xffc9779b0ff19 with annotion v.1 of the following form:
+
+```
+{ 
+  "class": "cat",
+  "object-id": {
+    "md5": ffc9779b0ff19
+  }
+}
+```
+
+If we instantiate this object, this is the annotation we are going to see:
 
 | Step | Command |
 | --- | --- |
-| Index images from storage | `$ ldb index ~/dogs-and-cats` |
+| Instantiate this object | `$ ldb instantiate 0xffc9779b0ff19` |
+| Examine the result  | `$ cat ffc9779b0ff19.json`    |
+
+Now let us change this annotation in-place and re-index:
+
+ 
+| Step | Command |
+| --- | --- |
+| Change class in annotation | `sed -i 's/dog/cat/g' ffc9779b0ff19.json` |
+| Re-index this object | `$ ldb index ./ffc9779b0ff19.json ` |
+
+At this point, LDB index has object id 0xffc9779b0ff19 with annotion v.2, which we can verify:
+
+| Step | Command |
+| --- | --- |
+| Show JSON from index | `$ ldb eval 0xffc9779b0ff19` |
+
+However, dataset `ds:cats` would still have this object with annotation v.1, because this was the annotation version it was added with. To update:
+
+| Step | Command |
+| --- | --- |
+| Re-add same object with latest annotation from index | `$ ldb add 0xffc9779b0ff19` |
+| Alternatively, use PULL command | `$ ldb pull 0xffc9779b0ff19` |
+
+Finally, since index now stores both annotation version, it is possible to explicitly mention it in queries:
+
+| Step | Command |
+| --- | --- |
+| Enforce non-default annotation version | `$ ldb add  0xffc9779b0ff19` --apply-version 1 |
+| Construct filter based on annotation version comparison | `$ ldb add --vquery 'v1.class != v2.class'` |
 
 
 ### Advanced queries and query debugging
@@ -199,7 +248,7 @@ There are many ways to answer this question, but one way is to use LIST command 
 
 
 
-### Instantiation and reindexing options
+### Instantiation and reindexing
 
 
 
