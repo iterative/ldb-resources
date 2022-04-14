@@ -69,40 +69,59 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo, 
 | Step | Command |
 | --- | --- |
 | Install LDB | ```pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
-| Query large cats | ```$  ldb work https://ldb.ai/ds/cats.json --query 'size == `large`' large-cats ``` |
-| Only heads sized 30px+ | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) > `30`' large-heads ``` |
+| Query cats size L | ```$  ldb work https://ldb.ai/ds/cats.json --query 'size == `large`' large-cats ``` |
+| Cat heads 30px+ in width | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) > `30`' large-heads ``` |
 
-Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and a folder `"large-heads"` with samples annotated for distance between eyes in excess of 30 pixels. We can build complex queries to annotatiions using the JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
+Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"large-heads"` with samples annotated for horizontal distance between cat eyes in excess of 30 pixels. To run JSON queries of high complexity, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
 
-* Note that our datasets can be overlapping, yet LDB uses local cache to prevent tranferring and storing overlapping data objects multiple times.
-* Also note that first query explicitly referenced data storage location (web url), while the second did not. LDB indexes data objects at first reference, so subsequent queries to same storage location can run from internal index.
+* Note that objects in folders `"large-cats"` and `"large-heads"` can be overlapping, but LDB uses local cache to avoid creation of multiple copies.
+* Also note that the first query explicitly referenced cloud storage (web url), while the second did not. LDB indexes data objects at first encounter, so subsequent queries can run from internal LDB index.
+
+### Saving and versioning a dataset
+
+We have used WORK command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as "workspace". Most LDB commands run from within workspace, using it as a context.
+
+A workspace can be made into a named dataset by saving it to LDB:
+
+| Step | Command |
+| --- | --- |
+| change into workspace | `$ cd ./large-cats` |
+| save this dataset into LDB | `$ ldb commit` |
+
+Now dataset `ds:large-cats` is saved. Since LDB defines the dataset as a collection of data objects and annotations, a particular dataset version will always remain reproducible. 
+
+If we change a dataset and will save it again, this will create a new version, but we can still refer to the previous one if needed:
+
+| Step | Command |
+| --- | --- |
+| remove one data object | `$ ldb del ./cat815.jpg` |
+| save this dataset into LDB | `$ ldb commit` |
+| compare to a previous version | `$ ldb diff ds:large-cats.v1` |
+
+* Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
+
+
+### Dataset operations
+
+How many objects in `"large-cats"` and `"large-heads"` are the same? 
+There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
+
+| Step | Command |
+| --- | --- |
+| Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
 ### Creating datasets by querying data objects directly
 
-Querying annotations and labels is not the only way to create datasets. In addition to specifying data objects by paths, file attributes and annotation features, LDB can use ML plugins to filter data objects:
+Querying annotations and labels is not the only way to create datasets. In addition to specifying data objects by paths, file attributes and annotation features, LDB can use plugins to filter objects by features missing in annotations:
 
 | Step | Command |
 | --- | --- |
 | Create dataset by ML query: | `$ ldb work --pipe clip-text 'orange cat' --limit 10 orange-cats` |
 
-**Configuring immutable storage locations (optional)**
-
-LDB assumes data samples live in immutable locations from which they are indexed. By default, a private instance will treat any cloud location as immutable, and any local filesystem path as ephemeral. LDB automatically attempts to copy data samples from ephemeral locations into internal storage (defaults to `~/.ldb/read_add_storage`) during indexing. To prevent this behavior while indexing local storages, register them with `ADD-STORAGE` command:
+LDB ships with CLIP and ResNet plugins for image filtering, but [custom ML plugins](documentation/Plugins.md) can be added for other data types.
 
 
-| Step | Command |
-| --- | --- |
-| Register some immutable storage location  | `$  ldb add-storage ~/dogs-and-cats` |
 
-Please remember that LDB is an indexing service. If you move or erase indexed data samples from storage, LDB index may break.
-
-### Indexing storage folder
-
-Once the storage location is registered, it can be indexed. During indexing, LDB recognizes all unique objects and associates them with annotations (if present). Whenever new samples are added, their location must be reindexed for LDB to pick the changes. Annotations updated for the old data objects will be registered with a new version.
-
-| Step | Command |
-| --- | --- |
-| Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
 ### Modifying a dataset
 
