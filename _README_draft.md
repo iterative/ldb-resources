@@ -67,7 +67,7 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 
 | Step | Command |
 | --- | --- |
-| Install LDB | ```pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
+| Install LDB | ```$ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
 | Query cats size L | ```$  ldb work https://ldb.ai/ds/cats.json --query 'size == `large`' large-cats ``` |
 | Cat heads < 30px in width | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-heads ``` |
 
