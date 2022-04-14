@@ -88,7 +88,7 @@ LDB ships with CLIP and ResNet plugins for image filtering, but [custom ML plugi
 
 ### Saving and versioning datasets
 
-We have used `WORK` command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as "workspace". Most LDB commands run from within workspace, using it as a context.
+We have used `WORK` command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as *workspace*. Most LDB commands run from within workspace, using it as a context.
 
 A workspace can be made into a named dataset by saving it to LDB:
 
@@ -99,7 +99,7 @@ A workspace can be made into a named dataset by saving it to LDB:
 
 Now dataset `ds:large-cats` is saved. Since LDB defines the dataset as a collection of data objects and annotations, a particular dataset version will always remain reproducible. 
 
-If we change a dataset and will save it again, this will create a new version, but we can still refer to the previous one if needed:
+If we change a dataset and save it again, this will create a new version, but we can still refer to the previous one if needed:
 
 | Step | Command |
 | --- | --- |
@@ -127,7 +127,7 @@ There are many ways to answer this question, but one way is to use LIST command 
 | --- | --- |
 | Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
-### Indexing storage
+### Storage indexing and object tags
 
 | Step | Command |
 | --- | --- |
