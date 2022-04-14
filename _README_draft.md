@@ -7,7 +7,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 **Key LDB features**:
 
 *  MLOps-grade **command line** experience. 
-* Lightweight management of data sources. Data objects can exist anywhere in local storage, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify a dataset (named collection of pointers).
+* Lightweight management of data sources. Data objects can exist anywhere in local storage, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify an LDB dataset (named collection of pointers).
 * Advanced manipulation and versioning for datasets. Collections can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
 * Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
@@ -36,10 +36,9 @@ pip install ldb-alpha
 pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
 ```
 
-
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future.
+LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future. This means it is safe to give LDB access to storage as it never needs privileges to erase or modify data objects.
 
 ![ldb-intro](images/ldb-struct.png)
 
@@ -54,9 +53,9 @@ Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for mo
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md). If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. 
 
-### Creating datasets by querying annotations
+### Creating datasets from querying annotations
 
-Ability to issue complex queries is key to dataset formation in LDB.  For demo, we will use an annotated dataset in the following JSON format:
+Ability to issue complex queries is key to dataset formation in LDB.  For demo purposes, we will use a web-hosted dataset with annotations in the following JSON format:
 
 ```
 { 
@@ -70,23 +69,33 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo, 
 | --- | --- |
 | Install LDB | ```pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
 | Query cats size L | ```$  ldb work https://ldb.ai/ds/cats.json --query 'size == `large`' large-cats ``` |
-| Cat heads 30px+ in width | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) > `30`' large-heads ``` |
+| Cat heads < 30px in width | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-heads ``` |
 
-Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"large-heads"` with samples annotated for horizontal distance between cat eyes in excess of 30 pixels. To run JSON queries of high complexity, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
+Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-heads"` with samples annotated for horizontal distance between cat eyes less than 30 pixels. To run complex JSON queries, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
 
-* Note that objects in folders `"large-cats"` and `"large-heads"` can be overlapping, but LDB uses local cache to avoid creation of multiple copies.
+* Note that objects in folders `"large-cats"` and `"small-heads"` can be overlapping, but LDB uses local cache to avoid creation of multiple copies.
 * Also note that the first query explicitly referenced cloud storage (web url), while the second did not. LDB indexes data objects at first encounter, so subsequent queries can run from internal LDB index.
 
-### Saving and versioning a dataset
+### Creating datasets from querying data objects directly
 
-We have used WORK command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as "workspace". Most LDB commands run from within workspace, using it as a context.
+Querying annotations and labels is not the only way to create datasets. In addition to specifying data objects by paths, file attributes and annotation features, LDB can use plugins to filter objects by features missing in annotations. For example, we can use semantic search through the index of cat images:
+
+| Step | Command |
+| --- | --- |
+| Create dataset by ML query: | `$ ldb work --pipe clip-text 'orange cat' --limit 10 orange-cats` |
+
+LDB ships with CLIP and ResNet plugins for image filtering, but [custom ML plugins](documentation/Plugins.md) can be added for other data types.
+
+### Saving and versioning datasets
+
+We have used `WORK` command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as "workspace". Most LDB commands run from within workspace, using it as a context.
 
 A workspace can be made into a named dataset by saving it to LDB:
 
 | Step | Command |
 | --- | --- |
-| change into workspace | `$ cd ./large-cats` |
-| save this dataset into LDB | `$ ldb commit` |
+| Change into workspace | `$ cd ./large-cats` |
+| Save this dataset into LDB | `$ ldb commit` |
 
 Now dataset `ds:large-cats` is saved. Since LDB defines the dataset as a collection of data objects and annotations, a particular dataset version will always remain reproducible. 
 
@@ -94,12 +103,11 @@ If we change a dataset and will save it again, this will create a new version, b
 
 | Step | Command |
 | --- | --- |
-| remove one data object | `$ ldb del ./cat815.jpg` |
-| save this dataset into LDB | `$ ldb commit` |
-| compare to a previous version | `$ ldb diff ds:large-cats.v1` |
+| Remove one data object | `$ ldb del ./cat1_008.jpg` |
+| Save modified dataset into LDB | `$ ldb commit` |
+| Compare to a previous version | `$ ldb diff ds:large-cats.v1` |
 
 * Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
-
 
 ### Dataset operations
 
@@ -110,20 +118,26 @@ There are many ways to answer this question, but one way is to use LIST command 
 | --- | --- |
 | Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
-### Creating datasets by querying data objects directly
+### Annotation versioning
 
-Querying annotations and labels is not the only way to create datasets. In addition to specifying data objects by paths, file attributes and annotation features, LDB can use plugins to filter objects by features missing in annotations:
+How many objects in `"large-cats"` and `"large-heads"` are the same? 
+There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
 
 | Step | Command |
 | --- | --- |
-| Create dataset by ML query: | `$ ldb work --pipe clip-text 'orange cat' --limit 10 orange-cats` |
+| Index images from storage | `$ ldb index ~/dogs-and-cats` |
 
-LDB ships with CLIP and ResNet plugins for image filtering, but [custom ML plugins](documentation/Plugins.md) can be added for other data types.
+### Indexing storage
 
+| Step | Command |
+| --- | --- |
+| Instantiate all objects into the workspace | `$ ldb instantiate `|
+| See the resulting physical dataset | `$ ls`|
 
+After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
+LDB can pick the resulting changes right from the workspace:
 
-
-### Modifying a dataset
+### Workspace-only operations
 
 | Step | Command |
 | --- | --- |
@@ -141,49 +155,15 @@ LDB is also not limited to querying the existing annotations. If installed, [cus
 
 At this point, our workspace holds membership info for all cat images from sample dataset, and ten images that best resemble an orange dog. It is okay to have same objects added to a dataset multiple times as LDB automatically deduplicates. Once we are happy with results, this dataset can be instantiated (materialized) in the desired output format to examine the samples or train the model.
 
-### Instantiation
+### Advanced queries and query debugging
 
-| Step | Command |
-| --- | --- |
-| Instantiate all objects into the workspace | `$ ldb instantiate `|
-| See the resulting physical dataset | `$ ls`|
 
-After examining the actual data objects, one might decide to add or remove data samples, or to edit their annotations.
-LDB can pick the resulting changes right from the workspace:
 
-### Notifying LDB on workspace modifications
 
-| Step | Command |
-| --- | --- |
-| Edit some annotation     | `$ sed -i 's/dog/cat/g' dog-1088.json` |
-| Inject a new annotated sample directly into workspace | `$ cp ~/tmp/dog-1090.* ./`
-| Pick object and annotation changes from workspace | `$ ldb add ./`|
+### Instantiation and reindexing options
 
-To save staged dataset into LDB (with all the cumulative changes made so far), one needs to use the *commit* command.
 
-### Dataset saving and versioning
 
-| Step | Command |
-| --- | --- |
-| Push a new version of staged dataset to LDB | `$ ldb commit` |
-
-Every new commit creates a new dataset version in LDB. By default, a reference to an LDB dataset assumes the latest version. Other dataset versions can be explicitly accessed with a version suffix:
-
-| Step | Command |
-| --- | --- |
-| Stage a particular version of a dataset | `$  ldb stage ds:my-cats.v3` |
-| Compare current workspace to a previous dataset version | `$  ldb diff ds:my-cats.v2`|
-
-If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
-
-### TODO Granular annotation versioning
-
-| Step | Command |
-| --- | --- |
-| Add object with particular label version | `$  ldb add —-label-version 2 aws://my-awesome-bucket/1.jpg ` |
-| Bump label version for an object to latest | `$   ldb add aws://my-awesome-bucket/1.jpg` |
-| Bump all labels in a dataset to latest | `$ ldb pull`|
- 
 
 ## Comparison to related technologies
 
