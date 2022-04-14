@@ -109,7 +109,7 @@ If we change a dataset and save it again, this will create a new version, but we
 
 * Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
 
-### Dataset operations
+### Dataset algebra
 
 How many objects in `"large-cats"` and `"large-heads"` are the same? 
 There are many ways to answer this question, but one way is to use LIST command to query a workspace. 
