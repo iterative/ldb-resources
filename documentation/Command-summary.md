@@ -486,7 +486,9 @@ ldb add --pipe reverse --limit 10
 
 #### Plugin script examples
 
-For examples, see [plugins](../plugins). Copy the files in here to the ldb instance's plugin directory to make `reverse` available on Unix-like or Windows environments.
+For `--pipe` plugin examples, see [pipe-plugins](../pipe-plugins). Copy the files in here to the ldb instance's plugin directory to make `reverse` available on Unix-like or Windows environments.
+
+For `--apply` plugin examples, see [apply-plugins](../apply-plugins).
 
 
 ## LDB Query Language
@@ -604,6 +606,20 @@ $ ldb sync               # pick up changes in workspace
 `INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
 
 ## flags
+
+`--apply <exec> [<exec> ...]`
+
+An executable with any arguments it should take to apply the final step for a modified instantiation. This is useful for making inferences during instantiation.
+
+LDB will change the working directory to the executable's parent directory before calling it as a subprocess, so any artifacts may be easily accessed using a path relative to the script.
+
+LDB will first instantiate data objects and annotations normally in a temporary directory. A two-member json array will be passed to this executable, containing first the temporary directory and second the final directory the executable should write to. For example, the executable would receive something like this:
+```json
+["/home/user/workspace-dir/.ldb_workspace/tmp/tmplole6mzj", "/home/user/workspace-dir"]
+```
+Then the executable should read files from the first directory, and write results to the second directory. This allows the executable to transform data objects or annotations in any way. After the executable's process finishes, LDB will erase the temporary directory and any files remaining in it.
+
+For a simple example see [apply-plugins/random_predictions.py](../apply-plugins/random_predictions.py). This script simply makes random predictions and adds them to a `"prediction"` key for each existing annotation.
  
 `--annotations`, `--annotations-only`
 
