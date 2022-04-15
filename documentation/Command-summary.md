@@ -609,9 +609,9 @@ $ ldb sync               # pick up changes in workspace
 
 `--apply <exec> [<exec> ...]`
 
-An executable with any arguments it should take to apply the final step for a modified instantiation. This is useful for making inferences during instantiation.
+An executable, along with any arguments that it should take, which should apply the final instantiation step. This is useful for making inferences or appling other transformations during instantiation.
 
-LDB will change the working directory to the executable's parent directory before calling it as a subprocess, so any artifacts may be easily accessed using a path relative to the script.
+LDB will change the working directory to the executable's parent directory before calling it as a subprocess in order to make it easy for the executable to reference any relevant artifacts (i.e. ML models or data) with relative paths.
 
 LDB will first instantiate data objects and annotations normally in a temporary directory. A two-member json array will be passed to this executable, containing first the temporary directory and second the final directory the executable should write to. For example, the executable would receive something like this:
 ```json
