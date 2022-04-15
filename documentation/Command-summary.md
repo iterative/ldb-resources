@@ -620,6 +620,15 @@ LDB will first instantiate data objects and annotations normally in a temporary 
 Then the executable should read files from the first directory, and write results to the second directory. This allows the executable to transform data objects or annotations in any way. After the executable's process finishes, LDB will erase the temporary directory and any files remaining in it.
 
 For a simple example see [apply-plugins/random_predictions.py](../apply-plugins/random_predictions.py). This script simply makes random predictions and adds them to a `"prediction"` key for each existing annotation.
+
+Note: Because `--apply` can take any number of arguments, the positional path argument that `instantiate` can take should be before `--apply`:
+```
+ldb instantiate ./some/path --apply script arg1 arg2
+```
+Or alternatively, it may go after `--`, which indicates that all following arguments are positional:
+```
+ldb instantiate --apply script arg1 arg2 -- ./some/path
+```
  
 `--annotations`, `--annotations-only`
 
