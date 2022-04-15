@@ -29,7 +29,6 @@ You can add new storage locations to LDB at any time, but you cannot remove stor
 | Step | Command |
 | --- | --- |
 | Add a new storage location | ` $  ldb add-storage gs://my-awesome-bucket/` |
-| Verify current LDB storage locations | `$  ldb add-storage status` |
 
 ### Registering a "read-add" storage location
 
