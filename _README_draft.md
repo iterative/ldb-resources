@@ -53,9 +53,9 @@ Please refer to [sample LDB workflow](documentation/Getting-started-with-LDB.md)
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md). If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. 
 
-### Creating datasets from querying annotations
+### Forming datasets by querying annotations
 
-Ability to issue complex queries is key to dataset formation in LDB.  For demo purposes, we will use a web-hosted dataset with annotations in the following JSON format:
+Ability to issue complex queries is key to dataset formation in LDB.  For demo purposes, we will use a web-hosted dataset with annotations in the following JSON format that denote images with animal class, size, and eye positions:
 
 ```
 { 
@@ -68,13 +68,13 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 | Step | Command |
 | --- | --- |
 | Install LDB | ```$ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
-| Query cats size L | ```$  ldb work https://ldb.ai/ds/cats.json --query 'size == `large`' large-cats ``` |
-| Cat heads < 30px in width | ```$ ldb work --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-heads ``` |
+| Cats size L | ```$  ldb get s3://ldb.ai/ds/cats/ --query 'size == `large`' large-cats ``` |
+| Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
 
-Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-heads"` with samples annotated for horizontal distance between cat eyes less than 30 pixels. To run complex JSON queries, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
+Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-head"` with samples annotated for horizontal distance between cat eyes less than 30 pixels. To run complex JSON queries, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
 
-* Note that objects in folders `"large-cats"` and `"small-heads"` can be overlapping, but LDB uses local cache to avoid duplication.
-* Also note that the first query explicitly referenced cloud storage (web url), while the second did not. LDB indexes data objects at first encounter, so subsequent queries can run from internal LDB index.
+* Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping, but LDB uses local cache to avoid duplication.
+* Also note that the first query explicitly referenced cloud storage, while the second did not. LDB indexes unknown data objects at first encounter, so subsequent queries can run from the internal LDB index addressable under the reserved name "root".
 
 ### Creating datasets from querying data objects directly
 
