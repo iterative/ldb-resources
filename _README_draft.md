@@ -2,60 +2,52 @@
 
 Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
 
-**LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
+**LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with ML pipelines. 
 
 **Key LDB features**:
 
-*  MLOps-grade **command line** experience. 
-* Lightweight management of data sources. Data objects can exist anywhere in local storage, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify an LDB dataset (named collection of pointers).
-* Advanced manipulation and versioning for datasets. Collections can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
-* Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
-* **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
+* unix-like **command line** instrument
+* zero changes in data sources. Data objects be stored anywhere in local storage, web, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify an LDB dataset.
+* advanced manipulation and versioning for datasets. Collections can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**
+* label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
+* **reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
 
 Full LDB command summary [here](documentation/Command-summary.md)
 
 ### Contents
 
-- [Installation](#installation)
 - [How LDB works](#how-ldb-works)
 - [Quick start](#quick-start)
 - [Comparison to related technologies](#comparison-to-related-technologies)
 - [Contributing to LDB](#contributing)
 
-## Installation
-
-### pip **(PyPI core)**
-
-```sh
-pip install ldb-alpha
-```
-
-### installation with ML plugins **(optional)**
-
-```sh
-pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
-```
 
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve data objects in the future. This means it is safe to give LDB access to storage as it never needs privileges to erase or modify data samples.
+Data objects in ML normally start life from data mining, data labeling, data cleansing, or data synthesis and accummulate at storage locations. LDB indexes storage locations and notes unique data objects along with their annotations (if present). This index then can used to construct datasets that work like collections of pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to access samples in the future. This means it is sufficient to grant LDB the read-only access into protected storage locations and never risk accidental data loss during dataset reorganizations.
 
 <img src="images/ldb-struct.png" width="500" height="288" align="left">
 
-The main use case for LDB is to create and maintain persistent collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or into other datasets (e.g. samples annotated with a certain class, created at given time, having a given number of masked instances, etc). 
+The main use case for LDB is to organize objects into collections (datasets) for training or testing. Datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
-Datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership state (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
+Since LDB datasets are logical, they must be materialized (instantiated) prior to use. Whenever a dataset needs to be materialized (for instance, to run a model experiment), LDB copies all relevant objects from storage and compiles the linked annotations. 
 
-Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into ephemeral workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
+For as long as storage remains immutable and logical dataset state is kept within LDB, a physical dataset instance can be safely erased after the experiment is complete.
 
 ## Quick Start
-Please refer to [sample LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology and to [command summary](documentation/Command-summary.md) for additional information on command options.
+Please refer to [sample LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology and to [LDB command summary](documentation/Command-summary.md) for additional information on command options.
+
+<img src="images/warn.png" width="35" height="25" align="left">
 
 **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. To set up a shared LDB instance for a team or organization, please follow [LDB team setup](documentation/Quick-start-teams.md). If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. 
 
+| Step | Command |
+| --- | --- |
+| Install LDB | ```$ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
+
 ### Forming datasets by querying annotations
 
-Ability to issue complex queries is key to dataset formation in LDB.  For demo purposes, we will use a web-hosted dataset with annotations in the following JSON format that denote images with animal class, size, and eye positions:
+Ability to issue complex queries is key to dataset formation in LDB.  For demo purposes, we will use a web-hosted image dataset with annotations in the following JSON format that denote animal class, size, and eye positions:
 
 ```
 { 
@@ -67,7 +59,6 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 
 | Step | Command |
 | --- | --- |
-| Install LDB | ```$ pip install 'ldb-alpha[clip-plugin,resnet-plugin]'``` |
 | Cats size L | ```$  ldb get s3://ldb.ai/ds/cats/ --query 'size == `large`' large-cats ``` |
 | Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
 
@@ -76,15 +67,19 @@ Now we should have folder `"large-cats"` with instantiated data samples annotate
 * Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping, but LDB uses local cache to avoid duplication.
 * Also note that the first query explicitly referenced cloud storage, while the second did not. LDB indexes unknown data objects at first encounter, so subsequent queries can run from the internal LDB index addressable under the reserved name "root".
 
-### Creating datasets from querying data objects directly
+### Forming datasets by querying file attributes
 
-Querying annotations and labels is not the only way to create datasets. In addition to specifying data objects by paths, file attributes and annotation features, LDB can use plugins to filter objects by features missing in annotations. For example, we can use semantic search through the index of cat images:
+Simpler queries 
+
+### Using ML plugins for queries
+
+LDB ships with several ML plugins that can be used for queries that process data samples directly. For example, 'clip-text' plugin embeds input images into semantic space and sorts them in similarity against a text string. The result is a list of images most similar to text description:
 
 | Step | Command |
 | --- | --- |
-| Create dataset by ML query: | `$ ldb work --pipe clip-text 'orange cat' --limit 10 orange-cats` |
+| Create dataset by ML query: | `$ ldb get --pipe clip-text 'orange cat' --limit 10 orange-cats` |
 
-LDB ships with CLIP and ResNet plugins for image filtering, but [custom ML plugins](documentation/Plugins.md) can be added for other data types.
+LDB ships with CLIP and ResNet plugins for image filtering, but [other ML plugins](documentation/Plugins.md) can be added.
 
 ### Saving and versioning datasets
 
