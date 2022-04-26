@@ -84,6 +84,47 @@ At index time, LDB also stores object attributes that can be queried in the same
 * Note the first GET stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
 * Second GET command uses `--file` query filter twice which two filters together
 
+### Query debugging
+
+JMESPATH queries can become complicated, so it is useful to understand how LDB constructs and evaluates them.
+
+LDB treats any expression that results in null, boolean false, or an empty objects as 'falsy' that fails the filter, and treats every other output (including 0) as 'truthy' that passes the filter. Any reference to a non-existing key immediately fails the filter.
+
+To understand exactly what LDB does in each case, it is useful to utilize EVAL and observe the result of  JSON query reduction. EVAL without --query simply returns the entire annotation:
+
+```
+$ ldb eval  0xffa97795d32350dc450f41c4ce725886
+
+0xffa97795d32350dc450f41c4ce725886
+{
+  "class": "dog",
+  "id": "1025",
+  "inference": {
+    "class": "cat",
+    "confidence": 0.56
+  },
+  "num_annotators": 3
+}
+```
+
+Any missing JSON key in query produces 'false' – which means this query would immediately fail:
+
+```
+ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+0xffa97795d32350dc450f41c4ce725886
+false
+```
+A valid JMESPATH expression should produce a well-formed JSON object:
+
+```
+ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+0xffa97795d32350dc450f41c4ce725886
+{
+  "class": "cat",
+  "confidence": 0.56
+}
+```
+
 ### Custom code for queries
 
 If none of existing methods to query annotation or a data object works well, LDB supports custom query code that collects all objects passed through filters so far (see [command summary](Command-summary.md#pipe-plugins) for API reference). Here is an example of "useless" filter that sorts objects by their hashsum identifiers:
@@ -113,6 +154,20 @@ Here is an example of using CLIP semantic embedding to calculate which 10 images
 | --- | --- |
 | Change into workspace misc-cats | ```$ cd misc-cats```
 | Add three images most resembling orange cats | ```$ ldb add ds:root --pipe clip-text 'orange cat' --limit 10``` |
+
+* Note we used ADD command within the workspace that contains dataset `misc-cats`. ADD results in a logical addition of objects, so no actual objects were copied into workspace. This is convenient in cases where the dataset is large and does not need an immediate instantiation.
+
+
+### Instantiation
+
+At this point, folder 'misc-cats' holds a logical dataset 'misc-cats' that is only partially instantiated. We can materialize this dataset entirely with INSTANTIATE command that turns a stages logical set into a physical copy complete with data objects and logical annotations:
+
+| Step | Command |
+| --- | --- |
+| Materialize the entire dataset | ```$ ldb instantiate``` |
+
+* LDB uses caching to avoid downloading objects that were already instantiated by GET
+
 
 ### Saving and versioning datasets
 
@@ -145,25 +200,11 @@ If we change a dataset and save it again, this will create a new version, but we
 
 Deletion of workspace does not affect LDB index or data objects in storage.
 
-### Logical operations in workspace
-
-LDB groups data objects and annotations into datasets by references. This means dataset membership information change is a logical operation that does not require physical data objects to be present. This is important, for example, when a dataset is large and inconvenient to materialize every time a minor membership change is required.
-
-Therefore, LDB normally uses separate commands to stage a dataset (create a workspace), change dataset membership, and instantiate:
-
-![ldb-intro](images/workspace.png)
-
-LDB index holds references to all known data objects by hash-sums (object-ids) in a dataset with a special name _ds:root_. Any other datasets can be saved into LDB referring to arbitrary combinations of objects and annotation versions. In the example above, LDB has three datasets: _ds:cats_, _ds:dogs_, and _ds:pets_. Command STAGE takes dataset name as an argument and copies meta-information about this dataset from index into a workspace (or creates a new one if does not exist). At this point, objects can be added to workspace with ADD, or removed with DEL. A dataset is saved back to LDB index with COMMIT.
-
-Note, that instantiation is not a pre-requistite for changing the dataset with ADD and DEL. Whenever access to physical objects is required, INSTANTIATE command is used to materialize the dataset partially or fully. It is also possible to modify physical objects in workspace and pick the changes back with SYNC.
-
-LDB command WORK that we have used in the previous sections simply unites STAGE, ADD, and INSTANTIATE. It is a one-liner that can stage a named dataset, add objects to it by query, and instantiate the result. 
-
-### Dataset algebra
+### Dataset slicing, dicing and mixing
 
 What is the intersection of workspaces `"large-cats"` and `"orange-cats"` ? How to unite two datasets into a third one? What is the way to assemble a balanced dataset from multiple classes? 
 
-LDB can answer these questions by combination of ADD, DEL, and LIST commands with queries. Query syntax in LDB uses the following building blocks:
+LDB can answer these questions with combination of ADD, DEL, and LIST commands with queries. Query syntax in LDB uses the following building blocks:
 
 * source objects: come from any combination of datasets (`ds:`_NAME_), workspaces (`ws:`_FOLDER_), storage paths, or object-ids (hashsums)
 * query pipeline: combination of JSON queries via `--query`, sampling and limiting options `--sample`, `--shuffle`, `--limit`, and plugins with `--pipe`
@@ -190,143 +231,6 @@ Fill quota per class:
 | Step | Command |
 | --- | --- |
 | Shuffle and limit the source | ```$ ldb list ds:root --query 'class == `cat`' --shuffle --limit 10'``` |
-
-
-### Storage indexing and object tags
-
-In the examples above, we have seen how a cloud location can be indexed at first reference by WORK command. In LDB, both ADD and WORK can index unseen objects from storage path implicitly.
-
-However, there are also cases where explicit indexing is preferable. For one example, indexing a large storage location may take time and is best scheduled in off-peak hours. For another example, source data can come with annotations in format other than LDB default and needs to be converted. For a third example, annotations can be periodically updated and need to be loaded into index.
-
-| Step | Command |
-| --- | --- |
-| Index storage location in default format | `$ ldb index s3://ldb-public/dogs-and-cats` |
-| Index location in Tensorflow format | `$ ldb index --format infer gcp://ldb-public/dogs-and-cats`|
-
-Another use of explicit indexing in LDB is object tagging. Object tags in LDB are global – which means the tag assigned to a data object is visible in all datasets that reference it regardless of annotation presence and versions. Tags can be assigned during index or later (via TAG command):
-
-| Step | Command |
-| --- | --- |
-| Index storage path and assign tags | `$ ldb index s3://ldb-public/cats/cat.100'*' --add-tags cats,testing` |
-| Make sure test objects did not leak into current workspace | `$ ldb del ws:./ --tag testing` |
-
-* Note the quoted asterisk to denote S3 path wildcard
-
-Finally, let us touch on the topic of storage immutability. LDB relies on existence of data objects in storage and requires them to be stable. For this reason, LDB keeps track of registered storage locations via command `ADD-STORAGE` and normally will not index data outside these locations – such from local directories. However, it is also possible to configure a special `read-add` storage, where LDB will copy data objects indexed outside registered paths. In private LDB instance, by default, all cloud locations are considered immutable, and `read-add` storage is configure user's homepage. Therefore, the following commands will work:
-
-```
-$ ldb stage ds:cats ./
-$ cp ~/storage/cat1.* ./   # bring some object from unregistered storage together with .json
-$ ldb add ./cat1.jpg       # result: staged dataset ds:cats now includes cat1.jpg
-```
-
-### Annotation versioning
-
-LDB keeps track of annotation versions and increments them in index every time a new version is found. In the meanwhile, sample in the dataset keeps the version of annotation it was coupled with when added. In case of conflict a where dataset gets a sample with both earlier and later annotation version, the latest wins.
-
-For example, let us assume we staged a dataset `ds:cats` that contain object id 0xffc9779b0ff19 with annotion v.1 of the following form:
-
-```
-{ 
-  "class": "cat",
-  "object-id": {
-    "md5": ffc9779b0ff19
-  }
-}
-```
-
-If we instantiate this object, this is the annotation we are going to see:
-
-| Step | Command |
-| --- | --- |
-| Instantiate this object | `$ ldb instantiate 0xffc9779b0ff19` |
-| Examine the result  | `$ cat ffc9779b0ff19.json`    |
-
-Now let us change this annotation in-place and re-index:
- 
-| Step | Command |
-| --- | --- |
-| Change class in annotation | `sed -i 's/dog/cat/g' ffc9779b0ff19.json` |
-| Re-index this object | `$ ldb index ./ffc9779b0ff19.json ` |
-
-At this point, LDB index has object id 0xffc9779b0ff19 with annotion v.2, which we can verify:
-
-| Step | Command |
-| --- | --- |
-| Show JSON from index | `$ ldb eval 0xffc9779b0ff19` |
-
-However, dataset `ds:cats` would still have this object with annotation v.1, because this was the annotation version it was added with. To update:
-
-| Step | Command |
-| --- | --- |
-| Re-add same object with latest annotation from index | `$ ldb add 0xffc9779b0ff19` |
-| Alternatively, use PULL command | `$ ldb pull 0xffc9779b0ff19` |
-
-Finally, since index now stores both annotation version, it is possible to explicitly mention it in queries:
-
-| Step | Command |
-| --- | --- |
-| Enforce non-default annotation version | `$ ldb add  0xffc9779b0ff19 --apply-version 1` |
-| Construct filter based on annotation version comparison | `$ ldb add --vquery 'v1.class != v2.class'` |
-
-
-### Query debugging
-
-JMESPATH queries can become complicated, so it is useful to understand how LDB constructs and evaluates them.
-
-LDB treats any expression that results in null, boolean false, or an empty objects as 'falsy' that fails the filter, and treats every other output (including 0) as 'truthy' that passes the filter. Any reference to a non-existing key immediately fails the filter.
-
-To understand exactly what LDB does in each case, it is useful to utilize EVAL and observe the result of  JSON query reduction. EVAL without --query simply returns the entire latest annotation:
-
-```
-$ ldb eval  0xffa97795d32350dc450f41c4ce725886
-0xffa97795d32350dc450f41c4ce725886
-{
-  "class": "dog",
-  "id": "1025",
-  "inference": {
-    "class": "cat",
-    "confidence": 0.56
-  },
-  "num_annotators": 3
-}
-```
-
-A missing key produces 'false' – which means this query would fail the filter:
-
-```
-ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
-0xffa97795d32350dc450f41c4ce725886
-false
-```
-A valid JMESPATH expression should produce valid object that passes the filter:
-
-```
-ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
-0xffa97795d32350dc450f41c4ce725886
-{
-  "class": "cat",
-  "confidence": 0.56
-}
-```
-
-### Advanced instantiation options
-
-We already saw that LDB can instantiate a dataset partially of fully using WORK or INSTANTIATE (with an optional format change).
-There are, however, two more instantiation options that can be useful.
-
-First, `--infer` allows reconstructing a dataset using a plugin that can modify annotations, objects, or both. This can be useful, for example, for applying a helper ML model to pre-annotate or gauge data object complexity:
-
-| Step | Command |
-| --- | --- |
-| Instantiate this object | `$ ldb instantiate 0xffc9779b0ff19 --infer ` |
-| Reindex results  | `$ ldb index ./ffc9779b0ff19.json`    |
-
-Second, `--apply` option can be employed with ADD to permanently reference a transformation plugin – such as an augmentation routine, or still picture extraction from video based on the annotation mask. Multiple transformations can attach to the same input sample, and every transformation can be a sequence of actions (e.g. rotate, flip, etc):
-
-| Step | Command |
-| --- | --- |
-| Apply flip transform | `$ ldb add ds:numerals --apply  flip_augmentation --sample 0.1` |
 
 
 
