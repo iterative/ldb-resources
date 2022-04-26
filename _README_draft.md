@@ -62,14 +62,24 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 | Cats size L | ```$  ldb get s3://ldb.ai/ds/cats/ --query 'size == `large`' large-cats ``` |
 | Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
 
-Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-head"` with samples annotated for horizontal distance between cat eyes less than 30 pixels. To run complex JSON queries, LDB supports extended JMESPATH language (see [LDB queries](documentation/LDB-queries.md) for details).
+Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-head"` with samples annotated for horizontal distance between animal eyes less than 30 pixels. LDB can support very complex JSON queries that would normally require custom programming by making good use of extended JMESPATH query language (see [LDB queries](documentation/LDB-queries.md) for details).
 
-* Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping, but LDB uses local cache to avoid duplication.
+<img src="images/warn.png" width="35" height="25" align="left">
+LDB command GET in examples above does four distinct things: it creates a targer folder, stages a namesake dataset there, performs logical addition of objects mentioned in query, and instantiates the result.
+
+
+* Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping – for example, the same animal can be labeled `"size": "large"` but not occupy much real estate in the image. In that case, the same object will be present in both folders, but LDB is smart enough to avoid double transfer and storage by using a local cache.
+
 * Also note that the first query explicitly referenced cloud storage, while the second did not. LDB indexes unknown data objects at first encounter, so subsequent queries can run from the internal LDB index addressable under the reserved name "root".
 
-### Forming datasets by querying file attributes
+### Forming datasets by querying object file attributes
 
-Simpler queries 
+At index time, LDB also stores object attributes that can be queried in the same manner conventional file search tool would work over storage:
+
+| Step | Command |
+| --- | --- |
+| Cats size L | ```$  ldb get s3://ldb.ai/ds/cats/ --query 'size == `large`' large-cats ``` |
+| Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
 
 ### Using ML plugins for queries
 
