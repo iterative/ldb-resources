@@ -81,12 +81,13 @@ At index time, LDB also stores object attributes that can be queried in the same
 | Regex to object path | ```$ ldb get --path 'cat[0-9][0-3].*' misc-cats``` |
 | Range of ctimes | ```$ ldb get --file 'fs.ctime < `"2022-03-28"`' --file 'fs.ctime > `"2022-03-25"`' misc-cats ``` |
 
-* Note the first `GET` stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
+* LDB index (ds:root) in an object source default, so it can be omitted.
+* The first `GET` command stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
 * Time-based query uses two `--file` filters to intersect their results in order to form a time interval
 
 ### Query debugging
 
-JMESPATH queries can become complicated, so it is useful to understand how LDB constructs and evaluates them.
+JMESPATH queries can quickly become complicated, so it is useful to understand how LDB constructs and evaluates them.
 
 LDB treats any expression that results in null, boolean false, or an empty objects as 'falsy' that fails the filter, and treats every other output (including 0) as 'truthy' that passes the filter. Any reference to a non-existing key immediately fails the filter.
 
