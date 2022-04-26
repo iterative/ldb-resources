@@ -177,9 +177,9 @@ As we saw with `INSTANTIATE` and `ADD`, many LDB commands are designed to run wi
 
 | Step | Command |
 | --- | --- |
-| Check the state of the workspace 'misc-cats' | `$ ldb status |
+| Check the state of the workspace 'misc-cats' | `$ ldb status` |
 
-As we see from the output, we are indeed in a workspace where a dataset 'misc-cats' was staged. However, this dataset has changes not yet saved into LDB. This is because the pending changes must be communicated to LDB with command `COMMIT` which pushes a new dataset version into LDB:
+As we see from the output, we are indeed in a workspace where a dataset 'misc-cats' was staged. However, this dataset has changes not yet saved into LDB. This is because the pending changes must be communicated to LDB with command `COMMIT` which pushes a new dataset version into the LDB instance:
 
 | Step | Command |
 | --- | --- |
@@ -192,7 +192,7 @@ Let as add more objects from another workspace that we created earlier:
 | Add more objects | `$ ldb add ../large-cats/*png` |
 | Check status again | `$ ldb status` |
 
-* We should now see pending changes. 
+* ADD can identify objects by reference to a dataset, workspace, hash ids, or a list of files
 * If we save the current state of the workspace, it will create new version for dataset 'misc-cats':
 
 | Step | Command |
@@ -208,11 +208,13 @@ The combination of queries and commands `ADD` and `DEL` allows for arbitrary org
 
 | Step | Command |
 | --- | --- |
-| Stage a new dataset in a workspace | ```$ ldb stage -f new-cats``` |
-| Add all objects from a named dataset to a workspace | `$ ldb add ds misc-cats.v2` |
+| Stage a new dataset in a workspace | ```$ ldb stage --force new-cats``` |
+| Add all objects from some named dataset into a workspace | `$ ldb add ds misc-cats.v2` |
 | Subtract all objects from a named dataset from a workspace | `$ ldb del ds misc-cats.v1` |
-| Fill from a shuffled source folder | ```$ ldb add ../small-head  --shuffle --limit 10'``` |
+| Fill shuffled objects from a source folder | ```$ ldb add ../small-head  --shuffle --limit 10'``` |
 
+* STAGE with flag --force clobbers the contents of target folder
+* To retain objects that are in one dataset but not another, it is sufficient to ADD the first and DEL the second
 
 ## Comparison to related technologies
 
