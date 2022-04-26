@@ -68,7 +68,7 @@ Now we should have folder `"large-cats"` with instantiated data samples annotate
 LDB command `GET` in examples above does four distinct things: it creates a targer folder, stages a namesake dataset there, performs logical addition of objects mentioned in query, and instantiates the result.
 
 
-* Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping – for example, the same animal can be labeled `"size": "large"` but not occupy much real estate in the image. In that case, the same object will be present in both folders, but LDB is smart enough to avoid double transfer and storage by using a local cache.
+* Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping – for example, the same animal can be labeled `"size": "large"` but not occupy much real estate in the image. In that case, the same object will be present in both folders, yet LDB is smart enough to avoid double transfer and storage by using a local cache.
 
 * Also note that the first query explicitly referenced cloud storage, while the second did not. LDB indexes unknown data objects at first encounter, so subsequent queries can run from the internal LDB index addressable under the reserved name "root".
 
@@ -82,7 +82,7 @@ At index time, LDB also stores object attributes that can be queried in the same
 | Range of ctimes | ```$ ldb get --file 'fs.ctime < `"2022-03-28"`' --file 'fs.ctime > `"2022-03-25"`' misc-cats ``` |
 
 * Note the first `GET` stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
-* Time-based query uses two `--file` filters to intersect their results
+* Time-based query uses two `--file` filters to intersect their results in order to form a time interval
 
 ### Query debugging
 
@@ -144,36 +144,36 @@ if __name__ == "__main__":
 
 | Step | Command |
 | --- | --- |
-| Three objects with smallest ids | `$ ldb get --pipe python3 ./id_sorted.py --limit 3 misc-cats` |
+| Use of custom query filter | `$ ldb get --pipe python3 ./id_sorted.py --limit 3 misc-cats` |
 
 ### ML plugins for queries
 
 One application of custom code is ML plugins that run supplementary ML models to identify objects of interest. LDB ships with CLIP and ResNet plugins for image filtering, but [other ML plugins](documentation/Plugins.md) can be easily added. This helps, for example, to find objects with features not present in annotations.
 
-Here is an example of using CLIP semantic embedding to calculate which 10 images will be the closest in meaning to match a text phrase:
+Here is an example of using CLIP semantic embedding to calculate which 10 images will have content closest to "orange cat":
 
 | Step | Command |
 | --- | --- |
 | Change into workspace "misc-cats" | ```$ cd misc-cats```
 | Add three images most resembling orange cats | ```$ ldb add ds:root --pipe clip-text 'orange cat' --limit 10``` |
 
-* Note we used ADD command within the workspace that contains dataset `misc-cats`. ADD results in a logical addition of objects, so no actual objects were copied into workspace. This is convenient in cases where the dataset is large and does not need an immediate instantiation.
+* Note we used ADD command within the workspace that contains dataset `misc-cats`. ADD results in a logical membership change, so no actual files were copied into workspace. This is convenient in cases where the dataset is large and does not need an immediate instantiation.
 
 
 ### Instantiation
 
-At this point, folder 'misc-cats' holds a logical dataset 'misc-cats' that is only partially instantiated. We can materialize this dataset entirely with `INSTANTIATE` command that turns a stages logical set into a physical copy complete with data objects and logical annotations:
+At this point, folder 'misc-cats' holds a logical dataset 'misc-cats' that is only partially instantiated. In particular, the "orange cat" images were not copied from storage. We can materialize this dataset entirely with `INSTANTIATE` command that renders a physical instance of a staged logical dataset:
 
 | Step | Command |
 | --- | --- |
 | Materialize the entire dataset "misc-cats" | ```$ ldb instantiate``` |
 
-* LDB uses caching to avoid downloading objects that were already instantiated by GET
+* LDB uses caching to avoid re-downloading objects that were already instantiated by GET before
 
 
 ### Saving and versioning datasets
 
-As we saw with `INSTANTIATE` and `ADD`, many LDB commands are designed to run within a workspace with a staged dataset. We can verify if the current folder is indeed a valid LDB workspace with command `STATUS`:
+As we saw with `INSTANTIATE` and `ADD`, many LDB commands are designed to run within a workspace that holds a staged dataset. We can verify if the current folder is indeed a valid LDB workspace with command `STATUS`:
 
 | Step | Command |
 | --- | --- |
