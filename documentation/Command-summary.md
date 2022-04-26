@@ -349,19 +349,18 @@ ADD with a `workspace_folder` argument can also be used to share datasets betwee
 
 `--file <filesystem attributes query>`
 
-Builds a query (see [LDB Query Syntax](./LDB-queries.md)) using fixed JSON fields specific to LDB index. The list is:
+Builds a query (see [LDB Query Syntax](./LDB-queries.md)) using fixed JSON fields specific to LDB index. The full list of field can be seen with `ldb eval  --file '@'`. The partial list as follows:
 
-* MTIME - data object modification time. 
-* A_MTIME - annotation modification time.
-* INDEXED - data object first indexing time. Not affected by re-indexing (data objects are immutable).
-* A_INDEXED - annotation last indexing time. Affected by re-indexing (annotations are mutable).
-* SIZE - data object file size in Kilobytes, Megabytes or Gigabytes (qualifier K, M or G).
-* PATH - data object path. If same data object was indexed under multiple paths, will match either one.
-* NAME - data object name. If same data object was indexed under multiple names, will match either one.
+* fs.mtime - data object modification time. 
+* last.indexed - annotation last indexing time. Affected by re-indexing (annotations are mutable).
+* fs.size - data object file size in bytes.
+* fs.path - data object path. If same data object was indexed under multiple paths, will match the last one.
+
+Regular JMESPATH functions can be used to enrich the query.
 
 *Use case:*
 ```
-$ ldb add --file 'regex(fs.path, `gs:datasets/cat-bucket/.*`)'  # Object source is implicitly ds:root, filtered by regex
+$ ldb add --file 'regex(fs.path, `gs:datasets/cat-bucket/.*`)'  # Object source is implicitly ds:root, path filtered by regex
 ```
 
 `--query <annotation query terms>`
