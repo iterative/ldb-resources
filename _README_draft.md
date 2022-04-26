@@ -74,22 +74,45 @@ LDB command GET in examples above does four distinct things: it creates a targer
 
 ### Forming datasets by querying object file attributes
 
-At index time, LDB also stores object attributes that can be queried in the same way a conventional file search tool would work over storage:
+At index time, LDB also stores object attributes that can be queried in the same way a conventional file search tool would work over storage. For example, LDB can filter objects for symbol matches in storage path and for creation timestamp range:
 
 | Step | Command |
 | --- | --- |
-| Regex to object path | ```$ ldb add --path 'cat[0-9][0-3].*' ``` |
-| Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
+| Regex to object path | ```$ ldb get --path 'cat[0-9][0-3].*' misc-cats``` |
+| Range of ctimes | ```$ ldb get --file 'fs.ctime < `"2022-03-28"`' --file 'fs.ctime > `"2022-03-25"`' misc-cats ``` |
 
-### Using ML plugins for queries
+* Note the first GET stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
+* Second GET command uses `--file` query filter twice which two filters together
 
-LDB ships with several ML plugins that can be used for queries that process data samples directly. For example, 'clip-text' plugin embeds input images into semantic space and sorts them in similarity against a text string. The result is a list of images most similar to text description:
+### Custom code for queries
+
+If none of existing methods to query annotation or a data object works well, LDB supports custom query code that collects all objects passed through filters so far (see [command summary](Command-summary.md#pipe-plugins) for API reference). Here is an example of "useless" filter that sorts objects by their hashsum identifiers:
+
+```
+# id_sorted.py
+
+import json
+import sys
+
+if __name__ == "__main__":
+    for data_object_hash, *_ in sorted(json.loads(sys.stdin.read())):
+        print(data_object_hash, flush=True)
+```
 
 | Step | Command |
 | --- | --- |
-| Create dataset by ML query: | `$ ldb get --pipe clip-text 'orange cat' --limit 10 orange-cats` |
+| Three objects with smallest ids | `$ ldb get --pipe python3 ./id_sorted.py --limit 3 misc-cats` |
 
-LDB ships with CLIP and ResNet plugins for image filtering, but [other ML plugins](documentation/Plugins.md) can be added.
+### ML plugins for queries
+
+One application of custom code is ML plugins that run supplementary ML models to identify objects of interest. LDB ships with CLIP and ResNet plugins for image filtering, but [other ML plugins](documentation/Plugins.md) can be easily added. This helps, for example, to find objects with features not present in annotations.
+
+Here is an example of using CLIP semantic embedding to calculate which 10 images will be the closest in meaning to match a text phrase:
+
+| Step | Command |
+| --- | --- |
+| Change into workspace misc-cats | ```$ cd misc-cats```
+| Add three images most resembling orange cats | ```$ ldb add ds:root --pipe clip-text 'orange cat' --limit 10``` |
 
 ### Saving and versioning datasets
 
