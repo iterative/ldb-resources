@@ -24,7 +24,7 @@ Full LDB command summary [here](documentation/Command-summary.md)
 
 ### How LDB works
 
-Data objects in ML normally start life from data mining, data labeling, data cleansing, or data synthesis and accummulate at storage locations. LDB indexes storage locations and notes unique data objects along with their annotations (if present). This index then can used to construct datasets that work like collections of pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to access samples in the future. This means it is sufficient to grant LDB the read-only access into protected storage locations and never risk accidental data loss during dataset reorganizations.
+Data objects in ML normally start life from data mining, data labeling, data cleansing, or data synthesis and accummulate at storage locations. LDB can index these locations and note unique data objects along with their annotations (if present). Queries into LDB index then can used to construct datasets that work like collections of pointers into the storage. Since LDB does not save data objects internally, it relies on persistent storage locations to access samples in the future. This means a read-only access into protected storage is sufficient for LDB, and LDB dataset operations can never endanger original data objects.
 
 <img src="images/ldb-struct.png" width="500" height="288" align="left">
 
@@ -32,7 +32,7 @@ The main use case for LDB is to organize objects into collections (datasets) for
 
 Since LDB datasets are logical, they must be materialized (instantiated) prior to use. Whenever a dataset needs to be materialized (for instance, to run a model experiment), LDB copies all relevant objects from storage and compiles the linked annotations. 
 
-For as long as storage remains immutable and logical dataset state is kept within LDB, a physical dataset instance can be safely erased after the experiment is complete.
+For as long as object storage remains intact and logical dataset state is saved within LDB, a physical dataset instance created by LDB can always be safely erased after the experiment is complete.
 
 ## Quick Start
 Please refer to [sample LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed example of Data-driven AI methodology and to [LDB command summary](documentation/Command-summary.md) for additional information on command options.
@@ -74,11 +74,11 @@ LDB command GET in examples above does four distinct things: it creates a targer
 
 ### Forming datasets by querying object file attributes
 
-At index time, LDB also stores object attributes that can be queried in the same manner conventional file search tool would work over storage:
+At index time, LDB also stores object attributes that can be queried in the same way a conventional file search tool would work over storage:
 
 | Step | Command |
 | --- | --- |
-| Cats size L | ```$  ldb get s3://ldb.ai/ds/cats/ --query 'size == `large`' large-cats ``` |
+| Regex to object path | ```$ ldb add --path 'cat[0-9][0-3].*' ``` |
 | Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
 
 ### Using ML plugins for queries
