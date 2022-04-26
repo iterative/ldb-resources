@@ -65,7 +65,7 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-head"` with samples annotated for horizontal distance between animal eyes less than 30 pixels. LDB can support very complex JSON queries that would normally require custom programming by making good use of extended JMESPATH query language (see [LDB queries](documentation/LDB-queries.md) for details).
 
 <img src="images/warn.png" width="35" height="25" align="left">
-LDB command GET in examples above does four distinct things: it creates a targer folder, stages a namesake dataset there, performs logical addition of objects mentioned in query, and instantiates the result.
+LDB command `GET` in examples above does four distinct things: it creates a targer folder, stages a namesake dataset there, performs logical addition of objects mentioned in query, and instantiates the result.
 
 
 * Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping – for example, the same animal can be labeled `"size": "large"` but not occupy much real estate in the image. In that case, the same object will be present in both folders, but LDB is smart enough to avoid double transfer and storage by using a local cache.
@@ -81,8 +81,8 @@ At index time, LDB also stores object attributes that can be queried in the same
 | Regex to object path | ```$ ldb get --path 'cat[0-9][0-3].*' misc-cats``` |
 | Range of ctimes | ```$ ldb get --file 'fs.ctime < `"2022-03-28"`' --file 'fs.ctime > `"2022-03-25"`' misc-cats ``` |
 
-* Note the first GET stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
-* Second GET command uses `--file` query filter twice which two filters together
+* Note the first `GET` stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
+* Time-based query uses two `--file` filters to intersect their results
 
 ### Query debugging
 
@@ -90,20 +90,25 @@ JMESPATH queries can become complicated, so it is useful to understand how LDB c
 
 LDB treats any expression that results in null, boolean false, or an empty objects as 'falsy' that fails the filter, and treats every other output (including 0) as 'truthy' that passes the filter. Any reference to a non-existing key immediately fails the filter.
 
-To understand exactly what LDB does in each case, it is useful to utilize EVAL and observe the result of  JSON query reduction. EVAL without --query simply returns the entire annotation:
+To understand exactly what LDB does in each case, it is useful to utilize command `EVAL` and observe the result of  JSON query reduction. `EVAL` without --query simply returns the entire annotation:
 
 ```
 $ ldb eval  0xffa97795d32350dc450f41c4ce725886
 
 0xffa97795d32350dc450f41c4ce725886
 {
-  "class": "dog",
-  "id": "1025",
-  "inference": {
-    "class": "cat",
-    "confidence": 0.56
+  "class": "cat",
+  "features": {
+    "left-eye": {
+      "x": 318,
+      "y": 222
+    },
+    "right-eye": {
+      "x": 340,
+      "y": 224
+    }
   },
-  "num_annotators": 3
+  "size": "small"
 }
 ```
 
@@ -114,15 +119,12 @@ ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
 0xffa97795d32350dc450f41c4ce725886
 false
 ```
-A valid JMESPATH expression should produce a well-formed JSON object:
+A valid JMESPATH expression should emit a well-formed JSON object:
 
 ```
-ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'class'
 0xffa97795d32350dc450f41c4ce725886
-{
-  "class": "cat",
-  "confidence": 0.56
-}
+"cat"
 ```
 
 ### Custom code for queries
@@ -152,7 +154,7 @@ Here is an example of using CLIP semantic embedding to calculate which 10 images
 
 | Step | Command |
 | --- | --- |
-| Change into workspace misc-cats | ```$ cd misc-cats```
+| Change into workspace "misc-cats" | ```$ cd misc-cats```
 | Add three images most resembling orange cats | ```$ ldb add ds:root --pipe clip-text 'orange cat' --limit 10``` |
 
 * Note we used ADD command within the workspace that contains dataset `misc-cats`. ADD results in a logical addition of objects, so no actual objects were copied into workspace. This is convenient in cases where the dataset is large and does not need an immediate instantiation.
@@ -160,78 +162,56 @@ Here is an example of using CLIP semantic embedding to calculate which 10 images
 
 ### Instantiation
 
-At this point, folder 'misc-cats' holds a logical dataset 'misc-cats' that is only partially instantiated. We can materialize this dataset entirely with INSTANTIATE command that turns a stages logical set into a physical copy complete with data objects and logical annotations:
+At this point, folder 'misc-cats' holds a logical dataset 'misc-cats' that is only partially instantiated. We can materialize this dataset entirely with `INSTANTIATE` command that turns a stages logical set into a physical copy complete with data objects and logical annotations:
 
 | Step | Command |
 | --- | --- |
-| Materialize the entire dataset | ```$ ldb instantiate``` |
+| Materialize the entire dataset "misc-cats" | ```$ ldb instantiate``` |
 
 * LDB uses caching to avoid downloading objects that were already instantiated by GET
 
 
 ### Saving and versioning datasets
 
-We have used `WORK` command in the previous section to create two folders, each with a collection of data objects and annotations. LDB refers to a folder that holds such collection as *workspace*. Most LDB commands are designed to run from within the workspace, using it as a context.
-
-A workspace can be made into a named dataset by saving it to LDB:
+As we saw with `INSTANTIATE` and `ADD`, many LDB commands are designed to run within a workspace with a staged dataset. We can verify if the current folder is indeed a valid LDB workspace with command `STATUS`:
 
 | Step | Command |
 | --- | --- |
-| Change into workspace | `$ cd ./large-cats` |
-| Save this dataset into LDB | `$ ldb commit` |
+| Check the state of the workspace 'misc-cats' | `$ ldb status |
 
-Now dataset `ds:large-cats` is saved. Since LDB defines the dataset as a collection of specific data objects and annotation versions, any version of a dataset will remain reproducible. 
-
-If we change a dataset and save it again, this will create a new version, but we can still refer to the previous one if needed:
+As we see from the output, we are indeed in a workspace where a dataset 'misc-cats' was staged. However, this dataset has changes not yet saved into LDB. This is because the pending changes must be communicated to LDB with command `COMMIT` which pushes a new dataset version into LDB:
 
 | Step | Command |
 | --- | --- |
-| Remove one data object | `$ ldb del ./cat1_008.jpg` |
-| Save modified dataset into LDB | `$ ldb commit` |
-| Compare to a previous version | `$ ldb diff ds:large-cats.v1` |
+| Save dataset 'misc-cats' into LDB | `$ ldb commit` |
 
-* Note LDB uses prefix `ds:` before dataset names and postfix `.vNN` to reference a particular dataset version.
-* Since LDB is an indexing service, locally instantiated dataset is fully disposable. 
+Let as add more objects from another workspace that we created earlier:
 
 | Step | Command |
 | --- | --- |
-| Save workspace "orange-cats" | `$ cd ../orange-cats; ldb commit` |
-| But delete workspace "small-heads" | `$ cd .. ; rm -rf ./small-heads` |
+| Add more objects | `$ ldb add ../large-cats/*png` |
+| Check status again | `$ ldb status` |
 
-Deletion of workspace does not affect LDB index or data objects in storage.
-
-### Dataset slicing, dicing and mixing
-
-What is the intersection of workspaces `"large-cats"` and `"orange-cats"` ? How to unite two datasets into a third one? What is the way to assemble a balanced dataset from multiple classes? 
-
-LDB can answer these questions with combination of ADD, DEL, and LIST commands with queries. Query syntax in LDB uses the following building blocks:
-
-* source objects: come from any combination of datasets (`ds:`_NAME_), workspaces (`ws:`_FOLDER_), storage paths, or object-ids (hashsums)
-* query pipeline: combination of JSON queries via `--query`, sampling and limiting options `--sample`, `--shuffle`, `--limit`, and plugins with `--pipe`
-
-Examples: 
-
-Combining two datasets:
+* We should now see pending changes. 
+* If we save the current state of the workspace, it will create new version for dataset 'misc-cats':
 
 | Step | Command |
 | --- | --- |
-| Make a new workspace | `$ ldb stage ds:test ./` |
-| Add two datasets | `$ ldb add ds:large-cats ds:orange-cats` |
-| Subtract a dataset | `$ ldb del ds:orange-cats` |
+| Save 'misc-cats' version 2 | `$ ldb commit` |
+| Compare with previous | `$ ldb diff ds:misc-cats.v1` |
 
-Intersection of two queries:
+* LDB uses postfix notation `.vNN` to refer to specific version of a dataset
 
-| Step | Command |
-| --- | --- |
-| Count cats that are large | ```$ ldb list -s ds:root --query 'class == `cat`' --query 'size == `large`'``` |
-| alternative syntax | ```$ ldb list -s ds:root --query 'class == `cat` && size == `large`'``` |
+### Dataset mixing and matching
 
-Fill quota per class:
+The combination of queries and commands `ADD` and `DEL` allows for arbitrary organization of data objects. Some examples:
 
 | Step | Command |
 | --- | --- |
-| Shuffle and limit the source | ```$ ldb list ds:root --query 'class == `cat`' --shuffle --limit 10'``` |
-
+| Stage a new dataset in a workspace | ```$ ldb stage -f new-cats``` |
+| Add all objects from a named dataset to a workspace | `$ ldb add ds misc-cats.v2` |
+| Subtract all objects from a named dataset from a workspace | `$ ldb del ds misc-cats.v1` |
+| Fill from a shuffled source folder | ```$ ldb add ../small-head  --shuffle --limit 10'``` |
 
 
 ## Comparison to related technologies
