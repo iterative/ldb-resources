@@ -81,7 +81,7 @@ At index time, LDB also stores object attributes that can be queried in the same
 | Regex to object path | ```$ ldb get --path 'cat[0-9][0-3].*' misc-cats``` |
 | Range of ctimes | ```$ ldb get --file 'fs.ctime < `"2022-03-28"`' --file 'fs.ctime > `"2022-03-25"`' misc-cats ``` |
 
-* LDB index (ds:root) is a default source for objects, so GET commands do not need to specify object list
+* LDB index (ds:root) is a default source for objects, so LDB commands query all known objects unless instructed otherwise
 * The first `GET` command stages new dataset 'misc-cats' in a namesake folder, and the second command adds to it.
 * Time-based query uses two `--file` filters to intersect their results in order to form a time interval
 
