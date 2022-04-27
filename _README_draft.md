@@ -7,7 +7,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 **Key LDB features**:
 
 * unix-like **command line** instrument
-* zero changes in data sources. Data objects be stored anywhere in local storage, web, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify an LDB dataset.
+* no changes to existing data storage. Data objects be stored anywhere in local storage, web, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify an LDB dataset.
 * advanced manipulation and versioning for datasets. Collections can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**
 * label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
 * **reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
@@ -49,26 +49,35 @@ Please refer to [sample LDB workflow](documentation/Getting-started-with-LDB.md)
 
 Ability to issue complex queries is key to dataset formation in LDB.  For demo purposes, we will use a web-hosted image dataset with annotations in the following JSON format that denote animal class, size, and eye positions:
 
-```
-{ 
+```json
+{
   "class": "cat",
-  "size": "large",
-  "features": {"left-eye":{"x": 318, "y": 222}, "right-eye":{"x": 340, "y": 224}},
+  "features": {
+    "left-eye": {
+      "x": 318,
+      "y": 222
+    },
+    "right-eye": {
+      "x": 340,
+      "y": 224
+    }
+  },
+  "size": "large"
 }
 ```
 
 | Step | Command |
 | --- | --- |
-| Cats size L | ```$  ldb get s3://ldb.ai/ds/cats/ --query 'size == `large`' large-cats ``` |
-| Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x,features."left-eye".x) < `30`' small-head ``` |
+| Cats size L | ```$  ldb get s3://ldb-public/remote/ds/cats/ --query 'size == `large`' large-cats``` |
+| Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x, features."left-eye".x) < `30`' small-head``` |
 
-Now we should have folder `"large-cats"` with instantiated data samples annotated as `"size": "large"`, and folder `"small-head"` with samples annotated for horizontal distance between animal eyes less than 30 pixels. LDB can support very complex JSON queries that would normally require custom programming by making good use of extended JMESPATH query language (see [LDB queries](documentation/LDB-queries.md) for details).
+Now we should have folder `large-cats` with instantiated data samples annotated as `"size": "large"`, and folder `small-head` with samples annotated for horizontal distance between animal eyes less than 30 pixels. LDB can support very complex JSON queries that would normally require custom programming by making good use of extended JMESPATH query language (see [LDB queries](documentation/LDB-queries.md) for details).
 
 <img src="images/warn.png" width="35" height="25" align="left">
 LDB command `GET` in examples above does four distinct things: it creates a targer folder, stages a namesake dataset there, performs logical addition of objects mentioned in query, and instantiates the result.
 
 
-* Note that objects in folders `"large-cats"` and `"small-head"` can be overlapping – for example, the same animal can be labeled `"size": "large"` but not occupy much real estate in the image. In that case, the same object will be present in both folders, yet LDB is smart enough to avoid double transfer and storage by using a local cache.
+* Note that objects in folders `large-cats` and `small-head` can be overlapping – for example, the same animal can be labeled `"size": "large"` but not occupy much real estate in the image. In that case, the same object will be present in both folders, yet LDB is smart enough to avoid double transfer and storage by using a local cache.
 
 * Also note that the first query explicitly referenced cloud storage, while the second did not. LDB indexes unknown data objects at first encounter, so subsequent queries can run from the internal LDB index addressable under the reserved name "root".
 
@@ -94,7 +103,7 @@ LDB treats any expression that results in null, boolean false, or an empty objec
 To understand exactly what LDB does in each case, it is useful to utilize command `EVAL` and observe the result of  JSON query reduction. `EVAL` without --query simply returns the entire annotation:
 
 ```
-$ ldb eval  0xffa97795d32350dc450f41c4ce725886
+$ ldb eval 0xffa97795d32350dc450f41c4ce725886
 
 0xffa97795d32350dc450f41c4ce725886
 {
@@ -113,17 +122,19 @@ $ ldb eval  0xffa97795d32350dc450f41c4ce725886
 }
 ```
 
-Any missing JSON key in query produces 'false' – which means this query would immediately fail:
+Any missing JSON key in query produces `null` – which means this query would immediately fail:
 
 ```
-ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+$ ldb eval 0xffa97795d32350dc450f41c4ce725886 --query 'inference.time'
+
+RuntimeWarning: MissingIdentifierException: inference
 0xffa97795d32350dc450f41c4ce725886
-false
+null
 ```
-A valid JMESPATH expression should emit a well-formed JSON object:
+A valid JMESPATH expression will always emit a JSON value:
+```
+$ ldb eval 0xffa97795d32350dc450f41c4ce725886 --query 'class'
 
-```
-ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'class'
 0xffa97795d32350dc450f41c4ce725886
 "cat"
 ```
@@ -132,7 +143,7 @@ ldb eval  0xffa97795d32350dc450f41c4ce725886 --query 'class'
 
 If none of existing methods to query annotation or a data object works well, LDB supports custom query code that collects all objects passed through filters so far (see [command summary](Command-summary.md#pipe-plugins) for API reference). Here is an example of "useless" filter that sorts objects by their hashsum identifiers:
 
-```
+```python
 # id_sorted.py
 
 import json
@@ -163,7 +174,7 @@ Here is an example of using CLIP semantic embedding to calculate which 10 images
 
 ### Instantiation
 
-At this point, folder 'misc-cats' holds a logical dataset 'misc-cats' that is only partially instantiated. In particular, the "orange cat" images were not copied from storage. We can materialize this dataset entirely with `INSTANTIATE` command that renders a physical instance of a staged logical dataset:
+At this point, folder `misc-cats` holds a logical dataset `misc-cats` that is only partially instantiated. In particular, the "orange cat" images were not copied from storage. We can materialize this dataset entirely with `INSTANTIATE` command that renders a physical instance of a staged logical dataset:
 
 | Step | Command |
 | --- | --- |
