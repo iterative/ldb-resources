@@ -69,7 +69,7 @@ Ability to issue complex queries is key to dataset formation in LDB.  For demo p
 | Step | Command |
 | --- | --- |
 | Cats size L | ```$  ldb get s3://ldb-public/remote/ds/cats/ --query 'size == `large`' large-cats``` |
-| Small heads | ```$ ldb get ds:root --query 'sub(features."right-eye".x, features."left-eye".x) < `30`' small-head``` |
+| Small heads | ```$ ldb get --query 'sub(features."right-eye".x, features."left-eye".x) < `30`' small-head``` |
 
 Now we should have folder `large-cats` with instantiated data samples annotated as `"size": "large"`, and folder `small-head` with samples annotated for horizontal distance between animal eyes less than 30 pixels. LDB can support very complex JSON queries that would normally require custom programming by making good use of extended JMESPATH query language (see [LDB queries](documentation/LDB-queries.md) for details).
 
