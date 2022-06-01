@@ -599,6 +599,79 @@ $ rm cats1.jpg           # delete one object file
 $ ldb sync               # pick up changes in workspace
 ```
 
+# TRANSFORM `<object-list>` `[filters]` `[-a <transforms>] [-r <transforms>] [-s <transforms>]`
+
+Add, remove, or set transforms for data objects within a dataset. Transforms are commands that will be run for each data object they are assigned to during instantiation as the final step when using `bare-pairs` (the default) or `strict-pairs` formats. Each transform will be given a temporary path for the data object and annotation, as well as an output directory, and the transform is responsible for writing it's output to the output directory. This may be used to generate any number of augment data objects or modified annotations during instantiation.
+
+This command takes the same query arguments as the `ADD` command.
+
+## flags
+
+```
+  -a <transforms>, --add <transforms>
+                        Comma-separated set of transform names to add
+  -r <transforms>, --remove <transforms>
+                        Comma-separated set of transform names to remove if
+                        present
+  -s <transforms>, --set <transforms>
+                        Comma-separated set of transform names to assign. A
+                        matching data object's entire transform set will be
+                        replaced with this one
+```
+
+## configuration
+
+In order to assign transforms to a dataset you must configure a name for each transform. This may be done by creating a `transform.<name>` section with a `run` key in your ldb instance's `config` directory (`~/.ldb/private_instance/config` for the default instance). The `run` key should be set to command (possibly with arguments) in the form of an array. The command should be available on your system's `$PATH` as an executable, or it should be an absolute path. For example, you may have an executable `rotate-image` available which takes the number of degrees as an argument and writes a rotated version of the input image. You could configure different rotation transforms by adding the following to you `config`:
+```toml
+[transform.rotate-90]
+run = ["rotate-image", "90"]
+
+[transform.rotate-180]
+run = ["rotate-image", "180"]
+```
+Then you can assign these transforms to data objects in a working dataset by running:
+```
+ldb transform -a rotate-90,rotate-180
+```
+Note that the default set of transforms contains a single item, `self`, which refers to a builtin transform that executes raw instantiation. This means that the original data object and annotation are simply copied to the target directory during instantiation. If the original data object and annotation are not wanted, then the `self` transform may be removed with:
+```
+ldb transform -r self
+```
+Instead of adding and removing to existing sets of transforms, the exact set of transforms to use may be specified with the `-s` or `--set` option:
+```
+ldb transform -s rotate-90,rotate-180
+```
+
+`-a` and `-r` may be used together in the same transform command, but `-s` may not be used with either `-a` or `-r`.
+
+Query options or data object identifiers may be used to filter down the list of data objects updated:
+```
+ldb transform ds:other-dataset --query 'label == `cats`' --limit 10
+```
+If none are given then the update applies to every data object in the dataset.
+
+The `LIST` command will show a `Transforms` column with the comma-separated names of transforms assigned to each data object in the dataset.
+
+For a simple example, see [transforms/rotate.py](../transforms/rotate.py). An example config for this script:
+```toml
+[transform.rotate-90]
+run = ["python3", "path/to/transforms/rotate.py", "90"]
+
+[transform.rotate-180]
+run = ["python3", "path/to/transforms/rotate.py", "180"]
+
+[transform.rotate-45-n45]
+run = ["python3", "path/to/transforms/rotate.py", "45", "-45"]
+```
+
+## Replacing transforms
+
+In LDB, a transform assigned to a data object is an actual command (e.g. `["rotate-image", "90"]`) saved as an immutable object. The configured name for a transform (e.g. `rotate-90`) is simply an identifier, providing an easy way to refer to a particular command. This means that renaming transforms in your config file is perfectly fine. However, new commands should receive new config entries.
+
+For example, changing `[transform.rotate-90]` to `[transform.rotate-image-90]` without changing the array under `run` allows you to refer to the same transform with a new name, `rotate-image-90`. The `LIST` command's output will automatically reflect this change. However, if you want to modify the command assigned to some data objects, you should add a new config entry for the new command. The use `TRANSFORM` command's `-a` and `-r` options to add/remove transforms.
+
+Note that this also means that transform config entries should generally only be removed if they are not assigned to any data objects in any dataset. If an assigned transform is deleted (or the array under `run` is modified), then `LIST` will refer to the unnamed transform with a hash identifier, until you add a name for the original command. You may also use this hash in place of the transform's name with the `TRANSFORM` command's `-a`, `-r`, and `-s` options.
+
 # INSTANTIATE `[object id(s)]` `[sub-folder]`
 
 `INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
