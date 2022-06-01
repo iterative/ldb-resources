@@ -1,4 +1,3 @@
-
 ## LDB datasets
 
 LDB defines datasets as collections of pointers to immutable data objects paired with optional annotations and metadata. 
@@ -122,7 +121,7 @@ LDB supports at most one `read-add` location, and uses it to save _previously un
 
 `read-add` location should never be used to store any data objects that originate at cloud locations. Attempt to reference unregistered cloud location in `ADD` command will fail immediately.
 
-    
+
 *Use case:* 
 
 ```
@@ -164,13 +163,13 @@ $ ldb status
 ```
 
 If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and proceeds with setting a new LDB instance (see QuickStart discussion).
-    
+
 ## flags
 
 `-f` or  `--force` 
 
 allows to clobber the workspace regardless of what is there.
-    
+
 
 # INDEX `<storage folder URI(s) | storage object URI(s) | local filesystem folder>`
 
@@ -223,7 +222,7 @@ This results in ldb using the following as the annotation for data object `0x2c4
 
 and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
 
-# ADD  `< object-list >` `[filters]`
+# ADD  `<object-list>` `[filters]`
 
 Where,
 * `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | `workspace_folder`
@@ -284,12 +283,12 @@ $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder
   * If `object_path` is the workspace:
       -  `ADD` will process updated annotations even in absense of paired data objects (see `INSTANTIATE --annotations-only`)
       -  `ADD` will ignore data object previews (see `INSTANTIATE --preview`)
-  
+
   * In all other cases:
       - If previously indexed data objects are found, they are added to staged dataset, alongside with their annotations
       - If new objects (unknown to LDB) are found and `read-add` storage option configured, those objects are copied to `read-add` storage, indexed, and then added.
       - If new objects (unknown to LDB) are found but no `read-add` storage configured, `ADD` command fails.
-       
+
 *Use case:*
 ```
 $ ldb stage ds:cats ./
@@ -658,7 +657,7 @@ The optional `message` flag will be added as the commit message and shown in `ld
 # LIST  `<object-list>` `[filters]`
 
 `LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
-Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds-root` as the object source.
+Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds:root` as the object source.
 
 ## flags
 
