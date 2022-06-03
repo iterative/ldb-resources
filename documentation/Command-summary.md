@@ -152,7 +152,7 @@ There are no `read-add` storage locations registered, and user tries to add a fi
 
 ## lambda configuration
 
-BETA 
+TODO BETA 
 document object lambda access configuration here
 
 
@@ -805,14 +805,14 @@ The optional `message` flag will be added as the commit message and shown in `ld
 
 # DIFF 
 ```
-ldb diff <ds:<name>>` `[ds:<name>]
+ldb diff <ds:<name>> [ds:<name>]
 ```
 
 `DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and uses as the first comparand.
 
 # LIST  
 ```
-ldb list <object-list>` `[filters]
+ldb list <object-list> [filters]
 ```
 
 `LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
@@ -858,7 +858,6 @@ TODO
 
 `-v` or  `--verbose`
 
-TODO
 
 # EVAL
 ```
