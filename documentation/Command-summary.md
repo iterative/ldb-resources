@@ -64,7 +64,7 @@ $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 
  `ldb init <instance directory>`
 
-`INIT` creates a new LDB instance (index) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` does not attempt to locate an active LDB instance, and permits a new LDB repository to reside anywhere in a filesystem.
+`INIT` creates a new LDB instance (index) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` ignores any existing LDB instances, and permits a new LDB repository to reside anywhere in a filesystem.
 
 In addition to creating an LDB instance, `INIT` makes a global configuration file at `~/.ldb/config` and sets the `core.ldb_dir` key to point to new LDB location. If configuration files already exist, `INIT` does not change them.
 
