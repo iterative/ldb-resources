@@ -158,7 +158,7 @@ document object lambda access configuration here
 
 # STAGE 
 ```
-ldb stage <ds:<name>[.v<number>]>`  `<workspace_folder>
+ldb stage <ds:<name>[.v<number>]> <workspace_folder>
 ```
 
 `STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<name>`, a new dataset is created. If `<name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
