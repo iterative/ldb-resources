@@ -238,7 +238,7 @@ and only indexes data objects with a corresponding `.json` file. `bare` will ass
 
 # ADD  
 ```
-ldb add <object-list>` `[filters]
+ldb add <object-list> [filters]
 ```
 
 Where,
@@ -588,7 +588,7 @@ For an argument that could be a number or array, you would use `"array|number"` 
 # DEL 
 
 ```
-ldb del <object-list>` `[filters]
+ldb del <object-list> [filters]
 ```
 
 `DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If objects provided to `DEL` are not in the dataset, `DEL` does nothing.
@@ -596,7 +596,7 @@ ldb del <object-list>` `[filters]
 # TAG 
 
 ```
-ldb tag <object-list>` `[filters]
+ldb tag <object-list> [filters]
 ```
 
 `TAG` is a text string in the ANSI character set `[0-9A-z_-]`. Multiple tags can be attached to data objects. Tags attached to objects are global – which means they apply to all instances of an object in all datasets irrespective of their annotations.
@@ -629,7 +629,7 @@ $ ldb sync               # pick up changes in workspace
 
 # TRANSFORM 
 ```
-ldb transform <object-list>` `[filters]
+ldb transform <object-list> [filters]
 ``` 
 
 Add, remove, or set transforms for data objects within a dataset. Transforms are commands that will be run for each data object they are assigned to during instantiation as the final step when using `bare-pairs` (the default) or `strict-pairs` formats. Each transform will be given a temporary path for the data object and annotation, as well as an output directory, and the transform is responsible for writing it's output to the output directory. This may be used to generate any number of augment data objects or modified annotations during instantiation.
@@ -705,7 +705,7 @@ Note that this also means that transform config entries should generally only be
 
 # INSTANTIATE 
 ```
-ldb instantiate [object id(s)]` `[sub-folder]
+ldb instantiate [object id(s)] [sub-folder]
 ```
 
 `INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
