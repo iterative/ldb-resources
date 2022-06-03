@@ -60,7 +60,9 @@ $ ldb stage ds:my-numerals
 $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 ```
 
-# INIT `<directory>`
+# INIT 
+
+## `<directory>`
 
 `INIT` creates a new LDB instance (repository) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` does not attempt to locate an active LDB instance, and permits a new LDB repository to reside anywhere in a filesystem.
 
@@ -91,7 +93,9 @@ If a target directory already contains an existing LDB instance,  `INIT` fails &
 If the target directory contains data (but not an LDB instance), `INIT` fails without an option to override. The user must provide an empty directory.
 
 
-# ADD-STORAGE `<storage-URI>`
+# ADD-STORAGE 
+
+## `<storage-URI>`
 
 `ADD-STORAGE` registers a disk (or cloud) data storage location into LDB and verifies the requisite permissions. 
 
@@ -148,7 +152,8 @@ BETA
 document object lambda access configuration here
 
 
-# STAGE `<ds:<name>[.v<number>]>`  `<workspace_folder>`
+# STAGE 
+## `<ds:<name>[.v<number>]>`  `<workspace_folder>`
 
 `STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<name>`, a new dataset is created. If `<name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
 
@@ -171,7 +176,8 @@ If `STAGE` cannot locate an active LDB instance, it assumes a QuickStart, and pr
 allows to clobber the workspace regardless of what is there.
 
 
-# INDEX `<storage folder URI(s) | storage object URI(s) | local filesystem folder>`
+# INDEX 
+## `<storage folder URI(s) | storage object URI(s) | filesystem folder>`
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. If LDB instance was created via QuickStart (see `STAGE`), then any cloud location may be indexed by default. If LDB instance was created with the `INIT` command, then LDB assumes indexed URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is supplied to `INDEX` with no format flag, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name). All hidden paths are excluded during indexing, which means any path where any of the directory or filenames begins with a dot (`.`) will not be indexed.
 
@@ -222,7 +228,8 @@ This results in ldb using the following as the annotation for data object `0x2c4
 
 and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
 
-# ADD  `<object-list>` `[filters]`
+# ADD  
+## `<object-list>` `[filters]`
 
 Where,
 * `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | `workspace_folder`
@@ -572,7 +579,7 @@ For an argument that could be a number or array, you would use `"array|number"` 
 
 `DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If objects provided to `DEL` are not in the dataset, `DEL` does nothing.
 
-# TAG `<object-list>` `[filters]` `[-a <tags> ] [-r <tags>]`
+# TAG `<object-list>` `[filters]`
 
 `TAG` is a text string in the ANSI character set `[0-9A-z_-]`. Multiple tags can be attached to data objects. Tags attached to objects are global – which means they apply to all instances of an object in all datasets irrespective of their annotations.
 
@@ -599,7 +606,8 @@ $ rm cats1.jpg           # delete one object file
 $ ldb sync               # pick up changes in workspace
 ```
 
-# TRANSFORM `<object-list>` `[filters]` `[-a <transforms>] [-r <transforms>] [-s <transforms>]`
+# TRANSFORM 
+## `<object-list>` `[filters]` 
 
 Add, remove, or set transforms for data objects within a dataset. Transforms are commands that will be run for each data object they are assigned to during instantiation as the final step when using `bare-pairs` (the default) or `strict-pairs` formats. Each transform will be given a temporary path for the data object and annotation, as well as an output directory, and the transform is responsible for writing it's output to the output directory. This may be used to generate any number of augment data objects or modified annotations during instantiation.
 
@@ -672,7 +680,8 @@ For example, changing `[transform.rotate-90]` to `[transform.rotate-image-90]` w
 
 Note that this also means that transform config entries should generally only be removed if they are not assigned to any data objects in any dataset. If an assigned transform is deleted (or the array under `run` is modified), then `LIST` will refer to the unnamed transform with a hash identifier, until you add a name for the original command. You may also use this hash in place of the transform's name with the `TRANSFORM` command's `-a`, `-r`, and `-s` options.
 
-# INSTANTIATE `[object id(s)]` `[sub-folder]`
+# INSTANTIATE 
+## `[object id(s)]` `[sub-folder]`
 
 `INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
 
@@ -717,17 +726,20 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 
 Preview flag instantiates data objects after passing them through a given lambda function (for example, downscaling to specific size for image previews). It has no effect if cloud storage does not support object lambdas, or code access point for `lambda_id` was not configured.
 
-# COMMIT `[message]`
+# COMMIT 
+## `[message]`
 
 `COMMIT` takes the currently staged dataset and saves it to LDB. This action renders workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is always a new version of dataset.
 
 The optional `message` flag will be added as the commit message and shown in `ldb status` when called with a dataset as an argument.
 
-# DIFF `<ds:<name>>` `[ds:<name>]`
+# DIFF 
+## `<ds:<name>>` `[ds:<name>]`
 
 `DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and uses as the first comparand.
 
-# LIST  `<object-list>` `[filters]`
+# LIST  
+## `<object-list>` `[filters]`
 
 `LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
 Unlike `ADD`, `LIST` without arguments targets objects in a staged dataset. To target objects in LDB index, use `ds:root` as the object source.
@@ -742,11 +754,13 @@ just prints object counts
 
 detailed object information
 
-# STATUS  `[ds:<name>[.v<number>]`
+# STATUS  
+## `[ds:<name>[.v<number>]`
 
 When run without arguments from a workspace, `STATUS` summarizes state of a staged dataset. This includes any uncomitted changes and current object counts. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
 
-# PULL `[object-id(s)]`
+# PULL 
+## `[object-id(s)]`
 
 `PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace. Pull action applied to objects not in the current workspace are ignored.
 
