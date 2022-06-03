@@ -43,7 +43,7 @@ If no method of configuration succeeds, all LDB commands will fail, except for `
 
 QuickStart allows the individual user to begin working with LDB without explicit configuration. To that end, QuickStart makes strong configuration assumptions, and in return can jumpstart the LDB workflow with as little as 3-4 commands.
 
-`STAGE` is the only LDB command that can trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to create a new LDB repository before proceeding with staging a dataset.
+`STAGE` and `GET` (by means of calling `STAGE`) are the only two LDB command that can trigger QuickStart. To do it, `STAGE` confirms the absence of an active LDB instance, and calls `INIT` to start a new LDB repository before proceeding with staging a dataset.
 
  Under the hood, QuickStart consists of the following three steps:
 
@@ -757,13 +757,12 @@ Preview flag instantiates data objects after passing them through a given lambda
 ldb get [data-object-identifiers] [filters] [-t <dir>] [--apply <exec> [<exec> ...]]
 ```
 
-Get the specified data objects as a working dataset along with the corresponding physical files.
+Add the specified data objects into a working dataset and instantiate them. 
+This command works as a combination of several LDB operations and carries out the following steps:
 
-This command carries out the following steps:
-
-- `stage` the target directory if it is not already a workspace
+- `stage` unnamed dataset in the target directory (if it is not already a valid workspace)
 - `add` the data objects specified
-- `instantiate` the data objects specified without removing existing files from the workspace
+- `instantiate` these data objects
 
 Differences from running the `stage`, `add`, and `instantiate` commands separately are:
 - If the directory is not already a workspace, then the newly staged working dataset will be given a temporary name. To save such a dataset you must provide a name when calling `commit`.
