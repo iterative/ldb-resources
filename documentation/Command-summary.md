@@ -726,6 +726,49 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 
 Preview flag instantiates data objects after passing them through a given lambda function (for example, downscaling to specific size for image previews). It has no effect if cloud storage does not support object lambdas, or code access point for `lambda_id` was not configured.
 
+# GET
+
+```
+ldb get [data-object-identifiers] [filters] [-t <dir>] [--apply <exec> [<exec> ...]]
+```
+
+Get the specified data objects as a working dataset along with the corresponding physical files.
+
+This command carries out the following steps:
+
+- `stage` the target directory if it is not already a workspace
+- `add` the data objects specified
+- `instantiate` the data objects specified without removing existing files from the workspace
+
+Differences from running the `stage`, `add`, and `instantiate` commands separately are:
+- If the directory is not already a workspace, then the newly staged working dataset will be given a temporary name. To save such a dataset you must provide a name when calling `commit`.
+- The data object identifiers and query filters are run once and resolved to a logical dataset internally. Then `add` and `instantiate` are both run on this dataset. This avoids the overhead of resolving these specifiers multiple times, and ensures that non-deterministic options such as `--sample` do not result in different datasets for the `add` and `instantiate` operations.
+- The `instantiate` command normally results in a full instantiation of all items in the working dataset, and ensures that no additional files exist in the workspace. Under the `get` command, the instantiation only applies to the data objects and specified by the command and does not remove additional files. This allows for partial and additive instantiations.
+
+One use case is quickly obtaining a dataset for training:
+```
+ldb get ds:cats
+```
+Or the union of multiple datasets:
+```
+ldb get ds:dogs ds:cats
+```
+
+Since any dataset identifiers are allowed, this could also be a storage location:
+```
+ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/
+```
+Or filtered result:
+```
+ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --query 'inference.class == class' --limit 10
+```
+
+You may also wish to specify the target directory intead of using the current directory:
+```
+ldb get ds:cats -t cats
+ldb get ds:dogs ds:cats -t dogs-and-cats
+```
+
 # COMMIT 
 ## `[message]`
 
