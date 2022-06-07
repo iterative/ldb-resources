@@ -39,7 +39,7 @@ pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]'
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
 
-More sample datasets [here](documentation/Datasets.md)
+Some sample datasets [here](documentation/Datasets.md)
 
 Full LDB command summary [here](documentation/Command-summary.md)
 
@@ -153,7 +153,8 @@ TODO: LDB also caches instantiation results locally, so subsequent materializati
 
  If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
 
- ### TODO Granular annotation versioning
+ TODO: 
+ ### Granular annotation versioning
 
  | Step | Command |
  | --- | --- |
@@ -277,11 +278,11 @@ As usual for JMESPATH queries, they can be pipelined, and use language functions
  
 ## LDB versus other versioning tools
 
-Without a program like LDB, a team iterating on data commonly takes one of the following dataset recipes: (1) datasets as file folders, (2) datasets as spreadsheets (or database records), or (3) datasets under control of ML framework. All these solutions have their limits we discuss in greater detail [here](/documentation/alternatives-to-LDB.md).
+Without a program like LDB, engineers iterating on data commonly accept one of the following data management recipes: (1) datasets as file folders, (2) datasets as pointers stored in spreadsheets (or database records), or (3) datasets under control of ML frameworks. All these solutions have their limits we discuss in greater detail [here](/documentation/alternatives-to-LDB.md).
 
-Datasets can also exist under general model versioning tools like (like [DVC](https://dvc.org/) or [PachyDerm](pachyderm.com)). The disadvantage of this approach is general versioning destroys the original data storage structure. For example, DVC actively manages the model repository, hiding the actual files in cache. 
+Datasets can also exist under general versioning tools like (like [DVC](https://dvc.org/) or [PachyDerm](pachyderm.com)). The disadvantage of general versioning is in destruction of the original storage layout. For example, DVC when manages the model repository, it takes ownership of data and stores the actual data samples in cache. 
 
-On the opposite, LDB is an indexing service over immutable storage, and treats datasets as collections of pointers. This lightweight approach relies on storage immutability, but keeps the data in the original form (storage folders, names, etc). In addition, LDB understands annotations and can group sparse objects into datasets by annotation queries. This forms a natural tool boundary: LDB manages datasets, while DVC manages the rest of ML pipeline.  
+On the opposite, LDB is an indexing service, and treats datasets as collections of pointers. This lightweight approach relies on storage immutability, but accepts the data in the original storage format (folders, names, etc), and permits LDB to operate without write access to cloud. In addition, LDB understands annotations and can group sparse objects into datasets by annotation queries. This forms a natural boundary between dataset managers and model/experiment management tools like DVC: LDB controls datasets, while DVC manages the rest of ML pipeline.  
 
 ## Contributing
 
