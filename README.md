@@ -1,17 +1,17 @@
 # α README
 
-Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
+Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages* and *data lakes* into reproducible datasets.
 
-**LDB** aims to displace ad-hoc dataset management and de-duplication devices – such as file folders, spreadsheets, SQL databases and dataloader configurations. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
+**LDB** aims to displace ad-hoc dataset management, data search and de-duplication devices – such as file folders, spreadsheets, SQL databases and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB can feed data directly into the model training and evaluation pipelines, including modern registry-based model cards.
 
 **Key LDB features**:
 
 * **command line** (MLOps oriented). 
-* Datasets are defined as collections of pointers into storage locations, where **every change is tracked**
-* Since datasets use pointers, there is **no need** to **move or duplicate** actual data objects to create, share or modify datasets
-* LDB datasets are easily cloned, merged, splitted, and sampled
-* **Annotation-aware workflow**. Objects can be selected based on JSON metadata, file attributes, or custom ML model queries, and all changes to annotations are versioned. 
-* **LDB datasets are fully reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
+* LDB manages datasets as tracked collections of pointers into storage locations
+* Since LDB datasets use pointers, there is **no need** to **move or duplicate** actual data objects to create, share or modify datasets
+* LDB datasets are easily cloned, merged, sliced, and sampled
+* **Search in the cloud capabilities**. Data objects can be selected based on JSON annotation fields, file attributes, or helper ML model queries. Annotations changes are tracked and versioned. 
+* **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data samples and annotations. Data objects can be placed in cache during instantiation, so repeated transfers from remote locations are vastly accelerated.
 
 ### Contents
 
@@ -34,7 +34,7 @@ pip install ldb-alpha
 pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
 ```
 
-### add anonymous access to s3 sample datasets **(optional, needed you do not have s3 credentials)**
+### add anonymous access to s3 sample datasets **(optional, only if no existing s3 credentials)**
 ```
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
@@ -56,7 +56,7 @@ LDB datasets can then be shared and versioned, which makes any membership change
 
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from cloud storage into the local workspace and recreates all linked annotations. Since storage is immutable and dataset state is kept within LDB, the local workspace can be safely erased after the experiment is complete. 
 
-TODO: LDB also caches instantiation results locally, so subsequent materializations of repeating objects do not go through cloud transfer again.
+TODO: LDB supports local caching of instantiated data, so sucessive object materializations do not need to repeat cloud transfers.
 
 <details>
   <summary>LDB command cheat sheet</summary>
@@ -204,7 +204,7 @@ LDB reads the contents of path but finds no new objects after the de-duplication
   
 🦉  
 
-Searching by name patterns and file attributes are standard for unix filestystem find(1) utility and similar tools, but are not easily available for cloud-based data objects. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query with `--file` JMESPATH expressions. 
+Searching by name patterns and file attributes are standard for unix filestystem `find(1)` utility and similar tools, but are not easily available for cloud-based data objects. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query with `--file` JMESPATH expressions. 
   
 The `--path` option works as a shortcut for regular expression search (equivalent to ```--file 'regex(fs.path, `EXPR`)'``` :
   
@@ -221,10 +221,9 @@ ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/
     Annotations:        3
   
 ```
-
   
 <details>
-  <summary>Example of all LDB JSON file fields</summary>
+  <summary>Sample format of LDB JSON file fields</summary>
 
 🪶
 ``` 
