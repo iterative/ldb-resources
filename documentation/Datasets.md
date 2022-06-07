@@ -21,8 +21,10 @@ Schema looks as follows:
   "num_annotators": 4
 }
 ```
+**S3 url:**
+* s3://ldb-public/remote/data-lakes/dogs-and-cats/
 
-**File Downloads:**
+**Downloading as archive:**
 * https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.zip
 * https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.tar.gz
 
