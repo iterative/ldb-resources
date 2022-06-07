@@ -65,7 +65,9 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 <details>
   <summary>Cloud data retrieval and de-duplication</summary>
   
-🦉  
+🦉 
+  
+  The simplest way to form a dataset from cloud and materialize it in LDB is by using the [GET](documentation/Command-summary.md#get) command, which can point to cloud location, index it, add data objects into a specified dataset and instantiate it in one shot: 
 
 ```
 ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t animals
@@ -89,7 +91,7 @@ At this point, a public path s3 path was indexed, and 200 objects added to tempo
     Adding to working dataset...
     Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
   ```
-LDB reads the contents of path but adds no new objects because it recognizes input objects as duplicates.
+LDB reads the contents of path but adds no new objects because it recognizes all input objects as duplicates.
   
 🦉
 </details>
