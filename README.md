@@ -28,7 +28,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 pip install ldb-alpha
 ```
 
-### installation with ML plugins **(optional)**
+### installation with AWS and ML plugin support **(optional)**
 
 ```sh
 pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
@@ -201,7 +201,9 @@ LDB reads the contents of path but finds no new objects after the de-duplication
   
 🦉  
 
-Searching by name patterns and file attributes are standard for unix filestystem find(1) utility and similar tools, but are not easily available for cloud-based data objects. LDB fills this gap by storing file attributes in JSON format at indexing time an allowing to query via JMESPATH. The `--path` option works as a shortcut for regular expression search in the path:
+Searching by name patterns and file attributes are standard for unix filestystem find(1) utility and similar tools, but are not easily available for cloud-based data objects. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query with `--file` JMESPATH expressions. 
+  
+The `--path` option works as a shortcut for regular expression search (equivalent to ```--file 'regex(fs.path, `EXPR`)'``` :
   
 ```
 ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-animals
@@ -218,11 +220,11 @@ ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/
 ```
 
   
-      <details>
-        <summary>The full list of JSON file fields</summary>
+<details>
+  <summary>Example of all LDB JSON file fields</summary>
 
-      🦉
-        ``` 
+🪶
+``` 
        ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
 
           id:98603fb145b88c265fb4a745e6aaf806
@@ -258,16 +260,14 @@ ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/
             "tags": [],
             "type": "jpg"
           }
-        ```
+```
 
-        🦉
-      </details>
+🪶
+</details>
   
-As usual for JMESPATH queries, they can be pipelined and use language functions:
+As usual for JMESPATH queries, they can be pipelined, and use language functions where needed:
   ```
-  
-  
-  
+  ldb list ds:root --file 'fs.protocol[0] == `s3`' --file 'type == `jpg` && fs.size < `20000`'
   ```
   
 🦉
