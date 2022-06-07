@@ -153,8 +153,7 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 
  If newer annotations will become available for the data object, they can be readded to dataset by name. If all labels need to be updated, this can be done with the *pull* command.
 
- TODO: 
- ### Granular annotation versioning
+ TODO BETA: **Granular annotation versioning**
 
  | Step | Command |
  | --- | --- |
