@@ -13,7 +13,8 @@ The way LDB treats JMESPATH expressions is as follows:
 
 If you evaluate one "falsy" key against another, the result is a match. See "Get objects where certain key is not null or false" below. 
 
-- **EVAL** prints raw JMESPATH query output over annotations
+- Use the **EVAL** command to print raw JMESPATH query output over annotations
+- LDB uses `--query` flag to scan object annotations, and `--file` flag to scan file attributes formatted as JSON. These flags can be pipelined.
 
 Here are some query examples, from simple to more advanced:
 
@@ -35,7 +36,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # note backquotes around  literal
-    $ ldb add ds:root --query 'class == `cat`'
+    ldb add ds:root --query 'class == `cat`'
     ```
     
 - **Get objects where attribute compares against numeric constant**
@@ -56,7 +57,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # note backquotes on literal
-    $ ldb add ds:root --query 'inference.confidence >= `0.8`' 
+    ldb add ds:root --query 'inference.confidence >= `0.8`' 
     
     ```
     
@@ -77,7 +78,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb add ds:root --query 'inference.class != class'
+    ldb add ds:root --query 'inference.class != class'
     ```
     
 - **Compare attribute against JSON object literals**
@@ -98,11 +99,13 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # note use of backquotes and swapped keys in the object
-    $ ldb list --query 'inference == `{"confidence": 0.7, "class": "pro"}`'
+    ldb list --query 'inference == `{"confidence": 0.7, "class": "pro"}`'
     
     ```
     
-- **Get objects where certain key is not null or false**
+- **Dealing with objects where certain key can be missing or null**
+
+  The original JMESPATH specification assumes a missing JSON key to return `null`, which may lead to unintended consequences – e.g. when comparing one missing key to another missing key (this would somewhat unexpectedly return `true`). LDB query implementation therefore differs from JMESPATH standard by means of immediately skipping an object where annotation has referenced missing key. A separate `--jquery` flag exists for full compatibility with JMESPATH standard with respect to missing keys.
     
     Input: dataset where objects have annotations with "class" JSON field:
     
@@ -116,32 +119,23 @@ Here are some query examples, from simple to more advanced:
     }
     ```
     
-    Goal: print objects where annotations have a valid breed.type key
+    Goal: print all objects where `breed.type` key is not missing, empty or null:
     
     ```bash
     # non-"falsy" key is resolved to "true"
-    $ ldb list --query breed.type
-    
+    ldb list --query breed.type
     ```
 
-    This can be useful for excluding annotations where keys that may be missing are compared. For example, if this were an annotation
-    ```json
-    {
-      "category": "cat",
-      "prediction": {
-        "category": "cat"
-      }
-    }
-    ```
-    then the following command would include it
-    ```
-    ldb add ds:root --query `inference.class == class`
-    ```
-    because `inference.class` and `class` are both missing, so they evaluate to `null`, and ``` `null` == `null` ``` evaluates to `true`.
+    Goal: print all objects where `breed.type` is not missing (but can be empty or null):
     
-    To include only the annotations where we actually have a truthy value under `inference.class`, we could instead use:
+    ```bash
+    # this query fails only if the key does not exist
+    ldb list --query 'breed.type || !breed.type'
     ```
-    ldb add ds:root --query `inference.class && inference.class == class`
+   
+    Goal: include only annotations with "truthy" value under `breed.type`:
+    ```
+    ldb add ds:root --query 'breed.type && class == `cat`'
     ```
     
 - **Combine query terms**
@@ -162,9 +156,18 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # quotes required here to shield &&
-    $ ldb list --query 'class==`cat` && breed.size==`large`'  
+    ldb list --query 'class==`cat` && breed.size==`large`'  
     
     ```
+    
+    Another way to achieve the AND operation is to pipeline multiple `--query` or `--file` flags:
+    
+     ```bash
+    # quotes required here to shield &&
+    ldb list --query 'class==`cat`' --query 'breed.size==`large`'  
+    
+    ```
+    
     
 - **Simple check for class balance**
     
@@ -180,11 +183,15 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # note backslashes around  literals
-    $ ldb list -s --query 'class==`cat`' 
-    $ ldb list -s --query 'class==`dog`' 
+    ldb list -s --query 'class==`cat`' 
+    ldb list -s --query 'class==`dog`' 
     ```
     
 - TODO beta: **Examine objects where inference results differ between model runs**
+
+    Normally, JMESPATH query operates within a particular annotation JSON – namely, the one attached to the object referenced. If an object is a part of some dataset, it will have the same annotation version it was assigned when last added. If an object is referenced from the index, by default it will have the latest annotation version indexed.
+    
+    However, sometimes we want to run a JMESPATH query *between* annotation versions of one object. This happens, for example, if we want to compare how some field (e.g. model prediction) has evolved between several annotations. LDB achieves this via `--vquery` flag that modifies JSON tree, prepending an annotation version as root.
     
     Input: dataset where two annotation versions were produced after running the model twice: 
     
@@ -208,10 +215,13 @@ Here are some query examples, from simple to more advanced:
     }
     ```
     
+    Goal: compare inference results between the two versions:
+    
     ```bash
-    $ ldb stage ds:model-run-difference
-    $ ldb add ds:roman-numerals --query 'v1.inference.class != v2.inference.class'
+    ldb stage ds:model-run-difference
+    ldb add ds:roman-numerals --vquery 'v1.inference.class != v2.inference.class'
     ```
+   
     
 - **Get objects with a given number of array members (JMESPATH function `length`)**
     
@@ -237,7 +247,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # note backquotes on literal
-    $ ldb add --query 'length(instances) == `3`' 
+    ldb add --query 'length(instances) == `3`' 
     ```
     
 - **Class balance statistics**
@@ -256,7 +266,7 @@ Here are some query examples, from simple to more advanced:
     Desired: object count per class 
    
    ```bash
-   $ ldb eval -j --query 'class' ds:pets | sort | uniq -c
+   ldb eval -j --query 'class' ds:pets | sort | uniq -c
      100 "cat"
      100 "dog"
 
@@ -313,7 +323,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb eval -j  ds:images --query 'img.height'  | grep -v null | num stddev median
+    ldb eval -j  ds:images --query 'img.height'  | grep -v null | num stddev median
     
      185.858
     ```
@@ -342,7 +352,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     # note backquotes for literal
-    $ ldb add --query 'length(instances) == `3`' 
+    ldb add --query 'length(instances) == `3`' 
     ```
     
     If we run the above query over annotations that do not have array "instances", JMESPATH function `length()` will fail:
@@ -358,7 +368,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb add --query 'instances && length(instances) == `3`' 
+    ldb add --query 'instances && length(instances) == `3`' 
     ```
     
 - **Isolate objects with a helper ML model:**
@@ -369,7 +379,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb add --pipe clip-text 'sitting cat' --limit 20
+    ldb add --pipe clip-text 'sitting cat' --limit 20
     
     ```
     
@@ -403,7 +413,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[0]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[0]' 0x0dc11270eb2c136b454859df4b472aed
     
     {
          "label": [
@@ -417,7 +427,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[:2:]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[:2:]' 0x0dc11270eb2c136b454859df4b472aed
     
     [
       {
@@ -436,7 +446,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[1:].label' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[1:].label' 0x0dc11270eb2c136b454859df4b472aed
     
     [
       "dog",
@@ -448,7 +458,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[*].label[]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[*].label[]' 0x0dc11270eb2c136b454859df4b472aed
     
     [
       "cat",
@@ -462,7 +472,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[?contains(label,`cat`)]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[?contains(label,`cat`)]' 0x0dc11270eb2c136b454859df4b472aed
     
     [
       {
@@ -503,7 +513,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval '{class:class}' 0x18de96e5871380ce1594b55d906ca816
+    ldb eval '{class:class}' 0x18de96e5871380ce1594b55d906ca816
     
     {
       "class": "cat"
@@ -514,7 +524,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval '{breed:breed.{type:size}}' 0x18de96e5871380ce1594b55d906ca816
+    ldb eval '{breed:breed.{type:size}}' 0x18de96e5871380ce1594b55d906ca816
     
     {
       "breed": {
@@ -527,7 +537,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval '[class, breed]' 0x18de96e5871380ce1594b55d906ca816
+    ldb eval '[class, breed]' 0x18de96e5871380ce1594b55d906ca816
     
     [
       "cat",
@@ -556,7 +566,7 @@ Advanced examples
     
     ```bash
     # note use of backquotes
-    $ ldb list --query 'regex(inference.class, `"^b.+s$"`)'
+    ldb list --query 'regex(inference.class, `"^b.+s$"`)'
     ```
     
     LDB JMESPATH func: `regex`
