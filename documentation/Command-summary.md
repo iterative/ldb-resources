@@ -233,9 +233,6 @@ This results in ldb using the following as the annotation for data object `id:2c
 }
 ```
 
-
-and only indexes data objects with a corresponding `.json` file. `bare` will assume all non-json files are data objects and index them.
-
 # ADD  
 ```
 ldb add <object-list> [filters]
