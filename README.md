@@ -95,13 +95,12 @@ LDB reads the contents of path but adds no new objects because it recognizes inp
 </details>
 
 <details>
-  <summary>Retrieving data samples by file attributes</summary>
+  <summary>Retrieve data samples by file attributes</summary>
   
 🦉  
 
-Searching samples by name patterns and file attributes is easy in filestystems with `find(1)` utility and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query samples with JMESPATH expressions. 
+Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions: 
   
-The `--path` option works as a shortcut for regular expression search (equivalent to ```--file 'regex(fs.path, `EXPR`)'``` :
   
 ```
 ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-animals
@@ -120,9 +119,10 @@ ls some-animals/
   dog-1020-98603fb145b88c265fb4a745e6aaf806.jpg dog-1021-b006d725ffaff548502933ac612c497b.jpg dog-1022-e35bfd65702d5b3a55be121e06095fa4.jpg dog-1020-98603fb145b88c265fb4a745e6aaf806.json dog-1021-b006d725ffaff548502933ac612c497b.json dog-1022-e35bfd65702d5b3a55be121e06095fa4.json
   
 ```
+In the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON path attribute (equivalent to ```--file 'regex(fs.path, `EXPR`)'```. LDB stores file attributes collected during indexing in a simple schema format: 
   
 <details>
-  <summary>Sample format of LDB JSON file fields</summary>
+  <summary>Sample LDB-indexed data file attributes</summary>
 
 🪶
 ``` 
@@ -165,8 +165,9 @@ ls some-animals/
 
 🪶
 </details>
+
+File schema works just like any other JSON, for example JMESPATH queries to file attributes can be pipelined:
   
-JMESPATH queries can be pipelined:
   ```
   ldb list ds:root --file 'fs.protocol[0] == `s3`' --file 'type == `jpg` && fs.size < `20000`'
   ```
@@ -175,7 +176,7 @@ JMESPATH queries can be pipelined:
 </details>
 
 <details>
-  <summary>Retrieving data samples by querying JSON annotations</summary>
+  <summary>Retrieve data samples by querying JSON annotations</summary>
 
 🦉
 ``` 
