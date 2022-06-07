@@ -2,7 +2,7 @@
 
 Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages* and *data lakes* into reproducible datasets.
 
-**LDB** aims to displace ad-hoc dataset management, data search and de-duplication tools – such as file folders, spreadsheets, and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB provides data files for model training and evaluation pipelines, including modern registry-based model cards.
+**LDB** aims to displace ad-hoc dataset management, data search and de-duplication tools – such as file folders, spreadsheets, and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB provides data files for clean training and evaluation pipelines – including modern registry-based model cards.
 
 **Key LDB features**:
 
@@ -50,7 +50,7 @@ Full LDB command summary [is here](documentation/Command-summary.md)
 
 ### How LDB works
 
-LDB indexes immutable storage and notes unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. LDB does not save data objects internally, and depends on their persistent storage locations to materialize (instantiate) datasets on demand.
+LDB indexes immutable storage and notes unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that operate like collections of sparse pointers into the storage. LDB does not save data objects internally, and depends on their persistent storage locations to materialize (instantiate) datasets on demand.
 
 
 <img src="images/ldb-struct.png"  width=50% height=50%>
