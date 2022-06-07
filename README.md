@@ -8,8 +8,8 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 
 * **command line** (MLOps oriented). 
 * LDB manages datasets as tracked collections of pointers into storage locations
-* Since LDB datasets use pointers, there is **no need** to **move or duplicate** actual data objects to create, share or modify datasets
-* LDB datasets are easily cloned, merged, sliced, and sampled
+* Since LDB datasets use pointers, there is **no need** to **move or duplicate** cloud data objects to create, share or modify datasets
+* LDB datasets are logical, so they are easily cloned, merged, sliced, and sampled
 * **Search in the cloud capabilities**. Data objects can be selected based on JSON annotation fields, file attributes, or helper ML model queries. Annotations changes are tracked and versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data samples and annotations. Data objects can be placed in cache during instantiation, so repeated transfers from remote locations are vastly accelerated.
 
@@ -38,7 +38,7 @@ pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]'
 ```
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
-Sample datasets [are here](documentation/Datasets.md | width=100)
+Sample datasets [are here](documentation/Datasets.md)
 
 Full LDB command summary [is here](documentation/Command-summary.md)
 
@@ -47,7 +47,8 @@ Full LDB command summary [is here](documentation/Command-summary.md)
 
 LDB indexes immutable storage and notes unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. LDB does not save data objects internally, and depends on their persistent storage locations to materialize (instantiate) datasets on demand.
 
-![ldb-intro](images/ldb-struct.png)
+
+<img src="images/ldb-struct.png"  width=50% height=50%>
 
 The main use case for LDB is to create and maintain sparse collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or into other datasets (e.g. samples with certain file attributs, annotated with a certain class, created at given time, containing a given number of event instances, etc). 
 
@@ -189,8 +190,8 @@ At this point, a public path s3 path was indexed, and 200 objects added to tempo
   cd animals
   ldb add s3://ldb-public/remote/data-lakes/dogs-and-cats/
   
-  Adding to working dataset...
-  Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
+    Adding to working dataset...
+    Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
   ```
 LDB reads the contents of path but adds no new objects because it recognizes input objects as duplicates.
   
