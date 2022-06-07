@@ -137,7 +137,7 @@ $ ldb add-storage gs://add-storage --read-add
   new storage location gs://add-storage successfully registered.
 
 $ ldb add ./cat1.jpg
-     warning: object 0x564d copied to gs://add-storage/auto-import220211-11/cat1.jpg
+     warning: object id:564d copied to gs://add-storage/auto-import220211-11/cat1.jpg
 ```
 
 There is a location `gs://add-storage` registered with `read-add` attribute, and user tries to add file from a workspace into a dataset. If LDB does not have an object with identical hashsum already indexed, the `ADD` command copies `cat1.jpg` into `gs://add-storage` under the unique folder name, indexes it, and adds this object to dataset.
@@ -146,7 +146,7 @@ There is a location `gs://add-storage` registered with `read-add` attribute, and
 
 ```
 $ ldb add ./cat1.jpg
-     error: object 0x564d is not in LDB and no read-add location configured
+     error: object id:564d is not in LDB and no read-add location configured
 ```
 There are no `read-add` storage locations registered, and user tries to add a file from his workspace to a dataset. If LDB does not have an object with identical hashsum already indexed somewhere in storage, the ADD command fails.
 
@@ -210,23 +210,23 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 
 `--add-tags <tags>` Comma-separated list of tags to add to indexed data objects.
 
-Format descriptions:
+Brief format descriptions (see longer discussion of formats [here](formats.md))
  * `auto`, `auto-detect` - Auto-detect the data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
  * `strict`, `strict-pairs` - Only complete pairs of files will be indexed. The annotation file in each pair must have a name ending with `.json` and contain valid json. The data object file must have the same file name but with a different extension, and it must be in the same directory as the annotation file.
  * `bare`, `bare-pairs` - File pairs are detected as with `strict-pairs`, but bare data objects (without corresponding annotation files) are indexed too. Any file whose name does not end with `.json` will be considered a data object file.
  * `infer`, `tensorflow-inferred` - Annotation files will be generated containing labels that are inferred from each data object file's directory. This is based on the `labels="inferred"` option in TensorFlow's [`tf.keras.utils.image_dataset_from_directory`](https://www.tensorflow.org/api_docs/python/tf/keras/utils/image_dataset_from_directory). All files should be data object files that do **not** end with `.json`. The name of the directory passed to `ldb index` will be used as the label for data objects contained directly inside of it. Data objects within subdirectories will have nested labels. For example, if you called `ldb index --format tensorflow-inferred ~/data/animals/cat`, then `~/data/animals/cat/0001.png` would have the annotation `{"label": "cat"}` and `~/data/animals/cat/tabby/0001.png` would have the annotation `{"label": {"cat": "tabby"}}`. This would allow for query such as `ldb list --query label.cat.tabby`.  Note that for successful conversion of a label from another format into `tensorflow-inferred`, it must have the "label" JSON key and will fail otherwise.
- * `annot`, `annotation-only` - Only annotation files ending with `.json` may exist under the given location. Each annotation file must contain a JSON object with the key `ldb_meta.data_object_id` pointing to a data object hash with the `0x` prefix. This hash must specify a data object that already exists in LDB. This JSON object must also contain an `annotation` key whose value will be used as the annotation for the specified data object. For example, some `.json` file may contain:
+ * `annot`, `annotation-only` - Only annotation files ending with `.json` may exist under the given location. Each annotation file must contain a JSON object with the key `ldb_meta.data_object_id` pointing to a data object hash. This hash must specify a data object that already exists in LDB. This JSON object must also contain an `annotation` key whose value will be used as the annotation for the specified data object. For example, some `.json` file may contain:
 ```
 {
   "annotation": {
     "label": 1
   }
   "ldb_meta": {
-    "data_object_id": "0x2c4a9d28cc2ce780d17bea08d45d33b3"
+    "data_object_id": "2c4a9d28cc2ce780d17bea08d45d33b3"
   }
 }
 ```
-This results in ldb using the following as the annotation for data object `0x2c4a9d28cc2ce780d17bea08d45d33b3`:
+This results in ldb using the following as the annotation for data object `id:2c4a9d28cc2ce780d17bea08d45d33b3`:
 ```
 {
   "label": 1
@@ -242,7 +242,7 @@ ldb add <object-list> [filters]
 ```
 
 Where,
-* `object-list` can be of one object identifier types: `0x<sum>` | `object_path` | `ds:<name>[.v<num>]` | `workspace_folder`
+* `object-list` can be of one object identifier types: `id:<hashsum>` | `object_path` | `ds:<name>[.v<num>]` | `workspace_folder`
 
 `ADD` is the main workhorse of LDB as it allows data sample(s) to be added to a dataset staged in the workspace. 
 
@@ -256,12 +256,12 @@ A special scenario for `ADD` arises when it targets ephemeral filesystem paths (
 
 ## object identifiers supported by `ADD`
 
-1. `0x<sum>` - full hashsum of an object. Currently LDB uses MD5, so any MD5 hashsum that corresponds to an object indexed by LDB is a valid identifier.
+1. `id:<hashsum>` - full hashsum of an object. Currently LDB uses MD5, so any MD5 hashsum that corresponds to an object indexed by LDB is a valid identifier.
 
 *Use case:* 
 ```
 $ ldb stage ds:cats ./
-$ ldb add 0x456FED 0x5656FED    # result: objects id 0x456FED 0x5656FED added to dataset
+$ ldb add id:456FED id:5656FED    # result: objects with hashum ids 456FED and 5656FED added to dataset
 ```
 
 2. `object_path` - any fully qualified (down to an object), or folder path within registered storage locations. Shell GLOB patterns are supported.
