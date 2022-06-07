@@ -38,7 +38,7 @@ pip install ldb-alpha
 pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
 ```
 
-### add anonymous access to s3 sample datasets **(optional, only if no existing s3 credentials)**
+### add anonymous access to public s3 datasets **(optional, only needed for team installation)**
 ```
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
@@ -53,8 +53,6 @@ LDB indexes immutable storage and notes unique data objects along with their ass
 
 
 <img src="images/ldb-struct.png"  width=50% height=50%>
-
-The main use case for LDB is to create and maintain sparse collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or into other datasets (e.g. samples with certain file attributs, annotated with a certain class, created at given time, containing a given number of event instances, etc). 
 
 LDB datasets can then be shared and versioned, which makes any membership changes (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
