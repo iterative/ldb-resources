@@ -1,8 +1,10 @@
-Since LDB parses annotations, it has to understand the specific annotation formats. LDB supports several popular formats out of the box, which means it can index data in these formats, and instantiate them. Here is what is currently supported:
+## Annotation formats
+
+Since LDB parses annotations, it has to understand the specific annotation formats. LDB supports several popular options out of the box, which means it can index data in these formats, and instantiate them. Here is what is currently supported:
 
 * `auto | auto-detect` - auto-detected data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
 
-* `strict | strict-pairs` - this is the "native" LDB format that assumes data comes in pairs of files (json + object). The annotation file in each pair must have a name ending with `.json`. The data object files are matched to their annotations by means of sharing filenames (e.g. `cat1.json` + `cat1.jpg`), and pairs must reside in the same directory. LDB does not provide any restrictions on the actual JSON schema and will accept any valid JSON content.
+* `strict | strict-pairs` - "native" LDB format that assumes data comes in pairs of files (json + object). The annotation file in each pair must have a name ending with `.json`. The data object files are matched to their annotations by means of sharing filenames (e.g. `cat1.json` + `cat1.jpg`), and pairs must reside in the same directory. LDB does not provide any restrictions on the actual JSON schema and will accept any valid JSON content.
 
 * `bare | bare-pairs` - complete pairs are detected as with `strict-pairs`, but bare data objects (without annotation files) are also indexed (any file whose name does not end with .json will be considered a valid data object file). This format is the primary way to index un-annotated data. 
 
@@ -33,3 +35,4 @@ TODO
 
 * label-studio format
 * group description format that stores paths to objects
+* COCO? Google ImageNet?
