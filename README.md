@@ -39,9 +39,9 @@ pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]'
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
 
-Some sample datasets [here](documentation/Datasets.md)
+Sample datasets [are here](documentation/Datasets.md)
 
-Full LDB command summary [here](documentation/Command-summary.md)
+Full LDB command summary [is here](documentation/Command-summary.md)
 
 
 ### How LDB works
