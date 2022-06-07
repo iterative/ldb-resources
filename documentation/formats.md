@@ -10,7 +10,7 @@ Here is what is currently supported:
 
 * `bare | bare-pairs` – complete pairs are detected as with `strict-pairs`, but bare data objects (without annotation files) are also indexed (any file whose name does not end with `.json` will be considered a data object). This format is the primary way to index un-annotated data. 
 
-* `infer, tensorflow-inferred` – label-only format based on the `labels="inferred"` option in TensorFlow's `tf.keras.utils.image_dataset_from_directory` method. Files supplied in this format must have names that do not end with `.json`. The name of the directory passed to INDEX is used as the label for all data objects inside, and objects within subdirectories will have nested labels. 
+* `infer, tensorflow-inferred` – label-only format based on the `labels="inferred"` option in TensorFlow's [tf.keras.utils.image_dataset_from_directory](https://www.tensorflow.org/api_docs/python/tf/keras/utils/image_dataset_from_directory)  method. Files supplied in this format must have names that do not end with `.json`. The name of the directory passed to INDEX is used as the label for all data objects inside, and objects within subdirectories will have nested labels. 
  
     For example, a call `ldb index --format tensorflow-inferred ~/data/animals/cat/`, would result in object at path `~/data/animals/cat/0001.png` having the annotation `{"label": "cat"}`, and object at path `~/data/animals/cat/tabby/0001.png` having the nested annotation `{"label": {"cat": "tabby"}}`, and so on. Note that for successful conversion of a label from another format into the tensorflow-inferred, it must have the "label" JSON key and will fail otherwise.
 
@@ -38,6 +38,9 @@ Here is what is currently supported:
 
 TODO
 
-* label-studio format
-* group description format that stores paths to objects
-* COCO? Google ImageNet?
+* label-studio format description
+* some format extension that serves http/https
+  * Should we allow "path" key in "ldb_meta" object of 'annotation-only' to specify an object location?
+  * Should we allow top-level array in 'annotation-only' to describe multiple files?
+* COCO? 
+* Google ImageNet?
