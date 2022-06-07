@@ -856,11 +856,11 @@ TODO
 
 # EVAL
 ```
-ldb eval [-h] [-q | -v] [-j] [--query <query>] [--file <query>] [<path> [<path> ...]]
+ldb eval [-h] [-q | -v] [-j] [--query <query>] [--file <query>] [<path> [<path> ...]] [--query <query>] [--file <query>]
 ```
-EVAL works the same way as `LIST`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `add` and `list`.
+EVAL works the same way as `LIST`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `ADD` and `LIST`.
 
-The `query` argument must be a valid JMESPath query to be run over annotations if used with `--query` flag and over data object file attributes if used with `--file`. The `path` arguments may be any data object identifiers that the `add` command can take.
+The `query` argument must be a valid JMESPath query to be run over annotations (if used with `--query` flag) and over data object file attributes (if used with `--file`). The `path` arguments may be any data object identifiers that the `ADD` command can take.
 
 The `-j` or `--json-only` option will print only JSON query results. Without it, each JSON object is preceded by the corresponding data object hash.
 
