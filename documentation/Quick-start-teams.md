@@ -1,3 +1,9 @@
+LDB works by building an index over storage locations. It therefore needs space to store data (LDB instance), and relies on data engineering discipline to ensure that indexed storage locations are persistent and pointers into this storage will remain valid. 
+
+To simplify things for individual users, by default LDB will automatically create an instance in the home directory at  `~/.ldb` the first time the commands `STAGE` or `GET` are called. This personal LDB instance comes with storage configuration treating all remote locations (s3, gcp, azure, http) as valid persistent storage.
+
+Team configuration of LDB requires a slightly different setup. First, LDB instance must reside on a shared volume, and second – care must be taken to configure the storage locations that are persistent and safe to index. 
+
 # LDB team setup #
 
 When starting a shared LDB instance, the first decision is where to house it. 
@@ -11,7 +17,7 @@ A shared LDB instance must reside in a shared filestystem folder that is availab
 | Create a new LDB instance | `$  ldb init /data/corporate-LDB` |
 
 
-When running LDB commands, they need to be pointed towards an active LDB instance. This is done with one of the two methods: an environment variable or a configuration file. By default, an LDB configuration file is expected to reside in the user home directory, folder '.ldb' but if both pointer types are present, an environment variable will take precedence:
+When running LDB commands, they need to be pointed towards an active LDB instance. This is done with one of the two methods: an environment variable or a configuration file. By default, an LDB configuration file is expected to reside in the user home directory, folder '.ldb' but if both config methods are present, an environment variable will take precedence:
 
 | Step | Command |
 | --- | --- |
@@ -32,7 +38,7 @@ You can add new storage locations to LDB at any time, but you cannot remove stor
 
 ### Registering a "read-add" storage location
 
-By default, LDB only allows for objects from immutable storage locations. LDB only needs read and stat permissions for those locations and relies on external data engineering processes to get new samples there. However, in some cases, it is convenient to add new samples to LDB index right when you work in your data workspace. For example, an engineer may choose to quickly modify an image, auido record, or text while browsing data in LDB workspace.
+By defalt, LDB only allows for objects from immutable storage locations. LDB only needs read and stat permissions for those locations and relies on external data engineering processes to get new samples there. However, in some cases, it is convenient to add new samples to LDB index right when you work in your data workspace. For example, an engineer may choose to quickly modify an image, audio record, or text while browsing data in LDB workspace.
 
 In that case, LDB can be configured to support a 'read-add' storage location where new data objects are copied when indexing from emphemeral locations (such as  a workspace). This configuration must be explicitily specified, and will require "append" privileges at this location:
 
