@@ -299,7 +299,7 @@ $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder
 
   * If `object_path` is the workspace:
       -  `ADD` will process updated annotations even in absense of paired data objects (see `INSTANTIATE --annotations-only`)
-      -  `ADD` will ignore data object previews (see `INSTANTIATE --preview`)
+      -  `ADD` will ignore data object transforms (see `TRANSFORM`)
 
   * In all other cases:
       - If previously indexed data objects are found, they are added to staged dataset, alongside with their annotations
@@ -746,10 +746,6 @@ Specific annotation output format. The list of formats mirror those in `INDEX` c
 `--preserve-paths`
 
 Instantiate objects preserving full storage paths. Only supported for default LDB format (annotation file per every object).
-
-`--preview [lambda_id]`
-
-Preview flag instantiates data objects after passing them through a given lambda function (for example, downscaling to specific size for image previews). It has no effect if cloud storage does not support object lambdas, or code access point for `lambda_id` was not configured.
 
 # GET
 
