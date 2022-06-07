@@ -38,7 +38,7 @@ pip install ldb-alpha
 pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
 ```
 
-### add anonymous access to public s3 datasets **(optional, only needed for team installation)**
+### add anonymous access to public s3 datasets **(optional, only needed for [LDB team setup](documentation/Quick-start-teams.md))**
 ```
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
