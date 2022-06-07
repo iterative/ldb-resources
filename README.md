@@ -167,7 +167,7 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 ## LDB quick recipes
 
 <details>
-  <summary>Basic data de-duplication</summary>
+  <summary>Basic data retrieval and de-duplication</summary>
   
 🦉  
 
@@ -184,7 +184,7 @@ ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t animals
     Annotations:        200
 
 ```
-At this point, a public path s3 path was indexed, and 200 objects added to temporaty dataset in folder `animals`, after which the dataset was materialized. Let's try to add the same objects again to see if the duplicate entries arise:
+At this point, a public path s3 path was indexed, and 200 objects added to temporaty dataset in folder `animals`, after which the dataset was materialized. Let's try to add the same objects again to see how automatic de-deduplication works:
 
   ```
   cd animals
@@ -193,13 +193,13 @@ At this point, a public path s3 path was indexed, and 200 objects added to tempo
   Adding to working dataset...
   Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
   ```
-LDB reads the contents of path but finds no new objects after the de-duplication.
+LDB reads the contents of path but adds no new objects because it recognizes input objects as duplicates.
   
 🦉
 </details>
 
 <details>
-  <summary>Cloud search by file attributes</summary>
+  <summary>Finding data samples by file attributes</summary>
   
 🦉  
 
