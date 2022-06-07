@@ -2,15 +2,16 @@
 
 Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and intends to index data in the *cloud storages* and *data lakes*, organizing pointers to data samples into datasets.
 
-**LDB** aims to displace ad-hoc dataset management and de-duplication tools – such as file folders, spreadsheets and SQL databases. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
+**LDB** aims to displace ad-hoc dataset management and de-duplication devices – such as file folders, spreadsheets, SQL databases and dataloader configurations. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB integrates with model-based ML pipelines. 
 
 **Key LDB features**:
 
-*  MLOps-grade **command line** experience. 
-* Lightweight management of data sources. Data objects can exist anywhere in local storage, S3, Google Cloud, or Azure. There is **no need** to **move or duplicate** data objects in order to create, share or modify a dataset (named collection of pointers).
-* Advanced manipulation and versioning for datasets. Collections can be cloned, queried, merged, and sampled. **Every change in a dataset is tracked**, and provenance of constituent objects can be verified at all times.
-* Label-aware operations. Objects can be selected based on **annotation metadata, file attributes, or custom ML model queries**, and changes to ingress object metadata are versioned. 
-* **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
+* **command line** (MLOps oriented). 
+* Datasets are defined as collections of pointers into storage locations, where **every change is tracked**
+* Since datasets use pointers, there is **no need** to **move or duplicate** actual data objects to create, share or modify datasets
+* LDB datasets are easily cloned, merged, splitted, and sampled
+* **Annotation-aware workflow**. Objects can be selected based on JSON metadata, file attributes, or custom ML model queries, and all changes to annotations are versioned. 
+* **LDB datasets are fully reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data objects and annotations. Data samples can be placed in a shared cache during instantiation, so transfers from remote locations are accelerated.
 
 ### Contents
 
@@ -46,15 +47,15 @@ Full LDB command summary [here](documentation/Command-summary.md)
 
 ### How LDB works
 
-LDB indexes immutable storage locations and notes all unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. Note that LDB does not save data objects internally, and relies on persistent storage locations to serve (instantiate) the datasets in the future (for training and examination).
+LDB indexes immutable storage and notes unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that work like collections of sparse pointers into the storage. LDB does not save data objects internally, and depends on their persistent storage locations to materialize (instantiate) datasets on demand.
 
 ![ldb-intro](images/ldb-struct.png)
 
-The main use case for LDB is to create and maintain persistent collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or other datasets (e.g. samples annotated with a certain class, created at given time, contains a given number of event instances, etc). 
+The main use case for LDB is to create and maintain sparse collections of cloud-based objects. These collections (datasets) are filled by logical queries into the index or into other datasets (e.g. samples with certain file attributs, annotated with a certain class, created at given time, containing a given number of event instances, etc). 
 
-Datasets can then be shared and versioned within LDB, which makes collaboration on dataset membership state (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
+LDB datasets can then be shared and versioned, which makes any membership changes (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
-Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into ephemeral workspace and compiles the linked annotations. Since storage is immutable and all dataset state is kept within LDB, this workspace can be safely erased after the experiment is complete.
+Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the local workspace and recreates all linked annotations. Since storage is immutable and dataset state is kept within LDB, the local workspace can be safely erased after the experiment is complete.
 
 ## Quick Start
 Please refer to [LDB workflow](documentation/Getting-started-with-LDB.md) for more a detailed discussion of the Data-driven AI methodology.
