@@ -2,22 +2,27 @@
 
 Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages* and *data lakes* into reproducible datasets.
 
-**LDB** aims to displace ad-hoc dataset management, data search and de-duplication devices – such as file folders, spreadsheets, SQL databases and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB can feed data directly into the model training and evaluation pipelines, including modern registry-based model cards.
+**LDB** aims to displace ad-hoc dataset management, data search and de-duplication tools – such as file folders, spreadsheets, and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB provides data files for model training and evaluation pipelines, including modern registry-based model cards.
 
 **Key LDB features**:
 
-* **command line** (MLOps oriented). 
-* LDB manages datasets as tracked collections of pointers into storage locations
-* Since LDB datasets use pointers, there is **no need** to **move or duplicate** cloud data objects to create, share or modify datasets
+* **command line tool** (MLOps oriented). 
+* LDB manages datasets as versioned collections of pointers into storage locations with automatic de-duplication
+* Since LDB datasets use pointers, there is **no need** to **move or copy** data objects to create, share or modify datasets
 * LDB datasets are purely logical, so they are easily cloned, merged, sliced, and sampled
-* **Search in the cloud capabilities**. Data objects can be selected based on JSON annotation fields, file attributes, or helper ML model queries. Annotations changes are tracked and versioned. 
-* **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data samples and annotations. Data objects can be placed in cache during instantiation, so repeated transfers from remote locations are vastly accelerated.
+* **Search in the cloud:** data objects can be selected based on JSON annotations, file attributes, or helper ML model queries. 
+* **Annotation tracking:** JSON annotations are tracked and versioned during indexing
+* **LDB datasets are reproducible:** a particular dataset version will always point to the same collection of data samples and annotations 
+* **LDB datasets are shareable:** LDB supports team collaboration
+* **Cloud optimization:** LDB caches objects during instantiation, increasing speed and reducing cloud egrees costs
 
 ### Contents
 
 - [Installation](#installation)
 - [How LDB works](#how-ldb-works)
 - [LDB versus other versioning tools](#ldb-versus-other-versioning-tools)
+- [LDB commands](#ldb-commands)
+- [Quick recipes](#quick-recipes)
 - [Contributing to LDB](#contributing)
 
 ## Installation
@@ -57,6 +62,8 @@ LDB datasets can then be shared and versioned, which makes any membership change
 Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from cloud storage into the local workspace and recreates all linked annotations. Since storage is immutable and dataset state is kept within LDB, the local workspace can be safely erased after the experiment is complete. 
 
 TODO: LDB supports local caching of instantiated data, so sucessive object materializations do not need to repeat cloud transfers.
+
+## LDB commands
 
 <details>
   <summary>LDB command cheat sheet</summary>
@@ -164,7 +171,9 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 🦉
 </details>
 
-## LDB quick recipes
+Full LDB command summary [is here](documentation/Command-summary.md)
+
+## Quick recipes
 
 <details>
   <summary>Basic data retrieval and de-duplication</summary>
