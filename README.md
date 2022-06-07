@@ -54,10 +54,12 @@ The main use case for LDB is to create and maintain sparse collections of cloud-
 
 LDB datasets can then be shared and versioned, which makes any membership changes (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
-Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from storage into the local workspace and recreates all linked annotations. Since storage is immutable and dataset state is kept within LDB, the local workspace can be safely erased after the experiment is complete.
+Whenever a dataset needs to be instantiated (for instance, to run a model experiment), LDB copies all relevant objects from cloud storage into the local workspace and recreates all linked annotations. Since storage is immutable and dataset state is kept within LDB, the local workspace can be safely erased after the experiment is complete. 
+
+TODO: LDB also caches instantiation results locally, so subsequent materializations of repeating objects do not go through cloud transfer again.
 
 <details>
-  <summary>LDB cheat sheet</summary>
+  <summary>LDB command cheat sheet</summary>
   
 🦉
  
