@@ -17,7 +17,6 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 
 - [Installation](#installation)
 - [How LDB works](#how-ldb-works)
-- [Quick start](#quick-start)
 - [LDB versus other versioning tools](#ldb-versus-other-versioning-tools)
 - [Contributing to LDB](#contributing)
 
@@ -32,12 +31,12 @@ pip install ldb-alpha
 ### installation with ML plugins **(optional)**
 
 ```sh
-pip install 'ldb-alpha[clip-plugin,resnet-plugin]' 
+pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
 ```
 
-### sample dataset with curl **(optional)**
+### add anonymous access to s3 sample datasets **(optional, needed you do not have s3 credentials)**
 ```
-curl -L https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.tar.gz | tar xz
+ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
 
 More sample datasets [here](documentation/Datasets.md)
@@ -62,9 +61,9 @@ Whenever a dataset needs to be instantiated (for instance, to run a model experi
   
 🦉
  
- **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. To set up a shared LDB instance for a team or an instance in a different location, please follow [LDB team setup](documentation/Quick-start-teams.md).
+> **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. If no LDB instance is found, >a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. To set up a shared LDB instance for a team >or an instance in a different location, please follow [LDB team setup](documentation/Quick-start-teams.md).
  
-**LDB dataset** is a collection of pointers into storage. 
+>**LDB dataset** is a collection of pointers into storage. 
 
  ### Staging a new dataset 
 
@@ -162,7 +161,117 @@ Whenever a dataset needs to be instantiated (for instance, to run a model experi
 
 🦉
 </details>
- 
+
+## LDB quick recipes
+
+<details>
+  <summary>Basic data de-duplication</summary>
+  
+🦉  
+
+```
+ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t animals
+  
+  Staged ds:.temp.2022-06-07T00:46:33.865467+00:00 at 'animals'
+  Adding to working dataset...
+  Added 200 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
+  Instantiating data...
+
+  Copied data to workspace.
+    Data objects:       200
+    Annotations:        200
+
+```
+At this point, a public path s3 path was indexed, and 200 objects added to temporaty dataset in folder `animals`, after which the dataset was materialized. Let's try to add the same objects again to see if the duplicate entries arise:
+
+  ```
+  cd animals
+  ldb add s3://ldb-public/remote/data-lakes/dogs-and-cats/
+  
+  Adding to working dataset...
+  Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
+  ```
+LDB reads the contents of path but finds no new objects after the de-duplication.
+  
+🦉
+</details>
+
+<details>
+  <summary>Cloud search by file attributes</summary>
+  
+🦉  
+
+Searching by name patterns and file attributes are standard for unix filestystem find(1) utility and similar tools, but are not easily available for cloud-based data objects. LDB fills this gap by storing file attributes in JSON format at indexing time an allowing to query via JMESPATH. The `--path` option works as a shortcut for regular expression search in the path:
+  
+```
+ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-animals
+  
+  Staged ds:.temp.2022-06-07T02:36:45.674861+00:00 at 'some-animals'
+  Adding to working dataset...
+  Added 3 data objects to ds:.temp.2022-06-07T02:36:45.674861+00:00
+  Instantiating data...
+
+  Copied data to workspace.
+    Data objects:       3
+    Annotations:        3
+  
+```
+
+  
+      <details>
+        <summary>The full list of JSON file fields</summary>
+
+      🦉
+        ``` 
+       ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
+
+          id:98603fb145b88c265fb4a745e6aaf806
+          {
+            "alternate_paths": [
+              {
+                "fs_id": "",
+                "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
+                "protocol": [
+                  "s3",
+                  "s3a"
+                ]
+              }
+            ],
+            "first_indexed": "2022-06-07T03:00:54.270212+00:00",
+            "fs": {
+              "atime": null,
+              "ctime": null,
+              "fs_id": "",
+              "gid": null,
+              "mode": 0,
+              "mtime": null,
+              "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
+              "protocol": [
+                "s3",
+                "s3a"
+              ],
+              "size": 26084,
+              "uid": null
+            },
+            "last_indexed": "2022-06-07T03:00:54.270212+00:00",
+            "last_indexed_by": "dkh",
+            "tags": [],
+            "type": "jpg"
+          }
+        ```
+
+        🦉
+      </details>
+  
+As usual for JMESPATH queries, they can be pipelined and use language functions:
+  ```
+  
+  
+  
+  ```
+  
+🦉
+</details>
  
 ## LDB versus other versioning tools
 
@@ -174,6 +283,5 @@ On the opposite, LDB is an indexing service over immutable storage, and treats d
 
 ## Contributing
 
-```
 Contributions are welcome! Pre-beta testers, please contact us for access.
-```
+
