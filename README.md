@@ -118,7 +118,7 @@ ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/
 ls some-animals/
   
   dog-1020-98603fb145b88c265fb4a745e6aaf806.jpg	dog-1021-b006d725ffaff548502933ac612c497b.jpg	dog-1022-e35bfd65702d5b3a55be121e06095fa4.jpg
-  dog-1020-98603fb145b88c265fb4a745e6aaf806.json	dog-1021-b006d725ffaff548502933ac612c497b.json	dog-1022-e35bfd65702d5b3a55be121e06095fa4.json
+  dog-1020-98603fb145b88c265fb4a745e6aaf806.json dog-1021-b006d725ffaff548502933ac612c497b.json	dog-1022-e35bfd65702d5b3a55be121e06095fa4.json
   
 ```
   
