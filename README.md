@@ -9,7 +9,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 * **command line** (MLOps oriented). 
 * LDB manages datasets as tracked collections of pointers into storage locations
 * Since LDB datasets use pointers, there is **no need** to **move or duplicate** cloud data objects to create, share or modify datasets
-* LDB datasets are logical, so they are easily cloned, merged, sliced, and sampled
+* LDB datasets are purely logical, so they are easily cloned, merged, sliced, and sampled
 * **Search in the cloud capabilities**. Data objects can be selected based on JSON annotation fields, file attributes, or helper ML model queries. Annotations changes are tracked and versioned. 
 * **LDB datasets are reproducible,** **shareable, and fast to materialize**. A particular dataset version will always point to the same set of data samples and annotations. Data objects can be placed in cache during instantiation, so repeated transfers from remote locations are vastly accelerated.
 
@@ -199,7 +199,7 @@ LDB reads the contents of path but adds no new objects because it recognizes inp
 </details>
 
 <details>
-  <summary>Finding data samples by file attributes</summary>
+  <summary>Retrieving data samples by file attributes</summary>
   
 🦉  
 
@@ -271,6 +271,51 @@ As usual for JMESPATH queries, they can be pipelined, and use language functions
   ldb list ds:root --file 'fs.protocol[0] == `s3`' --file 'type == `jpg` && fs.size < `20000`'
   ```
   
+🦉
+</details>
+
+<details>
+  <summary>Retrieving data samples by querying JSON annotations</summary>
+
+🦉
+``` 
+       ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
+
+          id:98603fb145b88c265fb4a745e6aaf806
+          {
+            "alternate_paths": [
+              {
+                "fs_id": "",
+                "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
+                "protocol": [
+                  "s3",
+                  "s3a"
+                ]
+              }
+            ],
+            "first_indexed": "2022-06-07T03:00:54.270212+00:00",
+            "fs": {
+              "atime": null,
+              "ctime": null,
+              "fs_id": "",
+              "gid": null,
+              "mode": 0,
+              "mtime": null,
+              "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
+              "protocol": [
+                "s3",
+                "s3a"
+              ],
+              "size": 26084,
+              "uid": null
+            },
+            "last_indexed": "2022-06-07T03:00:54.270212+00:00",
+            "last_indexed_by": "dkh",
+            "tags": [],
+            "type": "jpg"
+          }
+```
+
 🦉
 </details>
  
