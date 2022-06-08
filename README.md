@@ -113,7 +113,7 @@ LDB reads the contents of path but adds no new objects because it recognizes all
   
   
 ```
-ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-animals
+ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-dogs
   
 ```
   
