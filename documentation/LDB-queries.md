@@ -328,7 +328,7 @@ Here are some query examples, from simple to more advanced:
      185.858
     ```
     
-- **Query** **objects when keys can be absent**
+- **Query** **objects when keys can be null**
     
     Input: JSON annotation that may have several object instances, but existence of array is not guaranteed:
     
@@ -355,7 +355,7 @@ Here are some query examples, from simple to more advanced:
     ldb add --query 'length(instances) == `3`' 
     ```
     
-    If we run the above query over annotations that do not have array "instances", JMESPATH function `length()` will fail:
+    If we run the above query over annotations where key "instances" is null, JMESPATH function `length()` will fail:
     
     ```bash
     
@@ -364,11 +364,11 @@ Here are some query examples, from simple to more advanced:
     ERROR: In function length(), invalid type for value: None, expected one of: ['string', 'array', 'object'], received: "null"
     ```
     
-    To prevent this failure, we can add a check for key presence:
+    To prevent this failure, we can add a check if key is not null:
     
     ```bash
     
-    ldb add --query 'instances && length(instances) == `3`' 
+    ldb add --query 'not_null(instances) && length(instances) == `3`' 
     ```
     
 - **Isolate objects with a helper ML model:**
@@ -610,8 +610,11 @@ Advanced examples
     $ ldb eval --query 'sum(segments[?contains(labels, `Positive`)].sub(end, start))'
     $ ldb list --query 'sum(segments[?contains(labels, `Positive`)].sub(end, start)) > `0.3`'
     ```
-    
-- TODO: **Full list of** **LDB-specific functions**
+- Built-in JMESPATH functions
+
+   JMESPATH specification comes with a [vast array of built-in functions](https://jmespath.org/specification.html#built-in-functions) like abs, avg. ceil, contains, not_null, max, sort, and so forth. 
+   
+- **Full list of** **LDB-specific functions**
     
     LDB is bundled with several functions that extend JMESPATH built-ins:
     
@@ -625,6 +628,7 @@ Advanced examples
     - `dotproduct(array, array)` → scalar                       # arrays must match in dimensions
     - `unique(array)` → vector                                             # input array is flattened
     - `regex(object, regex_query)` → boolean                 # rules of regex
+    
 - TODO: **Custom (user-defined) functions**
     
     Users can define custom functions for complex queries. 
