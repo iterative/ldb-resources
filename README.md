@@ -97,29 +97,26 @@ LDB reads the contents of path but adds no new objects because it recognizes all
 </details>
 
 <details>
-  <summary>Retrieve data samples by file attributes</summary>
+  <summary>Find and retrieve data samples by file attributes</summary>
   
 
-🦉 Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions: 
+🦉 Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions.
+
+  For one example, time-based file search of object in LDB index can look like this:
+
+```
+  ldb list ds:root --file 'fs.mtime > `2022-03-03`'
+ 
+```
+  
+  For another example, retrieval based on the regular expression match in the path can look like this:
   
   
 ```
 ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-animals
   
-  Staged ds:.temp.2022-06-07T02:36:45.674861+00:00 at 'some-animals'
-  Adding to working dataset...
-  Added 3 data objects to ds:.temp.2022-06-07T02:36:45.674861+00:00
-  Instantiating data...
-
-  Copied data to workspace.
-    Data objects:       3
-    Annotations:        3
-  
-ls some-animals/
-  
-  dog-1020-98603fb145b88c265fb4a745e6aaf806.jpg dog-1021-b006d725ffaff548502933ac612c497b.jpg dog-1022-e35bfd65702d5b3a55be121e06095fa4.jpg dog-1020-98603fb145b88c265fb4a745e6aaf806.json dog-1021-b006d725ffaff548502933ac612c497b.json dog-1022-e35bfd65702d5b3a55be121e06095fa4.json
-  
 ```
+  
 LDB stores file attributes collected during indexing in a JSON schema, so in the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON `fs.path` attribute (equivalent to ```--file 'regex(fs.path, `EXPR`)'```.  
   
   <details>
