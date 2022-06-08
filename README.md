@@ -184,7 +184,7 @@ Most everyday data selection tasks appear simple and elegant in JMESPATH. For ex
   ```
   ldb list --query 'inference.confidence < 0.3
   ```
-  JMESPATH is fundamentally a JSON expression reducer, and can be extended with custom functions. LDB provides some handy functions out of the box, for example – to compute the total area of (possibly overlapping) bounding boxes for all images in workspace, one can project dimension metrics into arrays and use dotproduct(array, array) to compute the final result:
+  JMESPATH is a powerful JSON expression reducer, and can be extended with custom functions. LDB provides some handy functions out of the box, for example – to compute the total area of (possibly overlapping) bounding boxes for all images in workspace, one can project dimension metrics into arrays and use dotproduct(array, array) to compute the final result:
   
   ```
   ldb eval --query 'dotproduct(b_boxes[*].width, b_boxes[*].height))'
