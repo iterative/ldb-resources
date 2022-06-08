@@ -184,7 +184,7 @@ Most everyday data selection tasks appear simple and elegant in JMESPATH. For ex
   ```
   ldb list --query 'inference.confidence < 0.3
   ```
-  JMESPATH is a powerful JSON expression reducer, and can be extended with custom functions. LDB provides some handy functions out of the box, for example – to compute the total area of (possibly overlapping) bounding boxes for all images in workspace, one can project dimension metrics into arrays and use dotproduct(array, array) to compute the final result:
+  JMESPATH is a powerful JSON expression reducer, and can be extended with [custom functions](documentation/Command-summary.md#user-defined-custom-query-functions). LDB also provides some handy functions out of the box, for example – to compute the total area of (possibly overlapping) bounding boxes for all images in workspace, one can project dimension metrics into arrays and use dotproduct(array, array) to compute the final result:
   
   ```
   ldb eval --query 'dotproduct(b_boxes[*].width, b_boxes[*].height))'
@@ -211,8 +211,34 @@ For example, the following line uses ML helper to detect cat colors (which are n
   ldb list s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' --pipe clip-text 'black dog' --limit 3
 
   ```
+ 
+🦉
+</details>
 
+<details>
+  <summary>Slicing/dicing and merging the datasets</summary>
+
+🦉 LDB supports many ways to manipulate dataset membership. For example, the following expression merges two datasets, shuffles the result and dispenses first 100 members into the workspace.
+
+  ```
+  ldb add ds:dogs ds:cats --shuffle --limit 100
+  ```
   
+  Similarly, here is a way to add objects present in dataset A but not present in dataset B:
+  
+  ```
+  ldb add ds:A
+  ldb del ds:B
+  ```
+  
+  Membership operations are not limited to named datasets already saved into LDB. For example, one can stage unnamed (temporary) dataset with `GET` and sample the result using the workspace notation `ws:`:
+  
+  ```
+  ldb stage animals
+  ldb stage s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' -t more-animals/
+  ldb add ws:./more-animals --sample 0.5
+  ``
+ 
 🦉
 </details>
  
