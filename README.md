@@ -113,7 +113,7 @@ LDB reads the contents of path but adds no new objects because it recognizes all
   
   
 ```
-ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t some-dogs
+ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.102[0-2]+' -t some-dogs
   
 ```
   
@@ -190,6 +190,28 @@ Most everyday data selection tasks appear simple and elegant in JMESPATH. For ex
   ldb eval --query 'dotproduct(b_boxes[*].width, b_boxes[*].height))'
   ```
 Please refer to the [queries](documentation/LDB-queries.md) document for more examples of JMESPATH expressions.
+  
+🦉
+</details>
+
+<details>
+  <summary>Search data samples with ML helpers</summary>
+
+🦉 Sometimes there is a need to locate data samples that lack annotations, or must be indentified by criteria other than labels. In that case, LDB provides a convenience harness for programs that can filter or sort samples by looking deeper. 
+    
+For example, the following line uses ML helper to detect cat colors (which are not present in annotations):
+
+  ```
+  ldb list s3://ldb-public/remote/data-lakes/dogs-and-cats/ --pipe clip-text 'black cat' --limit 10
+  ```
+  
+  Since helpers can be computationally expensive to run, it also makes sense to reduce their scope of operation. LDB queries are pipelined, which means flags are executed in the order of appearance and can be used to limit the scope for downstream ML filters:
+  
+  ```
+  ldb list s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' --pipe clip-text 'black dog' --limit 3
+
+  ```
+
   
 🦉
 </details>
