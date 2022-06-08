@@ -65,9 +65,9 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 <details>
   <summary>Cloud data retrieval and de-duplication</summary>
   
+
 🦉 
-  
-  The simplest way to form a dataset from cloud and materialize it in LDB is by using the [GET](documentation/Command-summary.md#get) command, which can point to cloud location, index it, add data objects into a specified dataset and instantiate it in one shot: 
+The simplest way to form a dataset from cloud and materialize it in LDB is by using the [GET](documentation/Command-summary.md#get) command, which can point to cloud location, index it, add data objects into a specified dataset and instantiate it in one shot: 
 
 ```
 ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t animals
@@ -99,9 +99,8 @@ LDB reads the contents of path but adds no new objects because it recognizes all
 <details>
   <summary>Retrieve data samples by file attributes</summary>
   
-🦉  
 
-Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions: 
+🦉 Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions: 
   
   
 ```
@@ -180,8 +179,8 @@ File attribites schema works just like any other JSON, for example JMESPATH `--f
 <details>
   <summary>Retrieve data samples by querying JSON annotations</summary>
 
-🦉
-LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is compact and sufficiently expressive to cover most operations normally achieved custom coding. JMESPATH is fundamentally a JSON expressions reducer, and is extensible with custom functions.
+
+🦉 LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is compact and sufficiently expressive to cover most operations normally achieved custom coding. JMESPATH is fundamentally a JSON expressions reducer, and is extensible with custom functions.
     
 Most everyday data selection tasks appear simple and elegant in JMESPATH. For example, choose objects with confidence below a threshold:
 
@@ -204,9 +203,8 @@ Please refer to the [queries](documentation/LDB-queries.md) document for more ex
 <details>
   <summary>LDB command cheat sheet</summary>
   
-🦉
- 
-> **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. If no LDB instance is found, >a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. To set up a shared LDB instance for a team >or an instance in a different location, please follow [LDB team setup](documentation/Quick-start-teams.md).
+🦉 
+> **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. To set up a shared LDB instance for a team or an instance in a different location, please follow [LDB team setup](documentation/Quick-start-teams.md).
  
 >**LDB dataset** is a collection of pointers into storage. 
 
