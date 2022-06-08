@@ -35,10 +35,16 @@ Here is what is currently supported:
     "label": 1
   }
   ```
+* `label-studio` - This handles exports from a Label Studio instance in the [JSON format](https://labelstud.io/guide/export.html#JSON). Each export should be a single JSON file containing a top-level array of JSON objects following Label Studio's [raw JSON format](https://labelstud.io/guide/export.html#Label-Studio-JSON-format-of-annotated-tasks). LDB will treat each JSON object in this top-level array as an annotation.
+
+  Under Label Studio's JSON format, [certain keys](https://labelstud.io/guide/export.html#Relevant-JSON-property-descriptions) are expected to be present, including a `data` key with information about the labeling task. LDB will populate some data under `data.data-object-info`, if it doesn't already exist. In particular, LDB will make sure the following fields exist:
+  * `data.data-object-info.path_key` - The key of the data object's URI. Usually a sub-key of `data`, such as `data.image`. This can be inferred by LDB if there is only one key under `data` aside from `data-object-info`. If present, LDB will use the existing value. LDB needs the URI of the data object in order to index it if it hasn't already been indexed by LDB.
+  * `data.data-object-info.md5` - The MD5 hash of the data object. If this key is already present, and the hash matches a data object LDB has indexed previously, then LDB does not need to index this annotation's data object.
+
+  These fields allows Label Studio tasks to be passed between LDB and Label Studio instances repeatedly while maintaining consistent data object identifiers and avoiding repeated indexing of the same data objects.
 
 TODO
 
-* label-studio format description
 * some format extension that serves http/https
   * Should we allow "path" key in "ldb_meta" object of 'annotation-only' to specify an object location?
   * Should we allow top-level array in 'annotation-only' to describe multiple files?
