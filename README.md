@@ -52,7 +52,7 @@ Full LDB command summary [is here](documentation/Command-summary.md)
 LDB indexes immutable storage and notes unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that operate like collections of sparse pointers into the storage. LDB does not save data objects internally, and depends on their persistent storage locations to materialize (instantiate) datasets on demand.
 
 
-<img src="images/LDB-schema.png"  width=50% height=50%>
+<img src="images/LDB-graph.png"  width=50% height=50%>
 
 LDB datasets can then be shared and versioned, which makes any membership changes (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
