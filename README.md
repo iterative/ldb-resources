@@ -13,15 +13,15 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 * **Search in the cloud:** data objects can be selected based on JSON annotations, file attributes, or helper ML model queries 
 * **Annotation tracking:** JSON annotations are tracked and versioned during indexing
 * **Reproducibility and sharing:** every LDB dataset version always points to the same collection of data samples and can be easily shared
-* **Cloud optimization:** LDB caches objects during instantiation, increasing speed and reducing cloud egrees costs
+* **Cloud optimization:** LDB caches objects during instantiation, increasing speed and reducing cloud egress costs
 
 ### Contents
 
 - [Installation](#installation)
 - [How LDB works](#how-ldb-works)
-- [LDB versus other versioning tools](#ldb-versus-other-versioning-tools)
 - [What LDB can do](#what-ldb-can-do)
 - [LDB commands](#ldb-commands)
+- [LDB versus other versioning tools](#ldb-versus-other-versioning-tools)
 - [Contributing to LDB](#contributing)
 
 ## Installation
@@ -121,54 +121,54 @@ ls some-animals/
   dog-1020-98603fb145b88c265fb4a745e6aaf806.jpg dog-1021-b006d725ffaff548502933ac612c497b.jpg dog-1022-e35bfd65702d5b3a55be121e06095fa4.jpg dog-1020-98603fb145b88c265fb4a745e6aaf806.json dog-1021-b006d725ffaff548502933ac612c497b.json dog-1022-e35bfd65702d5b3a55be121e06095fa4.json
   
 ```
-In the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON path attribute (equivalent to ```--file 'regex(fs.path, `EXPR`)'```. LDB stores file attributes collected during indexing in a simple schema format: 
+LDB stores file attributes collected during indexing in a JSON schema, so in the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON `fs.path` attribute (equivalent to ```--file 'regex(fs.path, `EXPR`)'```.  
   
-<details>
-  <summary>Sample LDB-indexed data file attributes</summary>
+  <details>
+    <summary>Sample LDB-indexed file attributes</summary>
 
-🪶
-``` 
-       ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
+  🪶
+  ``` 
+         ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
 
-          id:98603fb145b88c265fb4a745e6aaf806
-          {
-            "alternate_paths": [
-              {
+            id:98603fb145b88c265fb4a745e6aaf806
+            {
+              "alternate_paths": [
+                {
+                  "fs_id": "",
+                  "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
+                  "protocol": [
+                    "s3",
+                    "s3a"
+                  ]
+                }
+              ],
+              "first_indexed": "2022-06-07T03:00:54.270212+00:00",
+              "fs": {
+                "atime": null,
+                "ctime": null,
                 "fs_id": "",
+                "gid": null,
+                "mode": 0,
+                "mtime": null,
                 "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
                 "protocol": [
                   "s3",
                   "s3a"
-                ]
-              }
-            ],
-            "first_indexed": "2022-06-07T03:00:54.270212+00:00",
-            "fs": {
-              "atime": null,
-              "ctime": null,
-              "fs_id": "",
-              "gid": null,
-              "mode": 0,
-              "mtime": null,
-              "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
-              "protocol": [
-                "s3",
-                "s3a"
-              ],
-              "size": 26084,
-              "uid": null
-            },
-            "last_indexed": "2022-06-07T03:00:54.270212+00:00",
-            "last_indexed_by": "dkh",
-            "tags": [],
-            "type": "jpg"
-          }
-```
+                ],
+                "size": 26084,
+                "uid": null
+              },
+              "last_indexed": "2022-06-07T03:00:54.270212+00:00",
+              "last_indexed_by": "dkh",
+              "tags": [],
+              "type": "jpg"
+            }
+  ```
 
-🪶
-</details>
+  🪶
+  </details>
 
-File schema works just like any other JSON, for example JMESPATH queries to file attributes can be pipelined:
+File attribites schema works just like any other JSON, for example JMESPATH `--file` queries can be pipelined and use comparators and functions:
   
   ```
   ldb list ds:root --file 'fs.protocol[0] == `s3`' --file 'type == `jpg` && fs.size < `20000`'
@@ -181,47 +181,23 @@ File schema works just like any other JSON, for example JMESPATH queries to file
   <summary>Retrieve data samples by querying JSON annotations</summary>
 
 🦉
-``` 
-       ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
+LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is compact and sufficiently expressive to cover most operations normally achieved custom coding. JMESPATH is fundamentally a JSON expressions reducer, and is extensible with custom functions.
+    
+Most everyday data selection tasks appear simple and elegant in JMESPATH. For example, choose objects with confidence below a threshold:
 
-          id:98603fb145b88c265fb4a745e6aaf806
-          {
-            "alternate_paths": [
-              {
-                "fs_id": "",
-                "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
-                "protocol": [
-                  "s3",
-                  "s3a"
-                ]
-              }
-            ],
-            "first_indexed": "2022-06-07T03:00:54.270212+00:00",
-            "fs": {
-              "atime": null,
-              "ctime": null,
-              "fs_id": "",
-              "gid": null,
-              "mode": 0,
-              "mtime": null,
-              "path": "ldb-public/remote/data-lakes/dogs-and-cats/dog.1020.jpg",
-              "protocol": [
-                "s3",
-                "s3a"
-              ],
-              "size": 26084,
-              "uid": null
-            },
-            "last_indexed": "2022-06-07T03:00:54.270212+00:00",
-            "last_indexed_by": "dkh",
-            "tags": [],
-            "type": "jpg"
-          }
-```
+  ```
+  ldb list --query 'inference.confidence < 0.3
+  ```
+  Or, to compute the total area of all (possibly overlapping) bounding boxes for all images in workspace:
+  
+  ```
+  ldb eval --query 'dotproduct(b_boxes[*].width, b_boxes[*].height))'
+  ```
 
 🦉
 </details>
  
+Please refer to the [queries](documentation/LDB-queries.md) document for more examples on JMESPATH expressions.
 
 ## LDB commands
 
