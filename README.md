@@ -193,11 +193,11 @@ Most everyday data selection tasks appear simple and elegant in JMESPATH. For ex
   ```
   ldb eval --query 'dotproduct(b_boxes[*].width, b_boxes[*].height))'
   ```
-
+Please refer to the [queries](documentation/LDB-queries.md) document for more examples on JMESPATH expressions.
+  
 🦉
 </details>
  
-Please refer to the [queries](documentation/LDB-queries.md) document for more examples on JMESPATH expressions.
 
 ## LDB commands
 
