@@ -359,7 +359,7 @@ Here are some query examples, from simple to more advanced:
     
     ```bash
     
-    $ ldb eval  'length(instances) == `3`' 0x18de96e5871380ce1594b55d906ca816
+    $ ldb eval 'length(instances) == `3`' 18de96e5871380ce1594b55d906ca816
     
     ERROR: In function length(), invalid type for value: None, expected one of: ['string', 'array', 'object'], received: "null"
     ```
@@ -388,7 +388,7 @@ Advanced examples
 
 - **Array operations: indexing**, **slicing, flattening, projections, filters**
     
-    Input: Annotation for object `0x0dc11270eb2c136b454859df4b472aed`:
+    Input: Annotation for object `id:0dc11270eb2c136b454859df4b472aed`:
     
     ```json
     {
@@ -413,7 +413,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval 'instances[0]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[0]' id:0dc11270eb2c136b454859df4b472aed
     
     {
          "label": [
@@ -427,7 +427,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval 'instances[:2:]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[:2:]' id:0dc11270eb2c136b454859df4b472aed
     
     [
       {
@@ -446,7 +446,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval 'instances[1:].label' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[1:].label' id:0dc11270eb2c136b454859df4b472aed
     
     [
       "dog",
@@ -458,7 +458,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval 'instances[*].label[]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[*].label[]' id:0dc11270eb2c136b454859df4b472aed
     
     [
       "cat",
@@ -472,7 +472,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval 'instances[?contains(label,`cat`)]' 0x0dc11270eb2c136b454859df4b472aed
+    ldb eval 'instances[?contains(label,`cat`)]' id:0dc11270eb2c136b454859df4b472aed
     
     [
       {
@@ -488,7 +488,7 @@ Advanced examples
     
     ```bash
      
-    $ ldb eval 'instances[?contains(label,`dog`)] | [0] | label[?@==`cat`]' 0x0dc11270eb2c136b454859df4b472aed
+    $ ldb eval 'instances[?contains(label,`dog`)] | [0] | label[?@==`cat`]' id:0dc11270eb2c136b454859df4b472aed
     
     [
        "cat"
@@ -497,7 +497,7 @@ Advanced examples
     
 - **Object transforms:  list, hash**
     
-    Input: Annotation for object `0x18de96e5871380ce1594b55d906ca816`:
+    Input: Annotation for object `id:18de96e5871380ce1594b55d906ca816`:
     
     ```json
     {
@@ -513,7 +513,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval '{class:class}' 0x18de96e5871380ce1594b55d906ca816
+    ldb eval '{class:class}' id:18de96e5871380ce1594b55d906ca816
     
     {
       "class": "cat"
@@ -524,7 +524,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval '{breed:breed.{type:size}}' 0x18de96e5871380ce1594b55d906ca816
+    ldb eval '{breed:breed.{type:size}}' id:18de96e5871380ce1594b55d906ca816
     
     {
       "breed": {
@@ -537,7 +537,7 @@ Advanced examples
     
     ```bash
      
-    ldb eval '[class, breed]' 0x18de96e5871380ce1594b55d906ca816
+    ldb eval '[class, breed]' id:18de96e5871380ce1594b55d906ca816
     
     [
       "cat",
