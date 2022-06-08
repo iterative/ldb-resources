@@ -102,14 +102,14 @@ LDB reads the contents of path but adds no new objects because it recognizes all
 
 🦉 Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions.
 
-  For one example, time-based file search of object in LDB index can look like this:
+  For one example, time-based file search of objects in LDB index may look like this:
 
 ```
   ldb list ds:root --file 'fs.mtime > `2022-03-03`'
  
 ```
   
-  For another example, retrieval based on the regular expression match in the path can look like this:
+  For another example, retrieval based on the regular expression match in the path can be done as follows:
   
   
 ```
@@ -117,7 +117,7 @@ ldb get --path 'dog\.102[0-2]+' s3://ldb-public/remote/data-lakes/dogs-and-cats/
   
 ```
   
-LDB stores file attributes collected during indexing in a JSON schema, so in the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON `fs.path` attribute (equivalent to ```--file 'regex(fs.path, `EXPR`)'```.  
+LDB stores file attributes collected during indexing in a JSON schema, so in the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON `fs.path` attribute and is equivalent to ```--file 'regex(fs.path, `EXPR`)'```.  
   
   <details>
     <summary>Sample LDB-indexed file attributes</summary>
