@@ -177,19 +177,19 @@ File attribites schema works just like any other JSON, for example JMESPATH `--f
   <summary>Retrieve data samples by querying JSON annotations</summary>
 
 
-🦉 LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is compact and sufficiently expressive to cover most operations normally achieved custom coding. JMESPATH is fundamentally a JSON expressions reducer, and is extensible with custom functions.
+🦉 LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is sufficiently expressive to provide complex search capabilities without writing code. 
     
 Most everyday data selection tasks appear simple and elegant in JMESPATH. For example, choose objects with confidence below a threshold:
 
   ```
   ldb list --query 'inference.confidence < 0.3
   ```
-  Or, to compute the total area of all (possibly overlapping) bounding boxes for all images in workspace:
+  JMESPATH is fundamentally a JSON expression reducer, and can be extended with custom functions. LDB provides some handy functions out of the box, for example – to compute the total area of (possibly overlapping) bounding boxes for all images in workspace, one can project dimension metrics into arrays and use dotproduct(array, array) to compute the final result:
   
   ```
   ldb eval --query 'dotproduct(b_boxes[*].width, b_boxes[*].height))'
   ```
-Please refer to the [queries](documentation/LDB-queries.md) document for more examples on JMESPATH expressions.
+Please refer to the [queries](documentation/LDB-queries.md) document for more examples of JMESPATH expressions.
   
 🦉
 </details>
