@@ -25,6 +25,8 @@ Here is the internal structure of a workspace folder:
 
 Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `PULL` require a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` – will also target a staged dataset by default, but do not require a staged dataset if they are passed other dataset identifiers.
 
+If the dataset is create with `STAGE`, it already has a name. Datasets staged with `GET` are unnamed, and will get a name at a first commit.
+
 ## locating an LDB instance
 
 Every LDB command is linked to an instance where datasets and annotations are stored. There are two ways to locate an instance:
