@@ -242,6 +242,91 @@ For example, the following line uses ML helper to detect cat colors (which are n
 🦉
 </details>
  
+<details>
+  <summary>Version control datasets</summary>
+
+🦉 Version control is key to engineering discipline and result reproducibility. Most work in LDB happens in incremental changes that modify a temporary (workspace) dataset, but once this dataset is ready and is committed to LDB, it receives a linear version number (1,2,3 etc):
+
+  ```
+  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' -t more-animals/
+  cd more-animals/
+  ldb commit -name ds:more-animals
+  ```
+  
+  In the example above, folder `more-animals` is first staged with unnamed dataset, and then populated with data from cloud. The result is committed back into LDB and assigned a version number. A dataset reference without version number means the latest version, but a specific version can be also addressed:
+  
+  ```
+  ldb stage ds:more-animals.v1 -t temporary/
+  ```
+ 
+🦉
+</details>
+
+</details>
+ 
+<details>
+  <summary>Version control annotations</summary>
+
+🦉 Annotation updates are quite common, which is why LDB datasets consist of tuples (data object, annotation version). A new annotation version is created in LDB every time a sample is re-indexed. Note that new annotation version in LDB index is not automatically pushed to the datasets pointing towards the older version.
+
+  ```
+  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/
+  sed -i 's/class=dog/class=cat/g' dog-1009-7918d986e52f3b939ef49020307837b2.json
+  ldb index dog-1009-7918d986e52f3b939ef49020307837b2.json
+  ```
+  ^^^
+  This have physically changed one annotaton and updated it in LDB index, but the logical information about this annotation in the workspace has not changed. For that, one needs to use PULL command:
+  
+  ```
+  ldb pull dog-1009-7918d986e52f3b939ef49020307837b2.json
+  ```
+  
+ 
+🦉
+</details>
+
+<details>
+  <summary>Speed up cloud transfers to local machines</summary>
+
+🦉 TODO BETA: Using LDB has benefits even if workflow is a simple as downloading data samples from cloud. When data engineers work with overlapping datasets, or multiple team members check the same dataset out, this normally requires duplicate file transfers from cloud bearing time and cost penalties.
+  
+  LDB solves this problem by using instantiation cache which accumulates data objects referenced on a particular machine. This layer of indirection may greatly speed up working with medium and large-sized datasets.
+
+   Cache function requires no explicit configuration and is enabled by default.
+🦉
+</details>
+
+<details>
+  <summary>Dataset-level transform configurations</summary>
+
+🦉 Quite often, feeding data into the model requires pre-processing. For example, a model might need just the crops of the image in bounding boxes, or several still pictures extracted from a video object. Similarly, a model might take the original data and augment it for more robust training.
+  
+  Traditionally, this functionality is written as code predating the model training, which hinders important dataset parameters and makes it hard to work with modular card-level model libraries that lack pre-processing sections.
+  
+  LDB addresses this problem by allowing for transformation config to become a part of the dataset, where some (or all) objects are going through transform plugins at instantiation. This keeps data-level modifications bound to dataset itself, and leaves no hidden states for data before it enters the model. 
+  
+  By default, every LDB object has one (self-identity) transform attached to it:
+  
+  ```
+  ldb list
+      Data Object Hash                      Annot  Data Object Path          Transforms              
+       id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  self
+  ```
+  
+  However, the transformation set can have any number of plugins configured:
+  
+  ```
+  ldb transform -s rotate-90,rotate-180
+    Set transforms for 1 data objects in ds:ls-objects
+  ldb list
+      Data Object Hash                      Annot  Data Object Path          Transforms              
+       id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  rotate-180,rotate-90
+  ```
+  
+  see [command summary](documentation/Command-summary.md#transform) for more information.
+  
+🦉
+</details>
 
 ## LDB commands
 
