@@ -20,6 +20,7 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 - [Installation](#installation)
 - [How LDB works](#how-ldb-works)
 - [What LDB can do](#what-ldb-can-do)
+- [LDB tutorial](#ldb-tutorial)
 - [LDB commands](#ldb-commands)
 - [LDB versus other versioning tools](#ldb-versus-other-versioning-tools)
 - [Contributing to LDB](#contributing)
@@ -327,6 +328,10 @@ For example, the following line uses ML helper to detect cat colors (which are n
   
 🦉
 </details>
+
+## LDB tutorial
+
+Here is an [end-to-end tutorial](documentation/Getting-started-with-LDB.md) for a Data-driven AI task with LDB
 
 ## LDB commands
 
