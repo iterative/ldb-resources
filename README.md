@@ -235,7 +235,7 @@ For example, the following line uses ML helper to detect cat colors (which are n
   
   ```
   ldb stage animals
-  ldb stage s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' -t more-animals/
+  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' -t more-animals/
   ldb add ws:./more-animals --sample 0.5
   ```
  
