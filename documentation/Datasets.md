@@ -21,7 +21,7 @@ Schema looks as follows:
   "num_annotators": 4
 }
 ```
-**S3 url:**
+**S3 url bucket:**
 * s3://ldb-public/remote/data-lakes/dogs-and-cats/
 
 **Downloading as archive:**
@@ -36,6 +36,9 @@ ldb add s3://ldb-public/remote/data-lakes/dogs-and-cats/
 ldb eval --limit 3 --query '[class, inference.class]'
 ldb get ws:./ --pipe clip-text 'orange cats' --limit 10 -t orange-cats/
 ```
+
+### 
+
 
 ### TextOCR
 
