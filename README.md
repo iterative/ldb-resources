@@ -216,7 +216,7 @@ For example, the following line uses ML helper to detect cat colors (which are n
 </details>
 
 <details>
-  <summary>Slicing/dicing and merging the datasets</summary>
+  <summary>Slice/dice and merge datasets</summary>
 
 🦉 LDB supports many ways to manipulate dataset membership. For example, the following expression merges two datasets, shuffles the result and dispenses first 100 members into the workspace.
 
