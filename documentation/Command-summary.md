@@ -61,6 +61,27 @@ Below is an example of QuickStart, where user queries a remote storage in two co
 $ ldb stage ds:my-numerals 
 $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 ```
+### LDB command list
+
+- [INIT](#init)
+- [ADD-STORAGE](#add-storage)
+- [STAGE](#stage)
+- [INDEX](#index)
+- [ADD](#add)
+- [DEL](#del)
+- [TAG](#tag)
+- [SYNC](#sync)
+- [TRANSFORM](#transform)
+- [INSTANTIATE](#instantiate)
+- [GET](#get)
+- [COMMIT](#commit)
+- [DIFF](#diff)
+- [LIST](#list)
+- [STATUS](#status)
+- [PULL](#pull)
+- [DS](#ds)
+- [EVAL](#eval)
+- [COMPLETION](#completion)
 
 # INIT 
 
