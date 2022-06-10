@@ -66,8 +66,8 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 <details>
   <summary>Cloud data retrieval, de-duplication and caching</summary>
   
-
-🦉 
+ᐃ
+  
 The simplest way to form a dataset from cloud and materialize it in LDB is by using the [GET](documentation/Command-summary.md#get) command, which can point to cloud location, index it, add data objects into a specified dataset and instantiate it in one shot: 
 
 ```
@@ -98,14 +98,15 @@ TODO BETA: Another benefit of using LDB to service data objects from cloud locat
 
 Cache function in LDB requires no explicit configuration and is enabled by default.
   
-🦉
+ᐃ
 </details>
 
 <details>
   <summary>Find and retrieve data samples by file attributes</summary>
   
-
-🦉 Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions.
+ᐃ
+  
+Searching data by name patterns and file attributes is easy in filestystems with `find(1)` and similar tools, but is not readily available in the cloud. LDB fills this gap by storing file attributes in JSON format at indexing time and allowing to query them with JMESPATH expressions.
 
   For one example, time-based file search of objects in LDB index may look like this:
 
@@ -127,7 +128,8 @@ LDB stores file attributes collected during indexing in a JSON schema, so in the
   <details>
     <summary>Sample LDB-indexed file attributes</summary>
 
-  🪶
+  ᐃᐃ
+    
   ``` 
          ldb eval  id:98603fb145b88c265fb4a745e6aaf806   --file '@'
 
@@ -166,7 +168,7 @@ LDB stores file attributes collected during indexing in a JSON schema, so in the
             }
   ```
 
-  🪶
+  ᐃᐃ
   </details>
 
 File attribites schema works just like any other JSON, for example JMESPATH `--file` queries can be pipelined and use comparators and functions:
@@ -175,14 +177,15 @@ File attribites schema works just like any other JSON, for example JMESPATH `--f
   ldb list ds:root --file 'fs.protocol[0] == `s3`' --file 'type == `jpg` && fs.size < `20000`'
   ```
   
-🦉
+ᐃ
 </details>
 
 <details>
   <summary>Retrieve data samples by querying JSON annotations</summary>
 
+ᐃ
 
-🦉 LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is sufficiently expressive to provide complex search capabilities without writing code. 
+LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a Turing-complete language, but it is sufficiently expressive to provide complex search capabilities without writing code. 
     
 Most everyday data selection tasks appear simple and elegant in JMESPATH. For example, choose objects with confidence below a threshold:
 
@@ -196,13 +199,15 @@ Most everyday data selection tasks appear simple and elegant in JMESPATH. For ex
   ```
 Please refer to the [queries](documentation/LDB-queries.md) document for more examples of JMESPATH expressions.
   
-🦉
+ᐃ
 </details>
 
 <details>
   <summary>Search data samples with ML helpers</summary>
 
-🦉 Sometimes there is a need to locate data samples that lack annotations, or must be indentified by criteria other than labels. In that case, LDB provides a convenience harness for programs that can filter or sort samples by looking deeper. 
+ᐃ 
+  
+Sometimes there is a need to locate data samples that lack annotations, or must be indentified by criteria other than labels. In that case, LDB provides a convenience harness for programs that can filter or sort samples by looking deeper. 
     
 For example, the following line uses ML helper to detect cat colors (which are not present in annotations):
 
@@ -217,13 +222,15 @@ For example, the following line uses ML helper to detect cat colors (which are n
 
   ```
  
-🦉
+ᐃ
 </details>
 
 <details>
   <summary>Slice/dice and merge datasets</summary>
 
-🦉 LDB supports many ways to manipulate dataset membership. For example, the following expression merges two datasets, shuffles the result and dispenses first 100 members into the workspace.
+ᐃ 
+  
+LDB supports many ways to manipulate dataset membership. For example, the following expression merges two datasets, shuffles the result and dispenses first 100 members into the workspace.
 
   ```
   ldb add ds:dogs ds:cats --shuffle --limit 100
@@ -244,13 +251,15 @@ For example, the following line uses ML helper to detect cat colors (which are n
   ldb add ws:./more-animals --sample 0.5
   ```
  
-🦉
+ᐃ
 </details>
  
 <details>
   <summary>Version control datasets</summary>
 
-🦉 Version control is key to engineering discipline and result reproducibility. Most work in LDB happens in incremental changes that modify a temporary (workspace) dataset, but once this dataset is ready and is committed to LDB, it receives a linear version number (1,2,3 etc):
+ᐃ
+  
+Version control is key to engineering discipline and result reproducibility. Most work in LDB happens in incremental changes that modify a temporary (workspace) dataset, but once this dataset is ready and is committed to LDB, it receives a linear version number (1,2,3 etc):
 
   ```
   ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' -t more-animals/
@@ -264,7 +273,7 @@ For example, the following line uses ML helper to detect cat colors (which are n
   ldb stage ds:more-animals.v1 -t temporary/
   ```
  
-🦉
+ᐃ
 </details>
 
 </details>
@@ -272,7 +281,9 @@ For example, the following line uses ML helper to detect cat colors (which are n
 <details>
   <summary>Version control annotations</summary>
 
-🦉 Annotation updates are quite common, which is why LDB datasets consist of tuples (data object, annotation version). A new annotation version is created in LDB every time a sample is re-indexed. Note that new annotation version in LDB index is not automatically pushed to the datasets pointing towards the older version.
+ᐃ
+  
+Annotation updates are quite common, which is why LDB datasets consist of tuples (data object, annotation version). A new annotation version is created in LDB every time a sample is re-indexed. Note that new annotation version in LDB index is not automatically pushed to the datasets pointing towards the older version.
 
   ```
   ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/
@@ -285,13 +296,15 @@ For example, the following line uses ML helper to detect cat colors (which are n
   ```
   ldb pull dog-1009-7918d986e52f3b939ef49020307837b2.json
   ```
-🦉
+ᐃ
 </details>
 
 <details>
   <summary>Dataset-level transform configurations</summary>
 
-🦉 Feeding data into the model often requires pre-processing. For example, a model might use just the crops of the image in bounding boxes, or still pictures extracted from a video object. Similarly, a pre-processor might take the original data and augment it to increase the number of samples.
+ᐃ
+  
+Feeding data into the model often requires pre-processing. For example, a model might use just the crops of the image in bounding boxes, or still pictures extracted from a video object. Similarly, a pre-processor might take the original data and augment it to increase the number of samples.
   
   Traditionally, this functionality is written as code predating the training phase, which obscures the important dataset parameters and makes it harder to work with modular card-level models that lack pre-processors.
   
@@ -316,7 +329,7 @@ For example, the following line uses ML helper to detect cat colors (which are n
   ```
   see [command summary](documentation/Command-summary.md#transform) for more information on how to configure plugins.
   
-🦉
+ᐃ
 </details>
 
 ## LDB tutorial
@@ -328,7 +341,8 @@ Here is an [end-to-end tutorial](documentation/Getting-started-with-LDB.md) for 
 <details>
   <summary>LDB command cheat sheet</summary>
   
-🦉 
+ᐃ
+
 > **LDB instance** is a persistent structure where all information about known objects, labels and datasets is being stored. If no LDB instance is found, a private one will be created automatically in the `~/.ldb` directory the first time an LDB dataset is staged. To set up a shared LDB instance for a team or an instance in a different location, please follow [LDB team setup](documentation/Quick-start-teams.md).
  
 >**LDB dataset** is a collection of pointers into storage. 
@@ -427,7 +441,7 @@ Here is an [end-to-end tutorial](documentation/Getting-started-with-LDB.md) for 
  | Bump label version for an object to latest | `$   ldb add aws://my-awesome-bucket/1.jpg` |
  | Bump all labels in a dataset to latest | `$ ldb pull`|
 
-🦉
+ᐃ
 </details>
 
 Full LDB command summary [is here](documentation/Command-summary.md)
