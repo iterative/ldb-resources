@@ -285,9 +285,8 @@ For example, the following line uses ML helper to detect cat colors (which are n
   ```
   ldb pull dog-1009-7918d986e52f3b939ef49020307837b2.json
   ```
-  
- 
 🦉
+</details>
 
 <details>
   <summary>Dataset-level transform configurations</summary>
@@ -315,7 +314,6 @@ For example, the following line uses ML helper to detect cat colors (which are n
       Data Object Hash                      Annot  Data Object Path          Transforms              
        id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  rotate-180,rotate-90
   ```
-  
   see [command summary](documentation/Command-summary.md#transform) for more information on how to configure plugins.
   
 🦉
