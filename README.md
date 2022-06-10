@@ -300,13 +300,13 @@ For example, the following line uses ML helper to detect cat colors (which are n
 <details>
   <summary>Dataset-level transform configurations</summary>
 
-🦉 Quite often, feeding data into the model requires pre-processing. For example, a model might need just the crops of the image in bounding boxes, or several still pictures extracted from a video object. Similarly, a model might take the original data and augment it for more robust training.
+🦉 Feeding data into the model often requires pre-processing. For example, a model might use just the crops of the image in bounding boxes, or still pictures extracted from a video object. Similarly, a pre-processor might take the original data and augment it to increase the number of samples.
   
-  Traditionally, this functionality is written as code predating the model training, which hinders important dataset parameters and makes it hard to work with modular card-level model libraries that lack pre-processing sections.
+  Traditionally, this functionality is written as code predating the training phase, which obscures the important dataset parameters and makes it harder to work with modular card-level models that lack pre-processors.
   
-  LDB addresses this problem by allowing for transformation config to become a part of the dataset, where some (or all) objects are going through transform plugins at instantiation. This keeps data-level modifications bound to dataset itself, and leaves no hidden states for data before it enters the model. 
+  LDB addresses this problem by allowing for transformation configuration to be baked into the dataset, where some (or all) objects are passed through transformation plugins during instantiation. This keeps data-level modifications parameters bound to dataset itself, and leaves no hidden states for data entering the model. 
   
-  By default, every LDB object has one (self-identity) transform attached to it:
+  By default, every LDB object in any dataset has one (self-identity) transform in the transformation set:
   
   ```
   ldb list
@@ -314,7 +314,7 @@ For example, the following line uses ML helper to detect cat colors (which are n
        id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  self
   ```
   
-  However, the transformation set can have any number of plugins configured:
+  However, the transformation set can have any number of actions configured:
   
   ```
   ldb transform -s rotate-90,rotate-180
@@ -324,7 +324,7 @@ For example, the following line uses ML helper to detect cat colors (which are n
        id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  rotate-180,rotate-90
   ```
   
-  see [command summary](documentation/Command-summary.md#transform) for more information.
+  see [command summary](documentation/Command-summary.md#transform) for more information on how to configure plugins.
   
 🦉
 </details>
