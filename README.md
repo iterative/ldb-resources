@@ -64,7 +64,7 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
 ## What LDB can do
 
 <details>
-  <summary>Cloud data retrieval and de-duplication</summary>
+  <summary>Cloud data retrieval, de-duplication and caching</summary>
   
 
 🦉 
@@ -93,6 +93,10 @@ At this point, a public path s3 path was indexed, and 200 objects added to tempo
     Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
   ```
 LDB reads the contents of path but adds no new objects because it recognizes all input objects as duplicates.
+  
+TODO BETA: Another benefit of using LDB to service data objects from cloud locations is caching. When data engineers work on overlapping datasets, this normally requires duplicate file transfers from cloud bearing time and cost penalties. LDB solves this problem by using instantiation cache which accumulates data objects referenced on a particular machine. This layer of indirection may greatly speed up working with medium and large-sized datasets.
+
+Cache function in LDB requires no explicit configuration and is enabled by default.
   
 🦉
 </details>
@@ -284,18 +288,6 @@ For example, the following line uses ML helper to detect cat colors (which are n
   
  
 🦉
-</details>
-
-<details>
-  <summary>Speed up cloud transfers to local machines</summary>
-
-🦉 TODO BETA: Using LDB has benefits even if workflow is a simple as downloading data samples from cloud. When data engineers work with overlapping datasets, or multiple team members check the same dataset out, this normally requires duplicate file transfers from cloud bearing time and cost penalties.
-  
-  LDB solves this problem by using instantiation cache which accumulates data objects referenced on a particular machine. This layer of indirection may greatly speed up working with medium and large-sized datasets.
-
-   Cache function requires no explicit configuration and is enabled by default.
-🦉
-</details>
 
 <details>
   <summary>Dataset-level transform configurations</summary>
