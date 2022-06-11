@@ -7,8 +7,8 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 **Key LDB features**:
 
 * **command line tool** (MLOps oriented). 
-* LDB manages datasets as versioned collections of pointers into storage locations with automatic de-duplication
-* Since LDB datasets use pointers, there is **no need** to **move or copy** data objects to create, share or modify datasets
+* LDB manages datasets as versioned collections of pointers into storage with automatic de-duplication
+* Since LDB datasets use pointers, there is **no need** to **move or copy** data objects to create datasets
 * LDB datasets are purely logical, so they are easily cloned, merged, sliced, and sampled
 * **Search in the cloud:** data objects can be selected based on JSON annotations, file attributes, or helper ML model queries 
 * **Annotation tracking:** JSON annotations are tracked and versioned during indexing
@@ -255,7 +255,7 @@ LDB supports many ways to manipulate dataset membership. For example, the follow
 </details>
  
 <details>
-  <summary>Version control datasets</summary>
+  <summary>Version-control datasets</summary>
 
 ᐃ
   
@@ -279,7 +279,7 @@ Version control is key to engineering discipline and result reproducibility. Mos
 </details>
  
 <details>
-  <summary>Version control annotations</summary>
+  <summary>Version-control annotations</summary>
 
 ᐃ
   
@@ -334,7 +334,7 @@ Feeding data into the model often requires pre-processing. For example, a model 
 
 ## LDB tutorial
 
-Here is an [end-to-end tutorial](documentation/Getting-started-with-LDB.md) for a Data-driven AI task with LDB
+Here is an [end-to-end tutorial](documentation/Getting-started-with-LDB.md) for a Data-centric AI task with LDB
 
 ## LDB commands
 
