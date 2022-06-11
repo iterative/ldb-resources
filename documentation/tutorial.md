@@ -9,13 +9,14 @@ by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recogn
 
 A starter set of ~3,000 labeled training images is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data alone. In this tutorial, we are going to walk through the typical data management tasks using LDB.
 
-To get the optimal performance out of expressive deep learning network like ResNet, one needs to solve the following data-specific challenges:
+To get the optimal performance out of expressive deep learning network, one needs to solve the following data-specific challenges:
 
-* Cleanse data objects. Remove duplicate, irrelevant, or excessively noisy samples from training and validation sets.
+* Cleanse data objects. Remove duplicate, irrelevant, or excessively noisy samples.
 * Clean annotations. Make sure annotations match the content of data samples.
-* Enrich the initial sample set. Find ways to obtain more data from the real world.
+* Enrich the initial set. Find ways to obtain more data from the real world.
 * Introduce augmentations to teach the network about data variations.
-* Add effective synthetic samples (derived from the teacher-student, generative networks, etc.) to cover any remaining data gaps.
+* Do performance analysis to understand which samples cause difficulties.
+* Add synthetic samples (derived from the teacher-student, generative networks, etc.) to cover any remaining data gaps.
 
 At the level of organization, all these tasks can be reduced to manipulating the membership information in (possibly overlapping) collections – such as the original data samples, auxiliary samples, synthesized samples, augmented samples, and so on.
 
