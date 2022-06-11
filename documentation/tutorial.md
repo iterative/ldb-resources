@@ -1,28 +1,23 @@
 # Sample LDB workflow
 
-LDB is an MLOps tool that indexes the existing immutable storage for data files and allows for easy construction of datasets based on metadata queries. 
-These datasets are meant to be used for model training, and are usually further updated based on the model performance (Data-driven AI loop).
+LDB is an MLOps tool that indexes the existing immutable storage for data files and annotations for easy construction of datasets based on metadata queries. These datasets are meant to be used for model training, and are periodically updated based on the model performance (Data-driven AI loop).
 
-A good example for the data-driven AI task can be derived from the [2021 competition](https://https-deeplearning-ai.github.io/data-centric-comp/) 
+One good example for the data-driven AI task can be derived from the [2021 competition](https://https-deeplearning-ai.github.io/data-centric-comp/) 
 by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recognize hand-written roman numerals: 
 
 ![roman numerals dataset, courtesy DeepLearning.AI](/images/numerals-deeplearningAI.png)
 
-A starter set of ~3,000 labeled training images is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data alone. 
+A starter set of ~3,000 labeled training images is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data alone. In this tutorial, we are going to walk through the typical data management tasks using LDB.
 
-To get the optimal performance on a sufficiently expressive deep learning network, one generally needs to overcome the following data-specific challenges:
+To get the optimal performance out of expressive deep learning network like ResNet, one needs to solve the following data-specific challenges:
 
-* Cleanse data objects. Remove duplicates, irrelevant, or excessively noisy samples.
+* Cleanse data objects. Remove duplicate, irrelevant, or excessively noisy samples from training and validation sets.
 * Clean annotations. Make sure annotations match the content of data samples.
 * Enrich the initial sample set. Find ways to obtain more data from the real world.
 * Introduce augmentations to teach the network about data variations.
-* Add effective synthetic samples (teacher-student, GAN, etc.) to cover any remaining data gaps.
+* Add effective synthetic samples (derived from the teacher-student, generative networks, etc.) to cover any remaining data gaps.
 
-At the level of organization, all these tasks can be reduced to manipulating the membership information in
-(possibly overlapping) collections – such as original data samples, auxiliary samples, synthesized samples, transformed samples, and so on.
-
-LDB simplifies dataset manipulation and version tracking by indexing unique data objects, 
-constructing the datasets by querying object metadata, and versioning the results. 
+At the level of organization, all these tasks can be reduced to manipulating the membership information in (possibly overlapping) collections – such as the original data samples, auxiliary samples, synthesized samples, augmented samples, and so on.
 
 To demonstrate a sample data-driven workflow in LDB, let us begin with holding starter data for the DeepLearningAI challenge. 
 Assuming it is hosted at `gs://iterative/roman-numerals/` let us create a dataset called `"numerals"`:
