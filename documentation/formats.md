@@ -1,6 +1,6 @@
 ## Metadata and annotation formats
 
-LDB stores, searches and versions metadata and annotations in JSON. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are related to information that describes it (e.g. `cat1.json`, or some JSON array that references `cat1.png`). Different *brand-name* dataset formats may employ incompatible ways to encode this relation, so formats are normally specified under `--format` flag for INDEX and INSTANTIATE commands.
+LDB stores, searches and versions metadata and annotations in JSON. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are related to information that describes it (e.g. `cat1.json`, or some JSON array that references `cat1.png`). Different *brand-name* dataset formats may employ incompatible ways to encode this relation, so specific format can be requested under the `--format` flag in INDEX and INSTANTIATE commands.
 
 Here is what is supported so far:
 
@@ -42,6 +42,7 @@ Here is what is supported so far:
   * `data.data-object-info.md5` - The MD5 hash of the data object. If this key is already present, and the hash matches a data object LDB has indexed previously, then LDB does not need to index this annotation's data object.
 
   These fields allows Label Studio tasks to be passed between LDB and Label Studio instances repeatedly while maintaining consistent data object identifiers and avoiding repeated indexing of the same data objects.
+
 
 TODO
 
