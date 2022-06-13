@@ -1,6 +1,6 @@
 ## Metadata and annotation formats
 
-LDB stores, searches and versions metadata and annotations in JSON. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are related to information that describes it (e.g. `cat1.json`, or some JSON array that references `cat1.png`). Different 'brand-name' datasets may employ incompatible ways to encode this relation, so formats are normally specified under `--format` flag for INDEX and INSTANTIATE commands.
+LDB stores, searches and versions metadata and annotations in JSON. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are related to information that describes it (e.g. `cat1.json`, or some JSON array that references `cat1.png`). Different *brand-name* dataset formats may employ incompatible ways to encode this relation, so formats are normally specified under `--format` flag for INDEX and INSTANTIATE commands.
 
 Here is what is supported so far:
 
