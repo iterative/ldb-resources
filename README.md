@@ -45,6 +45,8 @@ ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
 Sample datasets [are here](documentation/Datasets.md)
 
+Supported metadata and dataset formats [here](documentation/formats.md)
+
 Full LDB command summary [is here](documentation/Command-summary.md)
 
 
