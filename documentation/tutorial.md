@@ -1,5 +1,7 @@
 # Sample LDB workflow
 
+TODO: section under construction
+
 LDB is an MLOps tool that indexes the existing immutable storage for data files and annotations for easy construction of datasets based on metadata queries. These datasets are meant to be used for model training, and are periodically updated based on the model performance (Data-driven AI loop).
 
 One good example for the data-driven AI task can be derived from the [2021 competition](https://https-deeplearning-ai.github.io/data-centric-comp/) 
