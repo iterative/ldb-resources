@@ -336,7 +336,7 @@ Feeding data into the model often requires pre-processing. For example, a model 
 
 ## LDB tutorial
 
-Here is an [end-to-end tutorial](documentation/Getting-started-with-LDB.md) for a Data-centric AI task with LDB
+Here is an [end-to-end workflow](documentation/Getting-started-with-LDB.md) for a Data-centric AI task with LDB
 
 ## LDB commands
 
