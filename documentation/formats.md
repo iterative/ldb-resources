@@ -1,14 +1,14 @@
 ## Annotation formats
 
-Since LDB parses annotations, it has to understand the specific annotation formats. LDB can index data in one format and instantiate in another, acting like a format converter, but primarily it needs to understand annotations to allow users to search data objects.
+LDB stores and versions metadata and annotations in JSON format. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are linked to information that describes it (e.g. `cat1.json`, or a JSON array that references `cat1.png`). Different 'brand-name' datasets employ different ways to encode this link.
 
 Here is what is currently supported:
 
 * `auto | auto-detect` – auto-detected data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
 
-* `strict | strict-pairs` – "native" LDB format that assumes data comes in pairs of files (json + object). The annotation file in each pair must have a name ending with `.json`. The data object files are matched to their annotations by means of sharing filenames (e.g. `cat1.json` + `cat1.jpg`), and pairs must reside in the same directory. LDB does not provide any restrictions on the actual JSON schema and will accept any valid JSON content.
+* `strict | strict-pairs` – "native" LDB format that assumes data and metadata come in pairs of files (object + json). The annotation file in each pair must have a name ending with `.json`. The data object files are matched to their annotations by means of sharing filenames (e.g. `cat1.json` + `cat1.jpg`), and pairs must reside in the same directory. LDB does not provide restrictions on the actual JSON schema and will accept any valid JSON content.
 
-* `bare | bare-pairs` – complete pairs are detected as with `strict-pairs`, but bare data objects (without annotation files) are also indexed (any file whose name does not end with `.json` will be considered a data object). This format is the primary way to index un-annotated data. 
+* `bare | bare-pairs` – complete pairs are detected as with `strict-pairs`, but bare data objects (data without annotation files) are also indexed (any file whose name does not end with `.json` will be considered a data object). This format is the primary way to index un-annotated data. 
 
 * `infer, tensorflow-inferred` – label-only format based on the `labels="inferred"` option in TensorFlow's [tf.keras.utils.image_dataset_from_directory](https://www.tensorflow.org/api_docs/python/tf/keras/utils/image_dataset_from_directory)  method. Files supplied in this format must have names that do not end with `.json`. The name of the directory passed to INDEX is used as the label for all data objects inside, and objects within subdirectories will have nested labels. 
  
@@ -45,8 +45,8 @@ Here is what is currently supported:
 
 TODO
 
-* some format extension that serves http/https
-  * Should we allow "path" key in "ldb_meta" object of 'annotation-only' to specify an object location?
-  * Should we allow top-level array in 'annotation-only' to describe multiple files?
-* COCO? 
-* Google ImageNet?
+* `annotation-only` format extension that serves http/https
+  * "path" key in "ldb_meta" object of 'annotation-only' to specify an object location
+  * top-level array in 'annotation-only' to describe multiple files
+* COCO 
+* Google ImageNet
