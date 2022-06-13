@@ -1,6 +1,6 @@
 # α README
 
-Label Database (**LDB**) is an **open-source** tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages* and *data lakes* into reproducible datasets.
+Label Database (**LDB**) is an **open-source** indexing tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages* and *data lakes* into reproducible logical datasets.
 
 **LDB** aims to displace ad-hoc dataset management, data search and de-duplication tools – such as file folders, spreadsheets, and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB provides data files for clean training and evaluation pipelines – including modern registry-based model cards.
 
@@ -8,10 +8,11 @@ Label Database (**LDB**) is an **open-source** tool for **data-centric** AI 
 
 * **command line tool** (MLOps oriented). 
 * LDB manages datasets as versioned collections of pointers into storage with automatic de-duplication
-* Since LDB datasets use pointers, there is **no need** to **move or copy** data objects to create datasets
-* LDB datasets are purely logical, so they are easily cloned, merged, sliced, and sampled
+* Since LDB datasets use pointers, there is **no need** to **move or copy** data objects to create datasets. 
+* LDB datasets are purely logical, so they are easily cloned, merged, sliced, and sampled. 
+* LDB does not need write priveleges to storage, so losing an LDB instance does not affect the actual data objects.
 * **Search in the cloud:** data objects can be selected based on JSON annotations, file attributes, or helper ML model queries 
-* **Annotation tracking:** JSON annotations are tracked and versioned during indexing
+* **Annotation tracking:** JSON annotation and metadata are tracked and versioned during indexing
 * **Reproducibility and sharing:** every LDB dataset version always points to the same collection of data samples and can be easily shared
 * **Cloud optimization:** LDB caches objects during instantiation, increasing speed and reducing cloud egress costs
 
