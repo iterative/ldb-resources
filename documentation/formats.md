@@ -1,8 +1,8 @@
-## Annotation formats
+## Metadata and annotation formats
 
-LDB stores and versions metadata and annotations in JSON format. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are linked to information that describes it (e.g. `cat1.json`, or a JSON array that references `cat1.png`). Different 'brand-name' datasets employ different ways to encode this link.
+LDB stores, searches and versions metadata and annotations in JSON. LDB does not dictate any specific schema, and just needs to understand how specific data objects (e.g. `cat1.png`) are linked to information that describes it (e.g. `cat1.json`, or some JSON array that references `cat1.png`). Different 'brand-name' datasets may employ incompatible ways to encode this link, so formats are normally specified under `--format` flag for INDEX and INSTANTIATE commands.
 
-Here is what is currently supported:
+Here is what is supported so far:
 
 * `auto | auto-detect` – auto-detected data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
 
