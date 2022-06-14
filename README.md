@@ -1,6 +1,6 @@
 # α README
 
-Label Database (**LDB**) is a standalone **open-source** indexing tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages* and *data lakes* into reproducible logical datasets.
+Label Database (**LDB**) is a standalone **open-source** indexing tool for **data-centric** AI and machine learning projects. It works **upstream from model training** and organizes data in *cloud storages*, *filesystems* and *data lakes* into reproducible logical datasets.
 
 **LDB** aims to displace ad-hoc dataset management, data search and de-duplication devices – such as file folders, spreadsheets, and custom code for data selection/augmentation. In the upstream direction, LDB can interface with labeling software, and in the downstream direction LDB provides data files for clean training and evaluation pipelines – including modern registry-based model cards.
 
