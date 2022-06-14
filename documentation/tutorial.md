@@ -1,8 +1,28 @@
 # Sample LDB workflow
 
-TODO: section under construction
+`section under construction`
+
+# Intro
 
 LDB is an MLOps tool that indexes the existing immutable storage for data files and annotations for easy construction of datasets based on metadata queries. These datasets are meant to be used for model training, and are periodically updated based on the model performance (Data-driven AI loop).
+
+The general workflow in LDB looks like this:
+
+0a. Start ldb instance on a shared disk that everyone in the team has access to (not needed for private instance)
+0b. Configure immutable storage locations and access privileges (optional for private instance)
+
+1. Add new data to immutable storage (e.g. NFS folder, or S3 bucket).
+2. Index new data to ldb instance.
+3. Stage a new dataset in the workspace.
+4. Add data to this workspace based on location path, JSON query, file properties, etc.
+5. Commit this dataset so it can be access later.
+6. Instantiate this dataset to actually download the data from storage.
+6a. Train or validate the model, find areas to improve.
+7. Start new iteration from pp. 2, 3, or 4.
+
+
+# Walk-through
+
 
 One good example for the data-driven AI task can be derived from the [2021 competition](https://https-deeplearning-ai.github.io/data-centric-comp/) 
 by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recognize hand-written roman numerals: 
