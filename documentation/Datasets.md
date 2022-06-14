@@ -7,7 +7,7 @@ LDB comes pre-configured with access to several public datasets:
 
 ### Dogs and Cats
 
-Dataset containing 200 images of cats and dogs in ['strict-pairs'](Command-summary.md#index) format.
+Dataset containing 200 annotated images of cats and dogs in ['strict-pairs'](Command-summary.md#index) format.
 Schema looks as follows:
 
 ```
@@ -28,6 +28,11 @@ Schema looks as follows:
 * https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.zip
 * https://remote.ldb.ai/datasets/dogs-and-cats/dogs-and-cats.tar.gz
 
+**Indexing:**
+```
+ldb index s3://ldb-public/remote/data-lakes/dogs-and-cats/
+```
+
 **Example of use:**
 ```
 ldb index s3://ldb-public/remote/data-lakes/dogs-and-cats/
@@ -37,8 +42,7 @@ ldb eval --limit 3 --query '[class, inference.class]'
 ldb get ws:./ --pipe clip-text 'orange cats' --limit 10 -t orange-cats/
 ```
 
-### 
-
+TODO: rework into http/https
 
 ### TextOCR
 
@@ -58,9 +62,9 @@ ldb eval ds:root --limit 1 --query 'anns[*].utf8_string'
 ldb list ds:root --query 'length(anns[?regex(utf8_string, `\\d`)]) >= `1`' --summary
 ```
 
-## Download tips
+## Dataset download tips
 
-Zip files and and gzipped tarballs are available for some public datasets to get started and play with LDB workflows. These can be downloaded from the URLs provided under [Datasets](#datasets) with a browser or with a CLI tool such as [DVC](https://dvc.org/doc/install):
+Zip files and and gzipped tarballs are available for some public datasets to play with LDB locally. These can be downloaded from the URLs provided under [Datasets](#datasets) with a browser or with a CLI tool such as [DVC](https://dvc.org/doc/install):
 ```
 dvc get-url https://remote.ldb.ai/datasets/DATASET_NAME/DATASET_NAME.zip
 unzip DATASET_NAME.zip
