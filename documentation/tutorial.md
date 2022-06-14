@@ -6,7 +6,7 @@
 
 LDB is an MLOps tool that indexes the existing immutable storage for data files and annotations for easy construction of datasets based on metadata queries. These datasets are meant to be used for model training, and are periodically updated based on the model performance (Data-driven AI loop).
 
-### The general workflow in LDB looks like this:
+### LDB workflow general steps:
 
 0a. [Start ldb instance](command-summary.md#init) on a shared disk that everyone in the team has access to (not needed for private instance)
 
