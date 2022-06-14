@@ -6,21 +6,22 @@
 
 LDB is an MLOps tool that indexes the existing immutable storage for data files and annotations for easy construction of datasets based on metadata queries. These datasets are meant to be used for model training, and are periodically updated based on the model performance (Data-driven AI loop).
 
-### LDB workflow general steps:
+### LDB workflow cycle:
 
 0a. [Start ldb instance](command-summary.md#init) on a shared disk that everyone in the team has access to (not needed for private instance)
 
 0b. [Configure immutable storage locations](command-summarymd#add-storage) and access privileges (optional for private instance)
 
-1. Store new data in the immutable storage (e.g. NFS folder, or S3 bucket).
-2. [Index](command-summarymd#index) new data to ldb instance.
-3. [Stage](command-summarymd#stage) new data to ldb instance. a new dataset in the workspace.
+1. Store new data in the immutable storage (e.g. NFS disk share, web folder, or S3 bucket).
+2. [Index](command-summarymd#index) new data location in LDB.
+3. [Stage](command-summarymd#stage) a dataset in the workspace.
 4. [Add](command-summarymd#add) data to this workspace based on location path, JSON query, file properties, etc.
-5. [Commit](command-summarymd#commit) this dataset so it can be access later.
-6. [Instantiate](command-summarymd#instantiate) this dataset to actually download the data from storage.
-6a. Train or validate the model, find areas to improve.
+5. [Commit](command-summarymd#commit) this dataset so it can be accessed later.
+6. [Instantiate](command-summarymd#instantiate) this dataset to download the data from storage.
 
-7. Begin new iteration from pp. 2, 3, or 4.
+6a. Train or validate the model on data, find things to improve in the dataset.
+
+7. Begin new cycle from pp. 2, 3, or 4.
 
 
 # Tutorial
