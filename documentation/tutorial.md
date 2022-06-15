@@ -8,20 +8,20 @@ LDB is an MLOps tool that indexes the existing immutable storage for data files 
 
 ### LDB workflow cycle:
 
-0a. [Start ldb instance](command-summary.md#init) on a shared disk that everyone in the team has access to (not needed for private instance)
+0a. [Start ldb instance](command-summary.md#init) on a shared disk that everyone in the team has access to (step not needed for private instance)
 
-0b. [Configure immutable storage locations](command-summarymd#add-storage) and access privileges (optional for private instance)
+0b. [Configure immutable storage locations](Command-summary.md#add-storage) and access privileges (optional for private instance)
 
-1. Store new data in the immutable storage (e.g. NFS disk share, web folder, or S3 bucket).
-2. [Index](command-summarymd#index) new data location in LDB.
-3. [Stage](command-summarymd#stage) a dataset in the workspace.
-4. [Add](command-summarymd#add) data to this workspace based on location path, JSON query, file properties, etc.
-5. [Commit](command-summarymd#commit) this dataset so it can be accessed later.
-6. [Instantiate](command-summarymd#instantiate) this dataset to download the data from storage.
+1. Put new data (samples or annotations) in the immutable storage (e.g. NFS disk share, web folder, or S3 bucket).
+2. [Index](Command-summary.md#index) this new data location in LDB.
+3. [Stage](Command-summary.md#stage) a dataset in the workspace.
+4. [Add](Command-summary.md#add) data to this workspace based on location path, JSON query, file properties, etc.
+5. [Commit](Command-summary.md#commit) this dataset so it can be accessed later.
+6. [Instantiate](Command-summary.md#instantiate) this dataset to download the data from storage.
 
 6a. Train or validate the model on data, find things to improve in the dataset.
 
-7. Begin new cycle from pp. 2, 3, or 4.
+7. Begin new iteration starting from pp. 2, 3, or 4.
 
 
 # Tutorial
@@ -32,26 +32,128 @@ by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recogn
 
 ![roman numerals dataset, courtesy DeepLearning.AI](/images/numerals-deeplearningAI.png)
 
-A starter set of ~3,000 labeled training images is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data alone. In this tutorial, we are going to walk through the typical data management tasks using LDB.
+A [starter set of ~3,000 labeled training images](https://worksheets.codalab.org/rest/bundles/0xcea1d733e1f144d9aba83929af51f191/contents/blob/) is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data. In this tutorial, we are going to walk through this task using LDB.
 
-To get the optimal performance out of expressive deep learning network, one needs to solve the following data-specific challenges:
+To get the optimal performance out of expressive ML model, one needs to solve the following data-specific challenges:
 
-* Cleanse data objects. Remove duplicate, irrelevant, or excessively noisy samples.
-* Clean annotations. Make sure annotations match the content of data samples.
-* Enrich the initial set. Find ways to obtain more data from the real world.
-* Introduce augmentations to teach the network about data variations.
+* Cleanse input data. Remove duplicate, irrelevant, or excessively noisy samples.
+* Clean input annotations. Make sure annotations match the content of data samples.
+* Enrich the data. Find ways to obtain more samples from real world.
+* Introduce augmentations to teach the network about data variations and imperfections.
+* Add synthetic data (derived from the teacher-student, generative networks, etc.) to cover any remaining gaps.
 * Do performance analysis to understand which samples cause difficulties.
-* Add synthetic samples (derived from the teacher-student, generative networks, etc.) to cover any remaining data gaps.
 
-At the level of organization, all these tasks can be reduced to manipulating the membership information in (possibly overlapping) collections – such as the original data samples, auxiliary samples, synthesized samples, augmented samples, and so on.
+At the level of organization, all these tasks can be reduced to manipulating data collections – such as the original dataset, auxiliary samples, synthesized samples, augmented samples, and so on. If you have not installed LDB yet, let us install it now:
 
-To demonstrate a sample data-driven workflow in LDB, let us begin with holding starter data for the DeepLearningAI challenge. 
-Assuming it is hosted at `gs://iterative/roman-numerals/` let us create a dataset called `"numerals"`:
+```
+pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
+```
 
-| Step | Command |
-| --- | --- |
-| Start a new dataset in the workspace | `$ ldb stage ds:numerals` |
-| Add objects from a given path | `$ ldb add gs://iterative/roman-numerals/` |
+We begin with organizing the starter data for the DeepLearningAI challenge into LDB dataset. The starter data is provided in Tensorflow-inferred format (labels derived from folder names), and there is some initial split into test and validation sets that we can mark by setting tags:
+
+```
+ldb stage ds:starter --target roman-starter/
+cd roman-starter/
+ldb index --format infer s3://ldb-public/remote/data-lakes/roman-numerals/val/ --add-tags val
+ldb index --format infer s3://ldb-public/remote/data-lakes/roman-numerals/train/ --add-tags train
+ldb add s3://ldb-public/remote/data-lakes/roman-numerals/
+```
+<details>
+  <summary>Output</summary>
+	
+```
+Initialized LDB instance at '/Users/dkh/.ldb/private_instance'
+Added storage location '/Users/dkh/.ldb/read_add_storage'
+Added storage location 'ldb-public/remote'
+Staged new dataset ds:starter at 'roman-starter'
+	
+Data format: tensorflow-inferred
+
+Indexing paths...
+
+Finished indexing:
+  Found data objects:       813
+  Found annotations:        813
+  New data objects:         813
+  New annotations:          813
+	
+Data format: tensorflow-inferred
+
+Indexing paths...
+
+Finished indexing:
+  Found data objects:      2067
+  Found annotations:       2067
+  New data objects:        2018
+  New annotations:         2018
+
+Adding to working dataset...
+Added 2831 data objects to ds:starter
+```
+</details>
+
+When you look at the output carefully, you can already spot one problem with starter set: test and validation splits have some overlap. We can check this by noting there are objects that have both `train` and `val` tags:
+
+```
+ldb list --tag train --tag val
+```
+<details>
+  <summary>Output</summary>
+
+```
+Data Object Hash                      Annot  Data Object Path          Transforms              
+ id:02d4f6af6de0e622bd67637d1d3620a7   1      ...b317-38f9d35ea60f.png  self
+ id:02eb050cd69598c3b0d6cc93611c92a2   1      ...b317-38f9d35ea60f.png  self
+ id:0635bd89465729cf84f8598229b0665b   1      ...b317-38f9d35ea60f.png  self
+ id:083439bdb2c0591e102addc01b1eb4b3   1      ...b317-38f9d35ea60f.png  self
+ id:15bf110e1ca8a4684dfcf3178456b633   1      ...b317-38f9d35ea60f.png  self
+ id:1ff7ced1800484161f34715c2172f535   1      ...b317-38f9d35ea60f.png  self
+ id:2124746c8162c112926050f7a33c5879   1      ...b317-38f9d35ea60f.png  self
+ id:2382f776473ee00daa94676b70ccae75   1      ...b317-38f9d35ea60f.png  self
+ id:26297aa20c509bdd08d67a487f6db5a8   1      ...b317-38f9d35ea60f.png  self
+ id:2aa3ae4cb092973ccbb288cb3ca03249   1      ...b317-38f9d35ea60f.png  self
+ id:2b7bbc6d97cd20fe224b084920c48de0   1      ...b317-38f9d35ea60f.png  self
+ id:2d8ce75c8587e262873ffbbe960a941f   1      ...b317-38f9d35ea60f.png  self
+ id:2f4d516b268fd579ddfabbcf36068339   1      ...b317-38f9d35ea60f.png  self
+ id:37516543f0866bf9253d49589fbd821a   1      ...b317-38f9d35ea60f.png  self
+ id:3cfb5d8293557021aa8d32af9aa7c1ee   1      ...b317-38f9d35ea60f.png  self
+ id:43235118e60d871949fc5a0ac571f1fd   1      ...b317-38f9d35ea60f.png  self
+ id:57c6eac9bb0e7cfd2009c3dce2d98d70   1      ...b317-38f9d35ea60f.png  self
+ id:5b3750bf92f0b85c1ec8a5f3a0f380ff   1      ...b317-38f9d35ea60f.png  self
+ id:5d83c044920ef7808ddd1cb17ef6899c   1      ...b317-38f9d35ea60f.png  self
+ id:5e3bf11e9b39ee7dbaa11aafb519bcc7   1      ...b317-38f9d35ea60f.png  self
+ id:66b5767dd4ca79063026defab5719d1e   1      ...b317-38f9d35ea60f.png  self
+ id:69c9c2e15e38d32074b5d1c21323bde2   1      ...b317-38f9d35ea60f.png  self
+ id:6be2772a1688a897f0710addee0221c5   1      ...b317-38f9d35ea60f.png  self
+ id:726ccf326a1cb4ba0e8e614a5d393449   1      ...b317-38f9d35ea60f.png  self
+ id:727d95b1ecc3b80f1e17cb40e1495cc3   1      ...b317-38f9d35ea60f.png  self
+ id:73d682eabd8fc2f6107bc85c2392ddf7   1      ...b317-38f9d35ea60f.png  self
+ id:7bce7e64fabf477c8e6380030c30f1ea   1      ...b317-38f9d35ea60f.png  self
+ id:7d1cc809c0ab2ae3fe1ce90517a34d9c   1      ...b317-38f9d35ea60f.png  self
+ id:80204a23356d089b1c3a4edea5bebc0a   1      ...b317-38f9d35ea60f.png  self
+ id:82a7c1753b187d235f521c6dd92a59d8   1      ...b317-38f9d35ea60f.png  self
+ id:8b2d92d718ee30b372af735ecefd9d7a   1      ...b317-38f9d35ea60f.png  self
+ id:9334c45729f357c7cd3bad4120455831   1      ...b317-38f9d35ea60f.png  self
+ id:a01aeaed7c19d9859072553d73743288   1      ...b317-38f9d35ea60f.png  self
+ id:a08a04977bbe82411752ed4b6e6fd506   1      ...b317-38f9d35ea60f.png  self
+ id:a5c566a35567bee4b3d6db89b497cb8b   1      ...b317-38f9d35ea60f.png  self
+ id:a5d5f8695908c027e9308be9cb783ceb   1      ...b317-38f9d35ea60f.png  self
+ id:a69d9477813a8ebe3a49635a3b6c43ef   1      ...b317-38f9d35ea60f.png  self
+ id:a7ff90ac601e6fdfeb5b38a553a4d458   1      ...b317-38f9d35ea60f.png  self
+ id:aec7d3aaf85e4f6753f37681a202156e   1      ...b317-38f9d35ea60f.png  self
+ id:b3e72f4413d1dfa9eef47a0717f4ca90   1      ...b317-38f9d35ea60f.png  self
+ id:c9a89776993c2f39896c091548f91708   1      ...b317-38f9d35ea60f.png  self
+ id:ce8f893cabf9865166f1d8493be9a6f5   1      ...b317-38f9d35ea60f.png  self
+ id:d1c1f943855515001c6fab7e7b07b7ba   1      ...b317-38f9d35ea60f.png  self
+ id:da599da573ce096f012a95534caab5fd   1      ...b317-38f9d35ea60f.png  self
+ id:ddd1931485d742e46866350ff16b5fc5   1      ...b317-38f9d35ea60f.png  self
+ id:eaf7fdda144f71f3770d451972a3e377   1      ...b317-38f9d35ea60f.png  self
+ id:ee465a602e63d7c5dd4b3d1f7f9530dd   1      ...b317-38f9d35ea60f.png  self
+ id:ee86c80c7fd5e020f0c52bf5f621dba7   1      ...b317-38f9d35ea60f.png  self
+ id:f1f7f68daa670efb578839b8fd0dd713   1      ...b317-38f9d35ea60f.png  self	
+```
+</details>
+
 
 
 Now we have created a dataset `"numerals"` in our workspace and filled it with input references. LDB datasets are logical entities, so no data objects were copied or moved. Instead, LDB have read the files in the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored data pointers to the workspace. 
