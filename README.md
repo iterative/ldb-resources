@@ -102,9 +102,7 @@ Let's try to get the same objects again to see how automatic de-deduplication wo
   ```
 LDB reads the contents of path but adds nothing because it recognizes all input objects as duplicates.
   
-TODO BETA: Another benefit of using LDB to service data objects from cloud locations is caching. When data engineers work on overlapping datasets, this normally requires duplicate file transfers from cloud bearing time and cost penalties. LDB solves this problem by using instantiation cache which accumulates data objects referenced on a particular machine. This layer of indirection may greatly speed up working with medium and large-sized datasets.
-
-Cache function in LDB requires no explicit configuration and is enabled by default.
+TODO BETA: Another benefit of using LDB to service data objects from cloud locations is caching. When data engineers work on overlapping datasets, this normally requires duplicate file transfers from cloud bearing time and cost penalties. LDB solves this problem by using instantiation cache which is enabled by default.
   
 ᐃ
 </details>
@@ -292,8 +290,9 @@ Version control is key to engineering discipline and result reproducibility. Mos
 Annotation updates are quite common, which is why LDB datasets consist of tuples (data object, annotation version). A new annotation version is created in LDB every time a sample is re-indexed. Note that new annotation version in LDB index is not automatically pushed to the datasets pointing towards the older version.
 
   ```
-  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/
-  sed -i 's/class=dog/class=cat/g' dog-1009-7918d986e52f3b939ef49020307837b2.json
+  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t my-animals
+  cd my-animals
+  sed -i '' 's/dog/cat/g' dog-1009-7918d986e52f3b939ef49020307837b2.json 
   ldb index dog-1009-7918d986e52f3b939ef49020307837b2.json
   ```
   ^^^
@@ -320,19 +319,22 @@ Feeding data into the model often requires pre-processing. For example, a model 
   
   ```
   ldb list
+  ```
+  <details>
+  <summary>Output</summary>
+    
+  ```
       Data Object Hash                      Annot  Data Object Path          Transforms              
        id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  self
   ```
+  </details>
   
   However, the transformation set can have any number of actions configured:
   
   ```
   ldb transform -s rotate-90,rotate-180
-    Set transforms for 1 data objects in ds:ls-objects
-  ldb list
-      Data Object Hash                      Annot  Data Object Path          Transforms              
-       id:011caf8c8bc2a2d715ff1262a80dccdb   2      ...and-cats/cat.1011.jpg  rotate-180,rotate-90
   ```
+  
   see [command summary](documentation/Command-summary.md#transform) for more information on how to configure plugins.
   
 ᐃ
