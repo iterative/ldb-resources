@@ -6,7 +6,7 @@ Label Database (**LDB**) is a standalone **open-source** indexing tool for *
 
 **Key LDB features**:
 
-* **command line tool** (MLOps oriented). 
+* **command line interface** (MLOps oriented). 
 * LDB manages datasets as versioned collections of pointers into storage with automatic de-duplication
 * Since LDB datasets use pointers, there is **no need** to **move or copy** data objects to create datasets. 
 * LDB datasets are purely logical, so they are easily cloned, merged, sliced, and sampled. 
@@ -73,29 +73,34 @@ TODO: LDB supports local caching of instantiated data, so sucessive object mater
   
 The simplest way to form a dataset from cloud and materialize it in LDB is by using the [GET](documentation/Command-summary.md#get) command, which can point to cloud location, index it, add data objects into a specified dataset and instantiate it in one shot: 
 
-```
-ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ -t animals
-  
-  Staged ds:.temp.2022-06-07T00:46:33.865467+00:00 at 'animals'
-  Adding to working dataset...
-  Added 200 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
-  Instantiating data...
-
-  Copied data to workspace.
-    Data objects:       200
-    Annotations:        200
-
-```
-At this point, a public path s3 path was indexed, and 200 objects added to temporaty dataset in folder `animals`, after which the dataset was materialized. Let's try to add the same objects again to see how automatic de-deduplication works:
-
   ```
-  cd animals
-  ldb add s3://ldb-public/remote/data-lakes/dogs-and-cats/
+ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --target animals/
+  ```
+
   
+<details>
+  <summary>S3 path indexed, and 200 objects copied into a temporary dataset in folder animals</summary>
+      
+  
+```   
+    Staged ds:.temp.2022-06-07T00:46:33.865467+00:00 at 'animals'
     Adding to working dataset...
-    Added 0 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
+    Added 200 data objects to ds:.temp.2022-06-07T00:46:33.865467+00:00
+    Instantiating data...
+
+    Copied data to workspace.
+      Data objects:       200
+      Annotations:        200
+```
+
+</details>
+  
+Let's try to get the same objects again to see how automatic de-deduplication works:
+
   ```
-LDB reads the contents of path but adds no new objects because it recognizes all input objects as duplicates.
+  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --target animals/
+  ```
+LDB reads the contents of path but adds nothing because it recognizes all input objects as duplicates.
   
 TODO BETA: Another benefit of using LDB to service data objects from cloud locations is caching. When data engineers work on overlapping datasets, this normally requires duplicate file transfers from cloud bearing time and cost penalties. LDB solves this problem by using instantiation cache which accumulates data objects referenced on a particular machine. This layer of indirection may greatly speed up working with medium and large-sized datasets.
 
@@ -114,16 +119,14 @@ Searching data by name patterns and file attributes is easy in filestystems with
   For one example, time-based file search of objects in LDB index may look like this:
 
 ```
-  ldb list ds:root --file 'fs.mtime > `2022-03-03`'
- 
+ldb list s3://ldb-public/remote/data-lakes/dogs-and-cats/ --file 'fs.mtime > `2022-03-02T05:43:45`'
 ```
   
   For another example, retrieval based on the regular expression match in the path can be done as follows:
   
   
 ```
-ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.102[0-2]+' -t some-dogs
-  
+ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.102[0-2]+' --target some-dogs
 ```
   
 LDB stores file attributes collected during indexing in a JSON schema, so in the example above, flag `--path` is actually a shortcut for JMESPATH regex function applied to JSON `fs.path` attribute and is equivalent to ```--file 'regex(fs.path, `EXPR`)'```.  
@@ -174,10 +177,10 @@ LDB stores file attributes collected during indexing in a JSON schema, so in the
   ᐃᐃ
   </details>
 
-File attribites schema works just like any other JSON, for example JMESPATH `--file` queries can be pipelined and use comparators and functions:
+File attribites schema works just like any other JSON, for example JMESPATH `--file` filters can be pipelined and use comparators and functions:
   
   ```
-  ldb list ds:root --file 'fs.protocol[0] == `s3`' --file 'type == `jpg` && fs.size < `20000`'
+  ldb list s3://ldb-public/remote/data-lakes/dogs-and-cats/  --file 'type == `jpg`' --file 'fs.size < `10000`'
   ```
   
 ᐃ
