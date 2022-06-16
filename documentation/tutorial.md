@@ -53,9 +53,9 @@ We begin with organizing the starter data for the DeepLearningAI challenge into 
 
 ```
 ldb stage ds:starter --target roman-starter/
-cd roman-starter/
 ldb index --format infer s3://ldb-public/remote/data-lakes/roman-numerals/val/ --add-tags val
 ldb index --format infer s3://ldb-public/remote/data-lakes/roman-numerals/train/ --add-tags train
+cd roman-starter/
 ldb add s3://ldb-public/remote/data-lakes/roman-numerals/
 ```
 <details>
@@ -87,12 +87,15 @@ Finished indexing:
   New data objects:        2018
   New annotations:         2018
 
+
 Adding to working dataset...
 Added 2831 data objects to ds:starter
 ```
 </details>
 
-When you look at the output carefully, you can already spot one problem with starter set: test and validation splits have some overlap. We can check this by noting there are objects that have both `train` and `val` tags:
+## First look at the data
+
+If you examine the indexing output carefully, you can already spot one problem with the starter set: test and validation splits do not add together to the total number of new objects, so there is overlap. LDB indexes objects by content (hash), so if the same object was indexed twice, it should have both `train` and `val` tags. We can check for existence of such objects with LIST command:
 
 ```
 ldb list --tag train --tag val
@@ -153,9 +156,78 @@ Data Object Hash                      Annot  Data Object Path          Transform
  id:f1f7f68daa670efb578839b8fd0dd713   1      ...b317-38f9d35ea60f.png  self	
 ```
 </details>
+	
+Next let's do a sanity check and see the balance of classes in splits. For that, we can first take a look at the JSON schema for the first duplicate object:
 
+```
+ldb eval id:02d4f6af6de0e622bd67637d1d3620a7
+```
+<details>
+  <summary>Output</summary>
 
+```
+id:02d4f6af6de0e622bd67637d1d3620a7
+{
+  "label": "i"
+}
+```
+</details>
+As we see from the annotation, Tensorflow-inferred format was translated in LDB into JSON schema with key `label` describing the object class. We can use this key to tally classes with a JMESPATH query:
 
+```
+ldb eval -j --tag val --query 'label'  | sort | uniq -c
+ldb eval -j --tag train --query 'label'  | sort | uniq -c
+```
+
+<details>
+  <summary>Output</summary>
+
+```
+  82 "i"
+  81 "ii"
+  79 "iii"
+  84 "iv"
+  81 "ix"
+  83 "v"
+  82 "vi"
+  77 "vii"
+  83 "viii"
+  81 "x"
+	
+ 261 "i"
+ 157 "ii"
+ 186 "iii"
+ 281 "iv"
+ 234 "ix"
+ 196 "v"
+ 181 "vi"
+ 193 "vii"
+ 199 "viii"
+ 179 "x"
+	
+```
+</details>
+	
+There is clearly imbalance in training set, especially for `ii` and `iv` labeled objects. 
+		
+	
+## Setting up model evaluation
+
+For now let us delete tag 'train' from all duplicates:
+
+```
+ldb tag --tag val --tag train --remove train
+```
+<details>
+  <summary>Output</summary>
+	
+```
+Tagging data objects
+  Data objects:       49
+  Num updated:        49
+```
+</details>
+	
 Now we have created a dataset `"numerals"` in our workspace and filled it with input references. LDB datasets are logical entities, so no data objects were copied or moved. Instead, LDB have read the files in the provided location, found all unique data samples (ignoring any duplicates), parsed their annotations and stored data pointers to the workspace. 
 
 To use`"numerals"` dataset in subsequent steps of the workflow, let us save it to LDB:
