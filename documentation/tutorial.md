@@ -94,7 +94,7 @@ Added 2831 data objects to ds:starter
 
 ## First look at the data
 
-If you examine the indexing output carefully, you can already spot one problem with the starter set: test and validation splits do not add together to the total number of new objects, so there is overlap. LDB indexes objects by content (hash), so if the same object was indexed twice, it should have both `train` and `val` tags. We can check for existence of such objects with LIST command:
+If you examine the indexing output carefully, you can already spot one problem with the starter set: test and validation splits do not add together to the total number of new objects. LDB indexes objects by content (hash), so if the same object was provided in training and validation split, it should have both `train` and `val` tags in our workspace. We can check for existence of such objects with LIST command:
 
 ```
 ldb list --tag train --tag val
@@ -156,7 +156,7 @@ Data Object Hash                      Annot  Data Object Path          Transform
 ```
 </details>
 	
-Next let's do another sanity check and see the balance of classes in splits. For that, we can peek at the JSON schema for the first duplicate object:
+Next let's do another sanity check and see the balance of classes in splits. For that, we can peek at the JSON layout for the first duplicate object:
 
 ```
 ldb eval id:02d4f6af6de0e622bd67637d1d3620a7
@@ -209,7 +209,7 @@ ldb eval -j --tag train --query 'label'  | sort | uniq -c
 	
 There is clearly imbalance in training set, especially for `ii` and `iv` labeled objects. 
 		
-	
+
 ## Setting up model evaluation
 
 For now let us delete tag 'train' from all duplicates:
