@@ -51,11 +51,13 @@ pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]'
 We begin with organizing the starter data for the DeepLearningAI challenge into LDB dataset. The starter data is provided in Tensorflow-inferred format (labels derived from folder names), and there is some initial split into test and validation sets that we can mark by setting tags:
 
 ```
-ldb stage ds:starter --target roman-starter/
+mkdir Datacentric-competition ; cd Datacentric-competition
+ldb stage ds:roman-numerals --target roman-numerals/
 ldb index --format infer s3://ldb-public/remote/data-lakes/roman-numerals/val/ --add-tags val
 ldb index --format infer s3://ldb-public/remote/data-lakes/roman-numerals/train/ --add-tags train
-cd roman-starter/
+cd roman-numerals/
 ldb add s3://ldb-public/remote/data-lakes/roman-numerals/
+ldb commit
 ```
 <details>
   <summary>Output</summary>
@@ -64,7 +66,7 @@ ldb add s3://ldb-public/remote/data-lakes/roman-numerals/
 Initialized LDB instance at '/Users/dkh/.ldb/private_instance'
 Added storage location '/Users/dkh/.ldb/read_add_storage'
 Added storage location 'ldb-public/remote'
-Staged new dataset ds:starter at 'roman-starter'
+Staged new dataset ds:roman-numerals at 'roman-numerals'
 	
 Data format: tensorflow-inferred
 
@@ -88,7 +90,9 @@ Finished indexing:
 
 
 Adding to working dataset...
-Added 2831 data objects to ds:starter
+Added 2831 data objects to ds:roman-numerals
+	
+Committed ds:roman-numerals.v1
 ```
 </details>
 
@@ -210,9 +214,42 @@ ldb eval -j --tag train --query 'label'  | sort | uniq -c
 There is clearly imbalance in training set, especially for `ii` and `iv` labeled objects. 
 		
 
-## Setting up model evaluation
+## Model evaluation harness
 
-For now let us delete tag 'train' from all duplicates:
+Ability to train the model, evaluate it and quickly return to editing the dataset is key to Datacetric AI. Let us organize our workflow around this idea. 
+
+We left the previous section in the folder named "./roman-numerals" which was staged as namesake LDB dataset. This will be our workspace for iterating on numeral images. For training the ResNet50 model, we will need to split the numerals dataset into training and validation. We will also need a folder to store model predictions, so let us create those:
+
+```
+cd ..
+mkdir train; mkdir val; mkdir predictions
+```
+
+Besides, we will need the ResNet model itself, and a test dataset (labelbook) to evaluate the final score after training. In the Datacentric-AI competition, a testset that drives the leaderboard was hidden, so hand-picking convincing labelbook samples remained a responsibility of the participants.  
+
+In this tutorial we will use [labelbook by Kenneth Leung](https://github.com/kennethleungty/Data-Centric-AI-Competition) and ResNet code modified for our folder layout:
+
+```
+curl -L https://remote.ldb.ai/datasets/ResNet50/ResNet50.tar.gz | tar xz
+```
+
+At this point, our project top directory should look like this:
+
+```
+Datacentric-competition
+	.
+	├── inference.py
+	├── predictions
+	├── roman-numerals
+	├── train
+	├── train.py
+	└── val
+```
+
+
+
+
+For now let us delete tag `train` from all duplicates:
 
 ```
 ldb tag --tag val --tag train --remove train
