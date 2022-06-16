@@ -221,8 +221,7 @@ Ability to train the model, evaluate it and quickly return to editing the datase
 We left the previous section in the folder named "./roman-numerals" which was staged as namesake LDB dataset. This will be our workspace for iterating on numeral images. For training the ResNet50 model, we will need to split the numerals dataset into training and validation. We will also need a folder to store model predictions, so let us create those:
 
 ```
-cd ..
-mkdir train; mkdir val; mkdir predictions
+cd .. ; mkdir train; mkdir val; mkdir predictions
 ```
 
 Besides, we will need the ResNet model itself, and a test dataset (labelbook) to evaluate the final score after training. In the Datacentric-AI competition, a testset that drives the leaderboard was hidden, so hand-picking convincing labelbook samples remained a responsibility of the participants.  
@@ -239,14 +238,34 @@ At this point, our project top directory should look like this:
 Datacentric-competition
 	.
 	├── inference.py
-	├── predictions
-	├── roman-numerals
-	├── train
 	├── train.py
-	└── val
+	├── roman-numerals/
+	├── train/
+	├── val/
+	└── predictions/
 ```
 
+The last thing we need to do before training the model on stock dataset is to instantiate our default splits:
 
+```
+cd roman-numerals/
+ldb instantiate --tag train --target ../train
+ldb instantiate --tag val --target ../val
+```
+
+This should be all we need to train our baseline model (if you don't have Tensorflow and Keras, look for help [here](https://www.tensorflow.org/install)).
+
+```
+python train.py
+```
+<details>
+  <summary>Output</summary>
+  output
+</details>
+
+
+
+----------TODO---------
 
 
 For now let us delete tag `train` from all duplicates:
