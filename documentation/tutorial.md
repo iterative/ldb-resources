@@ -1,4 +1,3 @@
-# Sample LDB workflow
 
 `section under construction`
 
@@ -21,7 +20,7 @@ LDB is an MLOps tool that indexes the existing immutable storage for data files 
 
 6a. Train or validate the model on data, find things to improve in the dataset.
 
-7. Begin new iteration starting from pp. 2, 3, or 4.
+7. Begin new incremental iteration starting from pp. 2, 3, or 4.
 
 
 # Tutorial
