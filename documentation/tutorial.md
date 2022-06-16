@@ -33,14 +33,14 @@ by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recogn
 
 A [starter set of ~3,000 labeled training images](https://worksheets.codalab.org/rest/bundles/0xcea1d733e1f144d9aba83929af51f191/contents/blob/) is provided in competition, and contestants are free to add more (up to 10,000 images) to score on a leaderboard. The task aims at demonstrating how performance improvements can be achieved with managing data. In this tutorial, we are going to walk through this task using LDB.
 
-To get the optimal performance out of expressive ML model, one needs to solve the following data-specific challenges:
+To get the optimal performance from an expressive ML model, one needs to solve the following data-specific challenges:
 
 * Cleanse input data. Remove duplicate, irrelevant, or excessively noisy samples.
 * Clean input annotations. Make sure annotations match the content of data samples.
 * Enrich the data. Find ways to obtain more samples from real world.
 * Introduce augmentations to teach the network about data variations and imperfections.
 * Add synthetic data (derived from the teacher-student, generative networks, etc.) to cover any remaining gaps.
-* Do performance analysis to understand which samples cause difficulties.
+* Do performance analysis to understand what data causes difficulties or drift and add more samples of this type.
 
 At the level of organization, all these tasks can be reduced to manipulating data collections – such as the original dataset, auxiliary samples, synthesized samples, augmented samples, and so on. If you have not installed LDB yet, let us install it now:
 
