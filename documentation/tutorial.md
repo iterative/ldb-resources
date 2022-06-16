@@ -27,7 +27,7 @@ LDB is an MLOps tool that indexes the existing immutable storage for data files 
 
 
 One good example for the data-driven AI task can be derived from the [2021 competition](https://https-deeplearning-ai.github.io/data-centric-comp/) 
-by [DeepLearning.AI](http://deeplearning.AI) to train a ResNet50 model to recognize hand-written roman numerals: 
+by [DeepLearning.AI](http://deeplearning.AI) to train a [ResNet50 model](https://arxiv.org/abs/1512.03385v1) to recognize hand-written roman numerals: 
 
 ![roman numerals dataset, courtesy DeepLearning.AI](/images/numerals-deeplearningAI.png)
 
@@ -156,7 +156,7 @@ Data Object Hash                      Annot  Data Object Path          Transform
 ```
 </details>
 	
-Next let's do a sanity check and see the balance of classes in splits. For that, we can first take a look at the JSON schema for the first duplicate object:
+Next let's do another sanity check and see the balance of classes in splits. For that, we can first peek at the JSON schema for the first duplicate object:
 
 ```
 ldb eval id:02d4f6af6de0e622bd67637d1d3620a7
