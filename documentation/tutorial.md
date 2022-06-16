@@ -156,7 +156,7 @@ Data Object Hash                      Annot  Data Object Path          Transform
 ```
 </details>
 	
-Next let's do another sanity check and see the balance of classes in splits. For that, we can first peek at the JSON schema for the first duplicate object:
+Next let's do another sanity check and see the balance of classes in splits. For that, we can peek at the JSON schema for the first duplicate object:
 
 ```
 ldb eval id:02d4f6af6de0e622bd67637d1d3620a7
