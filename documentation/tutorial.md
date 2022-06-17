@@ -260,10 +260,141 @@ python train.py
 ```
 <details>
   <summary>Output</summary>
-  output
+	
+```
+  Model: "model_1"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input_2 (InputLayer)        [(None, 32, 32, 3)]       0         
+                                                                 
+ tf.__operators__.getitem (S  (None, 32, 32, 3)        0         
+ licingOpLambda)                                                 
+                                                                 
+ tf.nn.bias_add (TFOpLambda)  (None, 32, 32, 3)        0         
+                                                                 
+ model (Functional)          (None, 8, 8, 256)         229760    
+                                                                 
+ global_average_pooling2d (G  (None, 256)              0         
+ lobalAveragePooling2D)                                          
+                                                                 
+ dense (Dense)               (None, 10)                2570      
+                                                                 
+=================================================================
+Total params: 232,330
+Trainable params: 229,386
+Non-trainable params: 2,944
+	
+test loss 2.2185871601104736, test acc 0.5961538553237915
+```	
+	
 </details>
 
+## Data cleansing
 
+Once we have the model, running the inference over all available data is one easy way to find issues. Let us instantiate a dataset 'roman-numerals' in a clean directory (so Tensorflow will not have issues inferring labels from hidden folders), and run the inference script:
+
+```
+# starting from roman-numerals/
+
+ldb instantiate --target output
+cd .. 
+python inference.py roman-numerals/output
+```
+
+This should fill folder `predictions` with .json files of the following format:
+
+<details>
+	<summary>sample json </summary>
+	
+```
+{
+    "annotation": {
+        "inference": {
+            "label": "vi",
+            "confidence": 0.9992263317108154
+        }
+    },
+    "ldb_meta": {
+        "data_object_id": "447a1471b96fad28678cc2bbd678d303"
+    }
+}
+```
+</details>
+
+Note the sections `annotation` and `ldb_meta`. Presence of these two sections signifies `annotation-only` format that LDB can use without attached data files, by linking the content using the hash id. This format is convenient to use because we can easily merge it with annotations that already exist in the LDB index:
+
+```
+ldb index --annotation-update merge --predictions/
+```
+
+<details>
+	<summary>Output</details>
+
+```
+Data format: auto-detect
+Auto-detected data format: annotation-only
+
+Indexing paths...
+
+Finished indexing:
+  Found data objects:         0
+  Found annotations:       2831
+  New data objects:           0
+  New annotations:         2831
+```
+</details>
+
+If we examine the annotation for object id:447a1471b96fad28678cc2bbd678d303 in the index, we will see the following:
+
+```
+ldb eval id:447a1471b96fad28678cc2bbd678d303 
+```
+<details>
+	<summary> Output</summary>
+
+```
+id:447a1471b96fad28678cc2bbd678d303
+{
+  "inference": {
+    "confidence": 0.9992263317108154,
+    "label": "vi"
+  },
+  "label": "vi"
+}
+
+```
+</details>
+
+The inference results were merged with the original labels in the index. But the dataset 'roman-numerals' that we have staged still uses the old annotation versions. We can update it to the latest revision of annotations and save into LDB:
+
+```
+cd roman-numerals/
+ldb pull
+ldb commit
+```
+
+Now we can refer to this dataset by name to extract mislabeled images and predictions with low confidence:
+
+```
+ldb get ds:roman-numerals --query 'label != inference.label || inference.confidence < 0.5' --target problem-images/
+```
+
+<details>
+	<summary> Output</summary>
+
+```
+Adding to working dataset...
+Added 285 data objects to ds:.temp.2022-06-17T03:29:24.038751+00:00
+Instantiating data...
+
+Copied data to workspace.
+  Data objects:       285
+  Annotations:        285
+```
+</details>
+
+Note there 285 such images that warrant a closer inspection. This is large reduction from the original set (2800+ images) that we can focus on.
 
 ----------TODO---------
 
