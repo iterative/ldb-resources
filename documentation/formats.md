@@ -41,7 +41,11 @@ Here is what is supported so far:
   * `data.data-object-info.path_key` - The key of the data object's URI. Usually a sub-key of `data`, such as `data.image`. This can be inferred by LDB if there is only one key under `data` aside from `data-object-info`. If present, LDB will use the existing value. LDB needs the URI of the data object in order to index it if it hasn't already been indexed by LDB.
   * `data.data-object-info.md5` - The MD5 hash of the data object. If this key is already present, and the hash matches a data object LDB has indexed previously, then LDB does not need to index this annotation's data object.
 
-  These fields allows Label Studio tasks to be passed between LDB and Label Studio instances repeatedly while maintaining consistent data object identifiers and avoiding repeated indexing of the same data objects.
+  These fields allows Label Studio tasks to be passed between LDB and Label Studio instances repeatedly while maintaining consistent data object identifiers and avoiding repeated indexing of the same data objects. In order to export data from LDB that was indexed using the `label-studio` format, stage it as a working dataset and run:
+  ```
+  ldb instantiate --format label-studio
+  ```
+  This will generate a single `annotations.json` file which you can then [import into a Label Studio instance](https://labelstud.io/guide/tasks.html#How-to-import-your-data).
 
 
 TODO
