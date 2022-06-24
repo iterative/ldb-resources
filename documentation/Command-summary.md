@@ -746,6 +746,14 @@ Then the executable should read files from the first directory, and write result
 
 For a simple example see [apply-plugins/random_predictions.py](../apply-plugins/random_predictions.py). This script simply makes random predictions and adds them to a `"prediction"` key for each existing annotation.
 
+For a more practical example, you can index a sample of textocr annotations. Then use [apply-plugins/textocr_crops.py](../apply-plugins/textocr_crops.py) to find text annotations matching a regex and generate cropped images based on their bounding boxes. In this example we look for annotations matching roman numerals in the range 1-10 (i.e. I-X):
+```
+ldb stage ds:roman-numerals
+ldb index s3://ldb-public/remote/data-lakes/textocr/small/
+ldb add --path '^ldb-public/remote/data-lakes/textocr/small/.*'
+ldb instantiate --apply python3 path/to/apply-plugins/textocr_crops.py '(?i)^(V?I{0,3}|IV|IX|X)$'
+```
+
 Note: Because `--apply` can take any number of arguments, the positional path argument that `instantiate` can take should be before `--apply`:
 ```
 ldb instantiate ./some/path --apply script arg1 arg2
