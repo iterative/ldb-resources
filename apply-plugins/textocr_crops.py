@@ -7,7 +7,7 @@ bounding box.
 
 For example:
 
-    ldb instantiate --apply python3 path/to/textocr_crops.py '(?i)^(V?I{0,3}|IV|IX|X)$'
+    ldb instantiate --apply python3 path/to/textocr_crops.py '(?i)^(V?I{1,3}|I?[VX])$'
 
 For information on TextOCR, see https://textvqa.org/textocr/dataset/
 """

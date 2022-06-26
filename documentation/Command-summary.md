@@ -751,7 +751,7 @@ For a more practical example, you can index a sample of textocr annotations. The
 ldb stage ds:roman-numerals
 ldb index s3://ldb-public/remote/data-lakes/textocr/small/
 ldb add --path '^ldb-public/remote/data-lakes/textocr/small/.*'
-ldb instantiate --apply python3 path/to/apply-plugins/textocr_crops.py '(?i)^(V?I{0,3}|IV|IX|X)$'
+ldb instantiate --apply python3 path/to/apply-plugins/textocr_crops.py '(?i)^(V?I{1,3}|I?[VX])$'
 ```
 
 Note: Because `--apply` can take any number of arguments, the positional path argument that `instantiate` can take should be before `--apply`:
