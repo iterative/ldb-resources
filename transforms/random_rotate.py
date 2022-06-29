@@ -28,7 +28,7 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
         transform_args = [360]
     degrees = random.randrange(*transform_args)
     orig_image = Image.open(data_object_path)
-    file_name_base, ext = os.path.splitext(os.path.basename(data_object_path))
+    prefix, ext = os.path.splitext(os.path.basename(data_object_path))
     if ext.lstrip("."):
         fmt = None
     else:
@@ -37,7 +37,7 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
 
     str_args = "-".join(map(str, transform_args))
     new_image = rotate_and_crop(orig_image, degrees)
-    file_name_base = f"{file_name_base}-{transform_name}-{str_args}".replace(
+    file_name_base = f"{prefix}--{transform_name}--{str_args}".replace(
         ".",
         "-",
     )

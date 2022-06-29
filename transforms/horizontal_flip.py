@@ -29,7 +29,7 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
         ext = ""
 
     new_image = orig_image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
-    file_name_base = f"{file_name_base}-{transform_name}".replace(".", "-")
+    file_name_base = f"{file_name_base}--{transform_name}".replace(".", "-")
     obj_file_path = os.path.join(output_dir, f"{file_name_base}{ext}")
     annot_file_path = os.path.join(output_dir, f"{file_name_base}.json")
     new_image.save(obj_file_path, format=fmt)

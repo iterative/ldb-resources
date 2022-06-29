@@ -18,7 +18,7 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
     transform_args = argv[1:] or ["90"]
 
     orig_image = Image.open(data_object_path)
-    file_name_base, ext = os.path.splitext(os.path.basename(data_object_path))
+    prefix, ext = os.path.splitext(os.path.basename(data_object_path))
     if ext.lstrip("."):
         fmt = None
     else:
@@ -26,7 +26,7 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
         ext = ""
     for n in transform_args:
         new_image = rotate_and_crop(orig_image, int(n))
-        file_name_base = f"{file_name_base}-{transform_name}-{n}".replace(
+        file_name_base = f"{prefix}--{transform_name}--{n}".replace(
             ".",
             "-",
         )
