@@ -2,6 +2,7 @@
 import json
 import os
 import random
+import shutil
 import sys
 from typing import Dict, Sequence
 
@@ -10,6 +11,7 @@ from PIL import Image
 
 def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
     data_object_path = inp["data_object"]
+    annotation_path = inp["annotation"]
     output_dir = inp["output_dir"]
     transform_name = inp["transform_name"]
 
@@ -33,14 +35,15 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
         ext = ""
 
     str_args = "-".join(map(str, transform_args))
-    new_image = orig_image.rotate(degrees, expand=True)
-    file_name = f"{file_name_base}-{transform_name}-{str_args}".replace(
+    new_image = orig_image.rotate(degrees)
+    file_name_base = f"{file_name_base}-{transform_name}-{str_args}".replace(
         ".",
         "-",
     )
-    file_name = f"{file_name}{ext}"
-    output_file_path = os.path.join(output_dir, file_name)
-    new_image.save(output_file_path, format=fmt)
+    obj_file_path = os.path.join(output_dir, f"{file_name_base}{ext}")
+    annot_file_path = os.path.join(output_dir, f"{file_name_base}.json")
+    new_image.save(obj_file_path, format=fmt)
+    shutil.copy2(annotation_path, annot_file_path)
 
 
 if __name__ == "__main__":
