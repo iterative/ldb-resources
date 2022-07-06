@@ -866,21 +866,24 @@ ldb pull [object-id(s)]
 `PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace. Pull action applied to objects not in the current workspace are ignored.
 
 # DS
-
 ```
-ldb ds
+ldb ds list
+ldb ds del <dataset> [<dataset> ...]
+```
+
+## DS LIST
+```
+ldb ds list
 ```
 
 Lists latest versions of all datasets in LDB repository.
 
-## flags
+## DS DEL
+```
+ldb ds del <dataset> [<dataset> ...]
+```
 
-`-q` or  `--quiet` 
-
-TODO 
-
-`-v` or  `--verbose`
-
+Deletes the given dataset entries. This command deletes an entire dataset name, so arguments should not specify a version number. For example, use `ds:my-dataset` rather than `ds:my-dataset.v2`.
 
 # EVAL
 ```
