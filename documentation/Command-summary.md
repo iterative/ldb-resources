@@ -138,10 +138,15 @@ Since LDB assumes that storage objects are immutable, it never attempts to alter
 
 `-o / --option <key> <value>`
 
-Specify a key/value to pass to the fsspec filesystem instance created when accessing this storage location. May be used multiple times. For example, to use a specific AWS profile with an s3 storage location:
+Specify a key/value to pass to the fsspec filesystem instance created when accessing this storage location. May be used multiple times. Note that `value` is expected to be a JSON value in order to distinguish between different data types. For example, to use a specific AWS profile with an s3 storage location:
 
 ```
-ldb add-storage s3:/bucket/some/prefix -o profile profile-name
+ldb add-storage s3://bucket/some/prefix -o profile '"profile-name"'
+```
+
+Or to access a public bucket anonymously:
+```
+ldb add-storage s3://bucket/some/prefix -o anon true
 ```
 
 `--read-add` 
