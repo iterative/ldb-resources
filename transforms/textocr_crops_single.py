@@ -15,34 +15,26 @@ import json
 import os
 import re
 import sys
-from typing import Sequence
+from typing import Dict, Sequence
 
 from PIL import Image
 
 
-def main(argv: Sequence[str], stdin_text: str) -> None:
+def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
     if len(argv) != 1:
         raise ValueError("expected exactly one argument, a regex pattern")
-    source_dir, dest_dir = json.loads(stdin_text)
-    generate_crops(source_dir, dest_dir, argv[0])
-
-
-def generate_crops(source_dir: str, dest_dir: str, pattern: str) -> None:
-    file_names = set(os.listdir(source_dir))
-    pairs = {}
-    for entry in file_names:
-        if not entry.endswith(".json"):
-            annot_path = os.path.splitext(entry)[0] + ".json"
-            if annot_path in file_names:
-                pairs[annot_path] = entry
-
-    for annot_name, data_obj_name in pairs.items():
-        create_roman_numeral_crops(
-            os.path.join(source_dir, data_obj_name),
-            os.path.join(source_dir, annot_name),
-            dest_dir,
-            pattern,
-        )
+    pattern = argv[0]
+    data_object_path = inp["data_object"]
+    annotation_path = inp["annotation"]
+    output_dir = inp["output_dir"]
+    transform_name = inp["transform_name"]
+    create_roman_numeral_crops(
+        data_object_path,
+        annotation_path,
+        output_dir,
+        pattern,
+        transform_name,
+    )
 
 
 def create_roman_numeral_crops(
@@ -88,4 +80,4 @@ def crop_bbox(image: Image.Image, bbox: Sequence[float]) -> Image.Image:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:], sys.stdin.read())
+    main(json.loads(sys.stdin.read()), sys.argv[1:])
