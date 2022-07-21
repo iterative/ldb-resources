@@ -238,6 +238,10 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 
 `--add-tags <tags>` Comma-separated list of tags to add to indexed data objects.
 
+`--annotation-update <strategy>` Merge strategy for combining a data object's current annotation with the one discovered during indexing. Choices: {merge,replace}
+
+## formats
+
 Brief format descriptions (see longer discussion of formats [here](formats.md))
  * `auto`, `auto-detect` - Auto-detect the data format. Supports detection of: `strict-pairs`, `annotation-only`, `tensorflow-inferred`
  * `strict`, `strict-pairs` - Only complete pairs of files will be indexed. The annotation file in each pair must have a name ending with `.json` and contain valid json. The data object file must have the same file name but with a different extension, and it must be in the same directory as the annotation file.
