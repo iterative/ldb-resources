@@ -4,7 +4,7 @@ LDB defines datasets as collections of pointers to immutable data objects paired
 
 Since datasets are just collections, LDB can modify them without moving the underlying data objects. To examine the physical data objects or annotations in dataset, it must be partially or fully instantiated (see `INSTANTIATE` below). 
 
-LDB datasets support names with `[A-Za-z0-9_-]` ANSI characters. LDB commands require dataset names to carry a mandatory `ds:` prefix, and allows for optional `.v[0-9]*` postfix that denotes a dataset version number.  
+LDB datasets support names with `[A-Za-z0-9_-]` ANSI characters. LDB commands require dataset names to carry a mandatory `ds:` prefix, and allows for optional `.v[0-9]*` postfix that denotes a dataset version number.
 
 ## LDB object identifiers
 
@@ -23,7 +23,7 @@ Here is the internal structure of a workspace folder:
             └── workspace_dataset    
 ```
 
-Most LDB commands – `ADD`, `DEL`, `SYNC`, `INSTANTIATE`, `COMMIT`, `PULL` require a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` – will also target a staged dataset by default, but do not require a staged dataset if they are passed other dataset identifiers.
+Most LDB commands – `ADD`, `DEL`, `SYNC`, `COMMIT`, `PULL` require a staged dataset, and hence must run from a valid workspace. Other commands – like `LIST`, `STATUS`, `DIFF` – will also target a staged dataset by default, but do not require a staged dataset if they are passed other dataset identifiers.
 
 If the dataset is create with `STAGE`, it already has a name. Datasets staged with `GET` are unnamed, and will get a name at a first commit.
 
@@ -85,9 +85,11 @@ $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 
 # INIT 
 
- ```
- ldb init <instance directory>
- ```
+```
+ldb init [-f] <path>
+```
+
+Initialize a new ldb instance at the given `<path>`.
 
 `INIT` creates a new LDB instance (index) in the given directory. For most enterprise installations, LDB repository folder would be a shared directory on a fast disk. `INIT` ignores any existing LDB instances, and permits a new LDB repository to reside anywhere in a filesystem.
 
@@ -98,13 +100,15 @@ Running `ldb init <path>` creates the following directory structure:
 path/
 ├── config
 ├── custom_code/
+│   ├── ldb_user_filters/
 │   └── ldb_user_functions/
 ├── data_object_info/
 ├── datasets/
 ├── objects/
 │   ├── annotations/
 │   ├── collections/
-│   └── dataset_versions/
+│   ├── dataset_versions/
+│   └── transforms/
 └── storage
 ```
 After finishing, `INIT` prints the summary of work and a reminder on how to change active LDB instance pointers.
@@ -121,16 +125,16 @@ If the target directory contains data (but not an LDB instance), `INIT` fails wi
 # ADD-STORAGE 
 
 ```
-ldb add-storage <storage-URI>
+ldb add-storage [-a] [-f] [-o <key> <value>] <path>
 ```
 
-`ADD-STORAGE` registers a disk (or cloud) data storage location into LDB and verifies the requisite permissions. 
+`ADD-STORAGE` registers a disk (or cloud) data storage location into LDB and verifies the requisite permissions. `<path>` should be a URI or a prefix for URIs.
 
 LDB keeps track of storage locations for several reasons, the primary being engineering discipline (prevent adding objects from random places), and authentication (see `access configuration` below). 
 
 LDB supports the following storage URI types: fs, Google Cloud, AWS, and Azure. 
 
-The minimum and sufficient set of permissions for LDB is to **list, stat and read** any objects at `<storage-URI>`. `ADD-STORAGE` fails if permissions are not sufficient, and succeeds with a warning if permissions are too wide. `ADD-STORAGE` also checks if `<storage-URI>` falls within an already registered URI, and prints an error if this the case. Permissions are re-checked if an existing storage location is re-added.
+The minimum and sufficient set of permissions for LDB is to **list, stat and read** any objects at `<path>`. `ADD-STORAGE` fails if permissions are not sufficient, and succeeds with a warning if permissions are too wide. `ADD-STORAGE` also checks if `<path>` falls within an already registered URI, and prints an error if this the case. Permissions are re-checked if an existing storage location is re-added.
 
 Since LDB assumes that storage objects are immutable, it never attempts to alter or move them. However, LDB may be required to push *new* files to storage if user chooses to source objects from ephemeral _fs_ paths (for example, from a personal workspace). Destination configured as `read-add` will permit LDB to automatically save such objects into immutable storage.
 
@@ -186,7 +190,7 @@ document object lambda access configuration here
 
 # STAGE 
 ```
-ldb stage <ds:<name>[.v<number>]> <workspace_folder>
+ldb stage [-f] [-t <dir>] <dataset>
 ```
 
 `STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<name>`, a new dataset is created. If `<name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
@@ -196,7 +200,7 @@ If workspace is not empty, `STAGE` checks if it holds a clean dataset, and clobb
 *Use case:* 
 
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ ldb status
  Dataset ds:cats, 0 objects, not saved in LDB.
 ```
@@ -212,7 +216,9 @@ allows to clobber the workspace regardless of what is there.
 
 # INDEX 
 ```
-ldb index <storage folder URI(s) | storage object URI(s) | filesystem folder>
+ldb index [-m <format>] [--add-tags <tags>]
+          [--annotation-update <strategy>] [-p <key>=<value>]
+          <path> [<path> ...]
 ```
 
 `INDEX` updates LDB repository with data objects and annotations given as arguments. If LDB instance was created via QuickStart (see `STAGE`), then any cloud location may be indexed by default. If LDB instance was created with the `INIT` command, then LDB assumes indexed URIs to reside within storage locations configured (see `ADD-STORAGE`) and will fail otherwise. If folder is supplied to `INDEX` with no format flag, this folder is traversed recursively to recover objects and annotations in default format (one .json file per every data object sharing the object name). All hidden paths are excluded during indexing, which means any path where any of the directory or filenames begins with a dot (`.`) will not be indexed.
@@ -272,7 +278,7 @@ This results in ldb using the following as the annotation for data object `id:2c
 
 # ADD  
 ```
-ldb add <object-list> [filters]
+ldb add <object-list> [<filters>]
 ```
 
 Where,
@@ -280,11 +286,11 @@ Where,
 
 `ADD` is the main workhorse of LDB as it allows data sample(s) to be added to a dataset staged in the workspace. 
 
-`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to rectify this list. Objects passing the filters are merged into the currently staged dataset. When data object is added to the workspace, an associated annotation will go with it. The particular annotation version will be determined by the source identifier. **In case of version collisions** (same object referenced multiple times with divergent annotation versions), **the latest annotation will be kept**.
+`ADD` builds a list of objects referenced by their hashsum, storage location, or source dataset, and applies optional filters to this list. Objects passing the filters are merged into the currently staged dataset. When a data object is added to the workspace, an associated annotation may go with it. The particular annotation version will be determined by the source identifier. **In case of version collisions** (same object referenced multiple times with divergent annotation versions), **the latest annotation will be kept**. For instance, if `ds:cats` and `ds:small-cats` contain some of the same data objects but with different annotation versions, then `ldb add ds:cats ds:small-cats` would need to choose an annotation version for each common data object.
 
-`ADD` allows for multiple objects (or object sets) of one type to be specified in one command. If no explicit object sources are provided and the `--query` or `--file` option is used, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB.
+`ADD` allows for multiple objects (or object sets) of one type to be specified in one command. If no explicit object sources are provided and a filter option such as `--query` or `--file` is used, `ADD` assumes the source to be `ds:root` – which is all objects indexed by LDB with the most recently indexed annotation for each.
 
-While normally `ADD` references sources already known to LDB (pre-indexed objects with valid identifiers), it can also target a storage folder directly. In that case, `INDEX` command is automatically run over this folder to ensure the index is up to date. 
+While `ADD` normally references sources already known to LDB (pre-indexed objects with valid identifiers), it can also target a storage folder directly. If all data objects in the folder have been indexed by LDB before, then no new indexing occurs. If some data objects have not been indexed, then LDB will index them if the config option `core.auto_index = true` is set. Otherwise an error will occur.
 
 A special scenario for `ADD` arises when it targets ephemeral filesystem paths (anything outside the configured storage locations). Most commonly, such targets would be in the current workspace (where new objects were added directly, or where annotations were edited in-place). `ADD` can understand such changes and will save new data objects into permanent storage (see the `--read-add` option in `ADD-STORAGE`).
 
@@ -294,7 +300,7 @@ A special scenario for `ADD` arises when it targets ephemeral filesystem paths (
 
 *Use case:* 
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ ldb add id:456FED id:5656FED    # result: objects with hashum ids 456FED and 5656FED added to dataset
 ```
 
@@ -304,7 +310,7 @@ By default, `ADD` checks if the specified objects (or a list of objects recursiv
 
 *Use case:*
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ ldb add gs://my-datasets/cats/black-cats/  # previously indexed location
   12 objects added to workspace (ds:cats)
 ```
@@ -312,7 +318,7 @@ $ ldb add gs://my-datasets/cats/black-cats/  # previously indexed location
 
 *Use case:*
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder contains new data
   error: 23 objects detected that are not found in ds:root
   Please run INDEX command first to process this storage location
@@ -322,7 +328,7 @@ This behavior can be altered with `auto-index` option in LDB configuration file.
 
 *Use case:*
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder contains new data
   indexing gs://my-datasets/cats/white-cats/
   23 objects found, 20 new objects added to index, 3 annotations updated
@@ -342,24 +348,24 @@ $ ldb add gs://my-datasets/cats/white-cats/  # location is registered but folder
 
 *Use case:*
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ ldb instantiate --annotations-only
 $ sed -i 's/class=cat/class=dog/g' cat1.json 
-$ ldb add ./                  # result: annotation for cat1.jpg got a new version in LDB, and in ds:cats
+$ ldb add .                  # result: annotation for cat1.jpg got a new version in LDB, and in ds:cats
 ```
 
 *Use case:*
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ cp ~/storage/cat1.jpg ./   # bring some object already in LDB but not in this dataset
 $ ldb add ./cat1.jpg         # result: staged dataset ds:cats now includes cat1.jpg
 ```
 
 *Use case:*
 ```
-$ ldb stage ds:cats ./
+$ ldb stage ds:cats
 $ cp ~/Downloads/cat1.jpg ./  # this object is not in LDB and read-add storage location configured
-$ ldb add ./                  # result: cat1.jpg copied to read-add storage, and then added
+$ ldb add .                  # result: cat1.jpg copied to read-add storage, and then added
 ```
 
 
@@ -377,13 +383,13 @@ $ ldb add ds:black_cats ds:white_cats.v2  # merged with latest ds:black_cats and
 *Use case:*
 ```
 $ mkdir red_cats; cd red_cats
-$ ldb stage ds:red_cats ./                        # create some temporary dataset 
+$ ldb stage ds:red_cats                        # create some temporary dataset 
 $ ldb add ds:cats --query 'cat_color == `red`'    # fill it from some source
 $ cd .. ; mkdir green_cats; cd green_cats         # create another dataset 
-$ ldb stage ds:red_cats ./                        # create another temporary dataset
+$ ldb stage ds:red_cats                        # create another temporary dataset
 $ ldb add ds:cats --query 'cat_color == `green`'  # fill it from another source
 $ cd ..  
-$ ldb stage ds:red_and_green_cats ./              # make a permanent dataset
+$ ldb stage ds:red_and_green_cats              # make a permanent dataset
 $ ldb add ws:./red_cats ws:./green_cats           # merge two temporary datasets into it 
 $ ldb commit                                      # save a permanent dataset
 $ rm -rf green_cats/ red_cats/                    # delete temporary datasets
@@ -397,7 +403,7 @@ ADD with a `workspace_folder` argument can also be used to share datasets betwee
 `ADD` can be called with several filter and modifier flags. If multiple flags are specified, filters will be pipelined, so their order may matter. Multiple instances of one flag are not permitted in one `ADD` command.
 
 
-`--file <filesystem attributes query>`
+`--file <query>`
 
 Builds a query (see [LDB Query Syntax](./LDB-queries.md)) using fixed JSON fields specific to LDB index. The full list of field can be seen with `ldb eval  --file '@'`. The partial list as follows:
 
@@ -413,7 +419,7 @@ Regular JMESPATH functions can be used to enrich the query.
 $ ldb add --file 'regex(fs.path, `gs:datasets/cat-bucket/.*`)'  # Object source is implicitly ds:root, path filtered by regex
 ```
 
-`--query <annotation query terms>`
+`--query <query>`
 
 Permits a query (see [LDB Query Syntax](./LDB-queries.md)) that references arbitrary JSON fields present in object annotation.
 
@@ -422,7 +428,7 @@ Permits a query (see [LDB Query Syntax](./LDB-queries.md)) that references arbit
 $ ldb add --query 'class == `cats`'
 ```
 
-`--pipe <executable with arguments>`
+`--pipe <exec> [<exec ...]`
 
 Passes a list of objects through external program (e.g. an ML model) that filters or sorts them according to match criteria. Often used with `--limit`. LDB can be installed with two ready-made ML plugins (clip and resnet), but more custom plugins can be added. See the Pipe Plugins section below.
 
@@ -431,9 +437,9 @@ Passes a list of objects through external program (e.g. an ML model) that filter
 $ ldb add --pipe clip-text 'cat sitting on a chair' --limit 100 # returns 100 images that best match the provided semantic embedding
 ```
 
-`--limit <integer>`
+`--limit <n>`
 
-Cuts the input list of objects at \<integer\> samples.
+Cuts the input list of objects at \<n\> samples.
 
 `--sample <probability>`
 
@@ -622,7 +628,7 @@ For an argument that could be a number or array, you would use `"array|number"` 
 # DEL 
 
 ```
-ldb del <object-list> [filters]
+ldb del <object-list> [<filters>]
 ```
 
 `DEL` takes the same arguments and filters as `ADD`, but instead of adding the filtered objects it subtracts them from dataset staged in the workspace. If objects provided to `DEL` are not in the dataset, `DEL` does nothing.
@@ -630,7 +636,7 @@ ldb del <object-list> [filters]
 # TAG 
 
 ```
-ldb tag <object-list> [filters]
+ldb tag <object-list> [<filters>]
 ```
 
 `TAG` is a text string in the ANSI character set `[0-9A-z_-]`. Multiple tags can be attached to data objects. Tags attached to objects are global – which means they apply to all instances of an object in all datasets irrespective of their annotations.
@@ -649,10 +655,10 @@ Comma-separated list of tags to remove from data
 
 # SYNC 
 ```
-ldb sync <target-folder>
+ldb sync [<object-list>] [<filters>]
 ```
 
-`SYNC` synchronizes workspace state with dataset instance found at \< target-folder \>. It acts as a combination of `ADD` and `DEL` commands and logically clones \<target-folder\> to staged dataset, effectively overwriting it.
+`SYNC` synchronizes workspace state with the given `<object-list>`. If no arguments are given, the current working directory is used. It acts as a combination of `ADD` and `DEL` commands.
 
 _Use case:_
 ```
@@ -663,7 +669,8 @@ $ ldb sync               # pick up changes in workspace
 
 # TRANSFORM 
 ```
-ldb transform <object-list> [filters]
+ldb transform <object-list> [<filters>]
+              [-a <transforms>] [-r <transforms>] [-s <transforms>]
 ``` 
 
 Add, remove, or set transforms for data objects within a dataset. Transforms are commands that will be run for each data object they are assigned to during instantiation as the final step when using `bare-pairs` (the default) or `strict-pairs` formats. Each transform will be given a temporary path for the data object and annotation, as well as an output directory, and the transform is responsible for writing it's output to the output directory. This may be used to generate any number of augment data objects or modified annotations during instantiation.
@@ -739,7 +746,10 @@ Note that this also means that transform config entries should generally only be
 
 # INSTANTIATE 
 ```
-ldb instantiate [object id(s)] [sub-folder]
+ldb instantiate [<object-list>] [<filters>]
+                [--pipe <exec> [<exec> ...]] [-m <format>]
+        	[-f] [-t <dir>] [--apply <exec> [<exec> ...]]
+                [-p <key>=<value>]
 ```
 
 `INSTANTIATE` partially or fully re-creates dataset in a workspace.  This command works whether the dataset in the workspace is committed (clean) or not (dirty). To partially reconstruct the dataset, `INSTANTIATE` can take any valid object ids - hashsums or full object paths (only those objects are instantiated). If a sub-folder is provided, instantiation happens in this sub-folder, which is created if needed.
@@ -797,7 +807,10 @@ Instantiate objects preserving full storage paths. Only supported for default LD
 # GET
 
 ```
-ldb get [data-object-identifiers] [filters] [-t <dir>] [--apply <exec> [<exec> ...]]
+ldb get <object-list> [<filters>]
+        [--pipe <exec> [<exec> ...]] [-m <format>]
+        [-t <dir>] [--apply <exec> [<exec> ...]] [-p <key>=<value>]
+        [<path> [<path> ...]]
 ```
 
 Add the specified data objects into a working dataset and instantiate them. 
@@ -838,7 +851,7 @@ ldb get ds:dogs ds:cats -t dogs-and-cats
 
 # COMMIT 
 ```
-ldb commit [message]
+ldb commit [-m <message>] [--auto-pull [{True,False}]] [<dataset>]
 ```
 
 `COMMIT` takes the currently staged dataset and saves it to LDB. This action renders workspace "clean" – meaning that all changes are saved, and workspace can be erased if needed. The result of `COMMIT` command on "dirty" workspace is always a new version of dataset.
@@ -847,14 +860,20 @@ The optional `message` flag will be added as the commit message and shown in `ld
 
 # DIFF 
 ```
-ldb diff <ds:<name>> [ds:<name>]
+ldb diff [-s] [<dataset>] [<dataset>]
 ```
 
 `DIFF` prints a list of differences between two datasets. `DIFF` with one argument can only run from a workspace and uses as the first comparand.
 
+## flags
+```
+  -s, --summary  Show only the number of additions, deletions and
+                 modifications.
+```
+
 # LIST  
 ```
-ldb list <object-list> [filters]
+ldb list <object-list> [<filters>]
 ```
 
 `LIST` can take the exact same arguments as `ADD` but only prints matching objects instead of actually adding them.
@@ -872,14 +891,14 @@ detailed object information
 
 # STATUS  
 ```
-ldb status [ds:<name>[.v<number>]
+ldb status [<dataset>]
 ```
 
 When run without arguments from a workspace, `STATUS` summarizes state of a staged dataset. This includes any uncomitted changes and current object counts. If called with an argument, `STATUS` prints a summary for a dataset in the argument.
 
 # PULL 
 ```
-ldb pull [object-id(s)]
+ldb pull [<object-list>]
 ```
 
 `PULL` changes annotation versions for indicated object(s) in workspace to latest known to LDB. If no `object-id(s)` specified, command will apply to all objects in a workspace. Pull action applied to objects not in the current workspace are ignored.
@@ -906,9 +925,9 @@ Deletes the given dataset entries. This command deletes an entire dataset name, 
 
 # EVAL
 ```
-ldb eval [-h] [-q | -v] [-j] [--query <query>] [--file <query>] [<path> [<path> ...]] [--query <query>] [--file <query>]
+ldb eval <object-list> [<filters>]
 ```
-EVAL works the same way as `LIST`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `ADD` and `LIST`.
+`EVAL` works the same way as `LIST`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `ADD` and `LIST`.
 
 The `query` argument must be a valid JMESPath query to be run over annotations (if used with `--query` flag) and over data object file attributes (if used with `--file`). The `path` arguments may be any data object identifiers that the `ADD` command can take.
 
