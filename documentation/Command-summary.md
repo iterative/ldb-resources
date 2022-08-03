@@ -125,7 +125,7 @@ If the target directory contains data (but not an LDB instance), `INIT` fails wi
 # ADD-STORAGE 
 
 ```
-ldb add-storage [-a] [-f] [-o <key> <value>] <path>
+ldb add-storage [-a {true,false}] [-f] [-o <key> <value>]
 ```
 
 `ADD-STORAGE` registers a disk (or cloud) data storage location into LDB and verifies the requisite permissions. `<path>` should be a URI or a prefix for URIs.
@@ -142,20 +142,22 @@ Since LDB assumes that storage objects are immutable, it never attempts to alter
 
 `-o / --option <key> <value>`
 
-Specify a key/value to pass to the fsspec filesystem instance created when accessing this storage location. May be used multiple times. Note that `value` is expected to be a JSON value in order to distinguish between different data types. For example, to use a specific AWS profile with an s3 storage location:
+Specify a key/value to pass to the fsspec filesystem instance created when accessing this storage location. May be used multiple times. Note that `value` is expected to be a JSON value in order to distinguish between different data types, but non-JSON values will be interpreted as a raw string. For example, to use a specific AWS profile with an s3 storage location, these are equivalent:
 
 ```
 ldb add-storage s3://bucket/some/prefix -o profile '"profile-name"'
+ldb add-storage s3://bucket/some/prefix -o profile \"profile-name\"
+ldb add-storage s3://bucket/some/prefix -o profile profile-name
 ```
 
-Or to access a public bucket anonymously:
+Or to access a public bucket anonymously (`true` will be converted to an actually bool value):
 ```
 ldb add-storage s3://bucket/some/prefix -o anon true
 ```
 
-`--read-add` 
+`-a {true,false}, --read-add {true,false}`
 
-Storage location registered with this flag must allow for adding files. 
+Storage location registered with `--read-add=true` must have write-access to allow new files to be added. 
 
 LDB supports at most one `read-add` location, and uses it to save _previously unseen_ local data files that `ADD` command may encounter outside the registered storage. Users can change or remove the `read-add` attribute by repeatedly adding locations with or without this flag. Attempt to add a second`read-add` location to LDB should fail prompting the user to remove the attribute from existing location first. 
 
@@ -245,11 +247,17 @@ $ ldb index gs://my-storage/cat1.json   # index (or reindex) a specific annotati
 `--add-tags <tags>` Comma-separated list of tags to add to indexed data objects.
 
 `--annotation-update <strategy>` Merge strategy for combining a data object's current annotation with the one discovered during indexing. Choices: `{merge,replace}` (default: `replace`)
+ * `replace` will simply replace the old annotation with the new.
+ * `merge` will merge top-level json keys if both the old and new annotations contain top-level JSON objects. Otherwise the new annotation will be used as with the `replace` option.
 
 `-p <key>=<value>`, `--param <key>=<value>` Format-specific option. May be used multiple times. Different formats support different options. The following are supported:
  * `infer`
-   * `base-label` - a string specifying the label to be used for data objects that are inside of the base directory
-   * `label-key` - a jmespath key expression indicating which key the inferred label should be stored under. The default when this option is not used is `label`.
+   * `base-label=<str>` - the label to be used for data objects that are inside of the base directory
+   * `label-key=<str>` - a jmespath key expression indicating which key the inferred label should be stored under. The default when this option is not used is `label`.
+ * `annot`
+   * `single-file={true,false}` -  If `true`, instantiate all annotation JSON objects in a top-level array, creating a single JSON file called `dataset.json`. If `false`, instantiate each annotation in a separate JSON file. The default behavior if this param is not used is the same as setting it to `false`.
+
+`--ephemeral-remote` - Allow non-storage cloud files to be indexed. They will be copied to read-add storage. Normally files outside of the local filesystem must be inside of a storage location unless the config value, `core.read_any_cloud_location = true` is set, but local non-storage (ephemeral) files may be indexed by copying them to a configured read-add location. This allows remote files to be treated the same way as local ephemeral files, and copied to read-add storage if necessary.
 
 ## formats
 
@@ -760,8 +768,8 @@ ldb instantiate [<object-list>] [<filters>]
 
 `-p <key>=<value>`, `--param <key>=<value>` Format-specific option. May be used multiple times. Different formats support different options. The following are supported:
  * `infer`
-   * `base-label` - a string a single label to be instantiated in the base directory instead of a subdirectory. Provides a way to mirror the same option on the `index` command.
-   * `label-key` - a jmespath key expression indicating which key the inferred label should be stored under. The default when this option is not used is `label`.
+   * `base-label=<str>` - a single label to be instantiated in the base directory instead of a subdirectory. Provides a way to mirror the same option on the `index` command.
+   * `label-key=<str>` - a jmespath key expression indicating which key the inferred label should be stored under. The default when this option is not used is `label`.
 
 An executable, along with any arguments that it should take, which should apply the final instantiation step. This is useful for making inferences or appling other transformations during instantiation.
 
