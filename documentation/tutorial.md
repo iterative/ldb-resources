@@ -7,7 +7,7 @@ LDB is an MLOps tool that indexes the existing immutable storage for data files 
 
 ### LDB workflow cycle:
 
-0a. [Start ldb instance](command-summary.md#init) on a shared disk that everyone in the team has access to (step not needed for private instance)
+0a. [Start ldb instance](Command-summary.md#init) on a shared disk that everyone in the team has access to (step not needed for private instance)
 
 0b. [Configure immutable storage locations](Command-summary.md#add-storage) and access privileges (optional for private instance)
 
