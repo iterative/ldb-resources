@@ -297,7 +297,7 @@ Once we have the model, running the inference over all available data is one eas
 ```
 # starting from roman-numerals/
 
-ldb instantiate --target output
+ldb instantiate --target output --format tensorflow-inferred
 cd .. 
 python inference.py roman-numerals/output
 ```
