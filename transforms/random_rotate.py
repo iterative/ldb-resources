@@ -43,7 +43,8 @@ def main(inp: Dict[str, str], argv: Sequence[str] = ()) -> None:
     )
     obj_file_path = os.path.join(output_dir, f"{file_name_base}{ext}")
     annot_file_path = os.path.join(output_dir, f"{file_name_base}.json")
-    new_image.save(obj_file_path, format=fmt)
+    rgb_im = new_image.convert('RGB')
+    rgb_im.save(obj_file_path, format=fmt)
     shutil.copy2(annotation_path, annot_file_path)
 
 
