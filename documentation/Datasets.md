@@ -36,7 +36,7 @@ ldb index s3://ldb-public/remote/data-lakes/dogs-and-cats/
 **Example of use:**
 ```
 ldb index s3://ldb-public/remote/data-lakes/dogs-and-cats/
-ldb stage ds:my-animals ./
+ldb stage ds:my-animals 
 ldb add s3://ldb-public/remote/data-lakes/dogs-and-cats/
 ldb eval --limit 3 --query '[class, inference.class]'
 ldb get ws:./ --pipe clip-text 'orange cats' --limit 10 -t orange-cats/
