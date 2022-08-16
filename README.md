@@ -40,15 +40,15 @@ pip install ldb-alpha
 pip install 'ldb-alpha [s3,clip-plugin,resnet-plugin]' 
 ```
 
-### add anonymous access to public s3 datasets **(optional, only needed for [LDB team setup](documentation/Quick-start-teams.md))**
+### add anonymous access to public s3 datasets **(optional)**
 ```
 ldb add-storage s3://ldb-public/remote/ -o anon true
 ```
-Sample datasets [are here](documentation/Datasets.md)
+* Sample dataset descriptions [are here](documentation/Datasets.md)
 
-Supported metadata and dataset formats [here](documentation/formats.md)
+* Supported metadata and dataset formats [here](documentation/formats.md)
 
-Full LDB command summary [is here](documentation/Command-summary.md)
+* Full LDB command summary [is here](documentation/Command-summary.md)
 
 
 ### How LDB works
@@ -56,7 +56,7 @@ Full LDB command summary [is here](documentation/Command-summary.md)
 LDB indexes immutable storage and notes unique data objects along with their associated annotations (if present). This index can then be queried to construct datasets that operate like collections of sparse pointers into the storage. LDB does not save data objects internally, and depends on their persistent storage locations to materialize (instantiate) datasets on demand.
 
 
-<img src="images/LDB-principle.png"  width=50% height=50%>
+<img src="images/ldb-principle.png"  width=50% height=50%>
 
 LDB datasets can then be shared and versioned, which makes any membership changes (cloning, merging, splitting, adding, and removing objects) manageable and reproducible.
 
@@ -194,7 +194,7 @@ LDB relies on AWS JMESPATH language to query JSON annotations. JMESPATH is not a
 Most everyday data selection tasks appear simple and elegant in JMESPATH. For example, choose objects with confidence below a threshold:
 
   ```
-  ldb list --query 'inference.confidence < 0.3
+  ldb list --query 'inference.confidence < 0.3'
   ```
   JMESPATH is a powerful JSON expression reducer, and can be extended with [custom functions](documentation/Command-summary.md#user-defined-custom-query-functions). LDB also provides some handy functions out of the box, for example – to compute the total area of (possibly overlapping) bounding boxes for all images in workspace, one can project dimension metrics into arrays and use dotproduct(array, array) to compute the final result:
   
@@ -250,8 +250,8 @@ LDB supports many ways to manipulate dataset membership. For example, the follow
   Membership operations are not limited to named datasets already saved into LDB. For example, one can stage unnamed (temporary) dataset with `GET` and sample the result using the workspace notation `ws:`:
   
   ```
-  ldb stage animals
-  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' -t more-animals/
+  ldb stage ds:animals
+  ldb get s3://ldb-public/remote/data-lakes/dogs-and-cats/ --path 'dog\.10[0-2]+' --target more-animals/
   ldb add ws:./more-animals --sample 0.5
   ```
  
