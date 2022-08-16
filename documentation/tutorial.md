@@ -249,8 +249,8 @@ The last thing we need to do before training the model on stock dataset is to in
 
 ```
 cd roman-numerals/
-ldb instantiate --tag train --target ../train
-ldb instantiate --tag val --target ../val
+ldb instantiate --tag train --target ../train --format tensorflow-inferred
+ldb instantiate --tag val --target ../val --format tensorflow-inferred
 ```
 
 This should be all we need to train our baseline model (if you don't have Tensorflow and Keras, look for help [here](https://www.tensorflow.org/install)).
@@ -297,7 +297,7 @@ Once we have the model, running the inference over all available data is one eas
 ```
 # starting from roman-numerals/
 
-ldb instantiate --target output
+ldb instantiate --target output --format tensorflow-inferred
 cd .. 
 python inference.py roman-numerals/output
 ```
@@ -315,8 +315,8 @@ This should fill folder `predictions` with .json files of the following format:
             "confidence": 0.9992263317108154
         }
     },
-    "ldb_meta": {
-        "data_object_id": "447a1471b96fad28678cc2bbd678d303"
+    "data-object-info": {
+        "md5": "447a1471b96fad28678cc2bbd678d303"
     }
 }
 ```
@@ -325,7 +325,7 @@ This should fill folder `predictions` with .json files of the following format:
 Note the sections `annotation` and `ldb_meta`. Presence of these two sections signifies `annotation-only` format that LDB can use without attached data files, by linking the content using the hash id. This format is convenient to use because we can easily merge it with annotations that already exist in the LDB index:
 
 ```
-ldb index --annotation-update merge --predictions/
+ldb index --annotation-update merge predictions/
 ```
 
 <details>
