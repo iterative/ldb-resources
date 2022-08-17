@@ -81,6 +81,7 @@ $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 - [PULL](#pull)
 - [DS](#ds)
 - [EVAL](#eval)
+- [UNINDEX](#unindex)
 - [COMPLETION](#completion)
 
 # INIT 
@@ -929,7 +930,7 @@ Lists latest versions of all datasets in LDB repository.
 ldb ds del <dataset> [<dataset> ...]
 ```
 
-Deletes the given dataset entries. This command deletes an entire dataset name, so arguments should not specify a version number. For example, use `ds:my-dataset` rather than `ds:my-dataset.v2`.
+Deletes the given dataset entries. This command deletes all of the versions under a given dataset name, so arguments should not specify a version number. For example, use `ds:my-dataset` rather than `ds:my-dataset.v2`.
 
 # EVAL
 ```
@@ -941,6 +942,13 @@ The `query` argument must be a valid JMESPath query to be run over annotations (
 
 The `-j` or `--json-only` option will print only JSON query results. Without it, each JSON object is preceded by the corresponding data object hash.
 
+# UNINDEX
+
+```
+ldb unindex <object-list> [<filters>]
+```
+
+`UNINDEX` takes the same arguments and filters as `DEL` and permanently removes the data object entries from the index. This requires the data objects given not to be members of any saved datasets. Otherwise an error will be thrown. To delete datasets that are no longer useful, see the `ldb ds del` command.
 
 # COMPLETION
 ```
