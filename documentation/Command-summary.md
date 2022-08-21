@@ -765,12 +765,12 @@ ldb instantiate [<object-list>] [<filters>]
 
 ## flags
 
-`--apply <exec> [<exec> ...]`
-
 `-p <key>=<value>`, `--param <key>=<value>` Format-specific option. May be used multiple times. Different formats support different options. The following are supported:
  * `infer`
    * `base-label=<str>` - a single label to be instantiated in the base directory instead of a subdirectory. Provides a way to mirror the same option on the `index` command.
    * `label-key=<str>` - a jmespath key expression indicating which key the inferred label should be stored under. The default when this option is not used is `label`.
+
+`--apply <exec> [<exec> ...]`
 
 An executable, along with any arguments that it should take, which should apply the final instantiation step. This is useful for making inferences or appling other transformations during instantiation.
 
