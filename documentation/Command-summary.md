@@ -126,7 +126,7 @@ If the target directory contains data (but not an LDB instance), `INIT` fails wi
 # ADD-STORAGE 
 
 ```
-ldb add-storage [-a {true,false}] [-f] [-o <key> <value>]
+ldb add-storage [-a {true,false}] [-f] [-o <key> <value>] <path>
 ```
 
 `ADD-STORAGE` registers a disk (or cloud) data storage location into LDB and verifies the requisite permissions. `<path>` should be a URI or a prefix for URIs.
@@ -193,10 +193,10 @@ document object lambda access configuration here
 
 # STAGE 
 ```
-ldb stage [-f] [-t <dir>] <dataset>
+ldb stage [-f] [-t <workspace_folder>] <ds:name>
 ```
 
-`STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<name>`, a new dataset is created. If `<name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
+`STAGE` command creates an LDB workspace at a given `<workspace_folder>` for dataset `<ds:name>`. The destination folder is expected to be empty. If LDB repository has no dataset `<ds:name>`, a new dataset is created. If `<ds:name>` references an existing dataset, it is staged out (but not automaticlly instantiated).
 
 If workspace is not empty, `STAGE` checks if it holds a clean dataset, and clobbers it.  If `<workspace_folder>` holds a dirty dataset, a warning and a status of this dataset are printed before failure. If `<workspace_folder>` is not empty but does not hold an LDB dataset, a reminder to use `--force` is printed. 
 
