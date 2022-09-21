@@ -428,6 +428,10 @@ Regular JMESPATH functions can be used to enrich the query.
 $ ldb add --file 'regex(fs.path, `gs:datasets/cat-bucket/.*`)'  # Object source is implicitly ds:root, path filtered by regex
 ```
 
+`--path <regex expression>`
+
+A convenience alias for ``` --file 'regex(fs.path, `regex expression`)' ```
+
 `--query <query>`
 
 Permits a query (see [LDB Query Syntax](./LDB-queries.md)) that references arbitrary JSON fields present in object annotation.
