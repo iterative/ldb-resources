@@ -168,7 +168,7 @@ LDB supports at most one `read-add` location, and uses it to save _previously un
 *Use case:* 
 
 ```
-$ ldb add-storage gs://add-storage --read-add 
+$ ldb add-storage gs://add-storage --read-add true
   new storage location gs://add-storage successfully registered.
 
 $ ldb add ./cat1.jpg
