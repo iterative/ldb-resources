@@ -942,6 +942,41 @@ The `query` argument must be a valid JMESPath query to be run over annotations (
 
 The `-j` or `--json-only` option will print only JSON query results. Without it, each JSON object is preceded by the corresponding data object hash.
 
+# QUERY
+```
+ldb query [<filters>] <json-file-list>
+```
+The `query` command is used for querying unindexed or raw JSON files, to test out queries / JMESPath selections. It can be used with supplied JSON files on the command line, where `--query` or `--jquery` will be used to filter files, and `--show` or `--jshow` will be used to search within these files and print the search results. Note that `--query` and `--show` use the custom JMESPath-like expressions and `--jquery` and `--jshow` use fully-compliant JMESPath queries.
+
+For example:
+```
+ldb query --query "type == 'image'" --show "subject" test1.json test2.json
+Output:
+"cat"
+"dog"
+```
+
+The `query` command can also read JSON data from stdin if no files are specified, for use with piping from other command-line programs:
+```
+cat test1.json | ldb query --query "type == 'image'" --show "subject"
+Output:
+"cat"
+```
+
+In addition, there are two options for combining and uncombining input JSON files: `--slurp` combines the supplied files into a top-level array before running the query filters and showing search results. `--unslurp` uncombines a supplied top-level array into individual JSON files before running the query filters and showing search results. Unslurp is particularly useful for stdin input, as a top-level array of all files can be passed into stdin, then split with `--unslurp`, for example:
+```
+echo '[{"A":1,"B":50},{"A":2,"B":100}]' | ldb query --unslurp --query 'A == `2`' --show 'B'
+Output:
+100
+```
+
+Both slurp and unslurp can be used together to transform individual files with top-level arrays into one top-level array, described conceptually as:
+```
+[A, B, C], [D, E, F] -> [A, B, C, D, E, F]
+```
+
+As well, similar to the `eval` command, the `query` command has selectable indentation for JSON output (if the show selection returns JSON as a search result).
+
 # UNINDEX
 
 ```
