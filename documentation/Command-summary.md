@@ -939,13 +939,28 @@ Deletes the given dataset entries. This command deletes all of the versions unde
 
 # EVAL
 ```
-ldb eval <object-list> [<filters>]
+ldb eval <object-list> [<filters>] [<show>]
 ```
-`EVAL` works the same way as `LIST`, except it will print out json results. Any `--query` or `--file` option that comes before other filter options (such as `--limit`, `--pipe`, or multiple `--query` options) will be used to filter items, but if the command ends with a `--query`, `--file`, or both then the json values of applying these final queries will be displayed rather than used to filter our items. This is useful for debugging queries for other commands such as `ADD` and `LIST`.
+`EVAL` works the same way as `LIST`, except it will print out json results, for use in debugging queries for other commands such as `ADD` and `LIST`. The `--query` or `--jquery` options are used to filter annotations, and `--show` or `--jshow` are used to search within these annotations and print the search results. Note that `--query` and `--show` use the custom JMESPath-like expressions and `--jquery` and `--jshow` use fully-compliant JMESPath queries. In addition, the `--file` option is used to filter on file attributes, and `--file-show` is used to search within file attributes and print the search results. These filters can be can be used with other filter options, such as `--limit`, `--pipe`, or multiple `--query` options to filter items as well.
 
 The `query` argument must be a valid JMESPath query to be run over annotations (if used with `--query` flag) and over data object file attributes (if used with `--file`). The `path` arguments may be any data object identifiers that the `ADD` command can take.
 
 The `-j` or `--json-only` option will print only JSON query results. Without it, each JSON object is preceded by the corresponding data object hash.
+
+It is also possible to provide multiple query filters and multiple search results to show, for example:
+```
+ldb eval ds:pets --query "type == 'image'" --query "format == 'png'" --show "subject" --show "confidence"
+Output:
+id:a4ae03f8db03dcb93dadc740260b9eb0
+"cat"
+0.7
+id:f75eebabf9ece701641b3ffa7b73a021
+"dog"
+0.5
+id:0890edfe5a1cc9c1fc3373f9afc4bac0
+"cat"
+0.9
+```
 
 # QUERY
 ```
