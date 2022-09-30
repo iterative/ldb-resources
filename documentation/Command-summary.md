@@ -81,6 +81,7 @@ $ ldb add gs://iterative/roman-numerals --query 'class == `i`'
 - [PULL](#pull)
 - [DS](#ds)
 - [EVAL](#eval)
+- [QUERY](#query)
 - [UNINDEX](#unindex)
 - [COMPLETION](#completion)
 
